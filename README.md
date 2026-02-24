@@ -1,1 +1,3 @@
-# user_management_system
+## Contributors
+- Pasindu Dilmin
+- [Sadeesha sathsara] (GitHub: username)
