@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # User Management System
 
 A comprehensive web application for managing employees, departments, EPF (Employee Provident Fund), and administrative tasks.  
@@ -217,3 +218,8 @@ This project is open source and available under the [MIT License](LICENSE).
 
 **Sadeesha Sathsara**  
 GitHub: [@sadeeshasathsara](https://github.com/sadeeshasathsara)
+=======
+## Contributors
+- Pasindu Dilmin
+- [Sadeesha sathsara] (GitHub: username)
+>>>>>>> c0d668658809c8d97bcd10ff84b93d5be9e1ad1d

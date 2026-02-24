@@ -248,6 +248,41 @@ const DashboardView = () => {
     return (
         <div className="min-h-screen bg-gray-50 ">
             <div className="max-w-7xl mx-auto">
+               
+                {/* Special Message Section - Add this right after the opening div and before Quick Access Links */}
+<div className="mb-6">
+    <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl shadow-lg p-6 text-white relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-white opacity-10 rounded-full -mr-20 -mt-20"></div>
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white opacity-10 rounded-full -ml-16 -mb-16"></div>
+        
+        <div className="relative z-10">
+            <div className="flex items-start justify-between">
+                <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-2">
+                        <Bell className="w-5 h-5 animate-pulse" />
+                        <span className="text-sm font-semibold uppercase tracking-wide">Special Announcement</span>
+                    </div>
+                    <h2 className="text-2xl font-bold mb-2">
+                        🔔 Important Notice: Employee Details Pending
+                    </h2>
+                    <p className="text-white/90 text-sm leading-relaxed max-w-3xl">
+                        The IT Department has collected employee information through a Google Form.
+                        However, these details have not yet been added to the HR employee database.
+                    </p>
+                </div>
+                <button 
+                    className="flex-shrink-0 p-2 hover:bg-white/20 rounded-lg transition-colors ml-4"
+                    title="Dismiss"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
                 {/* Quick Access Links */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
