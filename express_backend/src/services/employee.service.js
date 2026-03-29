@@ -1,6 +1,7 @@
 import Employee from '../models/employee.model.js';
 import mongoose from 'mongoose';
 import EmployeeEpf from '../models/employeeEpf.model.js';
+import bcrypt from 'bcryptjs';
 
 export const createEmployee = async (data) => {
     if (!data || typeof data !== "object") {
@@ -9,7 +10,11 @@ export const createEmployee = async (data) => {
 
     // Recursively sanitize values
     const sanitize = (obj) => {
-        if (Array.isArray(obj)) {
+        if (obj instanceof Date) {
+            return obj;
+        } else if (obj instanceof mongoose.Types.ObjectId || (obj && obj._bsontype && obj._bsontype.toLowerCase() === 'objectid')) {
+            return obj;
+        } else if (Array.isArray(obj)) {
             return obj.map(sanitize);
         } else if (obj !== null && typeof obj === "object") {
             return Object.fromEntries(
@@ -27,6 +32,11 @@ export const createEmployee = async (data) => {
     };
 
     const sanitizedData = sanitize(data);
+
+    if (sanitizedData.password) {
+        const saltRounds = 10;
+        sanitizedData.password = await bcrypt.hash(sanitizedData.password, saltRounds);
+    }
 
     try {
         return await Employee.create(sanitizedData);
@@ -47,7 +57,11 @@ export const updateEmployee = async (id, data) => {
 
     // Recursively sanitize values
     const sanitize = (obj, schema) => {
-        if (Array.isArray(obj)) {
+        if (obj instanceof Date) {
+            return obj;
+        } else if (obj instanceof mongoose.Types.ObjectId || (obj && obj._bsontype && obj._bsontype.toLowerCase() === 'objectid')) {
+            return obj;
+        } else if (Array.isArray(obj)) {
             return obj.map(item => sanitize(item, schema));
         } else if (obj !== null && typeof obj === "object") {
             return Object.fromEntries(
@@ -79,6 +93,12 @@ export const updateEmployee = async (id, data) => {
     try {
         // Sanitize incoming data
         const sanitizedData = sanitize(data);
+        delete sanitizedData._id; // Ensure we never try to update the _id field
+
+        if (sanitizedData.password) {
+            const saltRounds = 10;
+            sanitizedData.password = await bcrypt.hash(sanitizedData.password, saltRounds);
+        }
 
         // Special case: profilePicture — extract filename if full URL is passed
         if (sanitizedData.profilePicture && typeof sanitizedData.profilePicture === "string") {

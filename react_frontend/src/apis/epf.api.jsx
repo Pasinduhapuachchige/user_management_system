@@ -77,3 +77,15 @@ export const deleteEmployeeEpf = async (epfId, { type, createdAt, rangeName }) =
     }
 };
 
+export const deleteFullEmployeeEpfRecord = async (epfId) => {
+    try {
+        const response = await axios.delete(`${API_BASE_URL}/epf/emp/${epfId}/record`, {
+            withCredentials: true
+        });
+        return response.data;
+    } catch (err) {
+        console.error("Error deleting full employee EPF record:", err);
+        const message = err.response?.data?.message || "Failed to delete full employee EPF record.";
+        throw new Error(message);
+    }
+};

@@ -5,22 +5,18 @@ import { getAdmins, registerAdmin } from "../services/register.service.js";
 import { sendCredentials } from "../services/sendCredentials.service.js";
 
 export const registerController = async (req, res) => {
-    const { email, password, epfNo } = req.body;
-    let generatedPassword = null;
+    const { email, password, epfNo, role } = req.body;
 
-    if (!email || !epfNo) {
-        return res.status(400).json({ message: 'Email and EPF number are required' });
-    }
-
-    if (!password) {
-        generatedPassword = passwordGenerator();
+    if (!email || !epfNo || !password) {
+        return res.status(400).json({ message: 'Email, password, and EPF number are required' });
     }
 
     try {
         const admin = await registerAdmin({
             email,
-            password: generatedPassword || password,
-            epfNo
+            password: password,
+            epfNo,
+            role: role || 'HR'
         });
 
         const [savedAdmin] = await getEmployeesByQuery({ epfNumber: epfNo });
@@ -30,14 +26,13 @@ export const registerController = async (req, res) => {
         }
 
         if (savedAdmin.email !== email) {
-            savedAdmin.email = email;
-            await updateEmployee(savedAdmin._id, savedAdmin);
+            await updateEmployee(savedAdmin._id, { email });
         }
 
         await sendCredentials({
             email,
             name: savedAdmin.name || 'New Admin',
-            password: generatedPassword || password
+            password: password
         });
 
         res.status(201).json({

@@ -1530,3 +1530,5 @@ const AddEmployeeForm = ({ onBack }) => {
 };
 
 export default AddEmployeeForm;
+
+export default AddEmployeeForm;

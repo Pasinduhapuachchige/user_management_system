@@ -1,4 +1,4 @@
-import { createOrUpdateEmployeeEpf, deleteEmployeeEpfExpense, getEmployeeEpfs, getMaxEpf, updateMaxEpf } from "../services/epf.service.js";
+import { createOrUpdateEmployeeEpf, deleteEmployeeEpfExpense, deleteEmployeeEpfRecord, getEmployeeEpfs, getMaxEpf, updateMaxEpf } from "../services/epf.service.js";
 
 export const updateMaxEpfController = async (req, res) => {
     try {
@@ -246,6 +246,30 @@ export const deleteEmployeeEpfExpenseController = async (req, res) => {
         });
     } catch (err) {
         console.error("Controller error:", err);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: err.message || err
+        });
+    }
+};
+
+export const deleteEmployeeEpfRecordController = async (req, res) => {
+    try {
+        const { epfId } = req.params;
+
+        if (!epfId || !/^[a-f\d]{24}$/i.test(epfId)) {
+            return res.status(400).json({ success: false, message: "Invalid EPF ID" });
+        }
+
+        const result = await deleteEmployeeEpfRecord(epfId);
+
+        return res.status(200).json({
+            success: true,
+            message: result.message
+        });
+    } catch (err) {
+        console.error("Controller error removing EPF record:", err);
         res.status(500).json({
             success: false,
             message: "Internal server error",

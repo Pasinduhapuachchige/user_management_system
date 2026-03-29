@@ -267,3 +267,15 @@ export const deleteEmployeeEpfExpense = async ({ epfId, type, createdAt, rangeNa
     }
 };
 
+export const deleteEmployeeEpfRecord = async (epfId) => {
+    try {
+        const epfRecord = await EmployeeEpf.findByIdAndDelete(epfId);
+        if (!epfRecord) {
+            throw new Error("EPF record not found");
+        }
+        return { success: true, message: "EPF record deleted successfully" };
+    } catch (err) {
+        console.error("Error deleting EPF record:", err);
+        throw new Error(err.message || "Failed to delete EPF record");
+    }
+};

@@ -18,6 +18,7 @@ import Login from './pages/auth';
 import ProtectRoutes from './components/ProtectRoutes';
 import 'react-phone-input-2/lib/style.css';
 import AdminProfilePage from './pages/AdminProfilePage';
+import EmployeeDashboard from './pages/dashboard/employee_dashboard';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -66,15 +67,6 @@ function App() {
 
   return (
     <div className="App">
-      <style jsx={'true'}>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-      `}</style>
 
       <Routes>
         {/* Authentication Routes */}
@@ -82,7 +74,7 @@ function App() {
 
         {/* Dashboard Routes - All wrapped in DashboardLayout */}
         <Route path="/" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <DashboardHome currentPath="dashboard" />
             </DashboardWrapper>
@@ -90,7 +82,7 @@ function App() {
         } />
 
         <Route path="/dashboard" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <DashboardHome currentPath="dashboard" />
             </DashboardWrapper>
@@ -99,7 +91,7 @@ function App() {
 
         {/* Employee Routes */}
         <Route path="/employees" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <EmployeesList currentPath="employees" />
             </DashboardWrapper>
@@ -107,7 +99,7 @@ function App() {
         } />
 
         <Route path="/employees/add" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <AddEmployee currentPath="employees/add" />
             </DashboardWrapper>
@@ -115,7 +107,7 @@ function App() {
         } />
 
         <Route path="/employees/edit/:id" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <ViewEditEmployee currentPath="employees/edit" />
             </DashboardWrapper>
@@ -123,7 +115,7 @@ function App() {
         } />
 
         <Route path="/employees/:id" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <ViewEditEmployee currentPath="employees/id" />
             </DashboardWrapper>
@@ -132,7 +124,7 @@ function App() {
 
         {/* Department Routes */}
         <Route path="/departments" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <DepartmentsList currentPath="departments" />
             </DashboardWrapper>
@@ -140,7 +132,7 @@ function App() {
         } />
 
         <Route path="/departments/add" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <AddDepartment currentPath="departments/add" />
             </DashboardWrapper>
@@ -148,7 +140,7 @@ function App() {
         } />
 
         <Route path="/departments/edit/:id" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <EditDepartment currentPath="departments/edit" />
             </DashboardWrapper>
@@ -156,7 +148,7 @@ function App() {
         } />
 
         <Route path="/departments/:id" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <EditDepartment currentPath="departments/id" />
             </DashboardWrapper>
@@ -165,16 +157,7 @@ function App() {
 
         {/* EPF Routes */}
         <Route path="/epf" element={
-          <ProtectRoutes>
-            <DashboardWrapper>
-              <EPFList currentPath="epf" />
-            </DashboardWrapper>
-          </ProtectRoutes>
-        } />
-
-        {/* EPF Routes */}
-        <Route path="/epf" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <EPFList currentPath="epf" />
             </DashboardWrapper>
@@ -182,15 +165,7 @@ function App() {
         } />
 
         <Route path="/epf/add" element={
-          <ProtectRoutes>
-            <DashboardWrapper>
-              <AddEPF currentPath="epf/add" />
-            </DashboardWrapper>
-          </ProtectRoutes>
-        } />
-
-        <Route path="/epf/add" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <AddEPF currentPath="epf/add" />
             </DashboardWrapper>
@@ -199,14 +174,7 @@ function App() {
 
         {/* Admin Routes */}
         <Route path="/admins" element={
-          <DashboardWrapper>
-            <AdminsList currentPath="admins" />
-          </DashboardWrapper>
-        } />
-
-        {/* Admin Routes */}
-        <Route path="/admins" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin']}>
             <DashboardWrapper>
               <AdminsList currentPath="admins" />
             </DashboardWrapper>
@@ -214,7 +182,7 @@ function App() {
         } />
 
         <Route path="/admins/add" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin']}>
             <DashboardWrapper>
               <AddAdmin currentPath="admins/add" />
             </DashboardWrapper>
@@ -223,7 +191,7 @@ function App() {
 
         {/* Settings Routes */}
         <Route path="/settings/epf" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <EPFSettings currentPath="settings/epf" />
             </DashboardWrapper>
@@ -232,7 +200,7 @@ function App() {
 
         {/* Reports Route */}
         <Route path="/reports" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <Reports currentPath="reports" />
             </DashboardWrapper>
@@ -241,16 +209,25 @@ function App() {
 
         {/* Profile Route */}
         <Route path="/profile" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <AdminProfilePage currentPath="profile" />
             </DashboardWrapper>
           </ProtectRoutes>
         } />
 
+        {/* Employee Dashboard Route */}
+        <Route path="/employee-dashboard" element={
+          <ProtectRoutes allowedRoles={['Employee']}>
+            <DashboardWrapper>
+              <EmployeeDashboard currentPath="employee-dashboard" />
+            </DashboardWrapper>
+          </ProtectRoutes>
+        } />
+
         {/* Catch-all route - redirect to dashboard */}
         <Route path="*" element={
-          <ProtectRoutes>
+          <ProtectRoutes allowedRoles={['Admin', 'HR']}>
             <DashboardWrapper>
               <DashboardHome currentPath="dashboard" />
             </DashboardWrapper>

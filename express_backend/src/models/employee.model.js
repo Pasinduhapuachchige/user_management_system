@@ -115,6 +115,9 @@ const employeeSchema = new mongoose.Schema({
     contactNumber: {
         type: String,
         required: true,
+    },
+    password: {
+        type: String,
     }
 }, { timestamps: true });
 

@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
-import { getAdmins } from '../services/register.service.js';
+import Admin from '../models/admin.model.js';
+import Employee from '../models/employee.model.js';
 
 export const verifyAuth = async (req, res, next) => {
     const token = req.cookies?.token;
@@ -17,25 +18,37 @@ export const verifyAuth = async (req, res, next) => {
 
         req.user = {
             _id: decoded.id,
-            email: decoded.email
+            email: decoded.email,
+            role: decoded.role
         };
 
-        const [admin] = await getAdmins({ email: decoded.email });
+        if (decoded.role === 'Employee') {
+            const employee = await Employee.findById(decoded.id);
+            if (!employee) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'Unauthorized 1.1',
+                    message: 'Invalid employee account'
+                });
+            }
+        } else {
+            const admin = await Admin.findById(decoded.id);
 
-        if (!admin) {
-            return res.status(401).json({
-                success: false,
-                error: 'Unauthorized 1.1',
-                message: 'Invalid administration account'
-            });
-        }
+            if (!admin) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'Unauthorized 1.1',
+                    message: 'Invalid administration account'
+                });
+            }
 
-        if (admin.isActive === false) {
-            return res.status(401).json({
-                success: false,
-                error: 'Unauthorized 1.2',
-                message: 'Account disabled'
-            });
+            if (admin.isActive === false) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'Unauthorized 1.2',
+                    message: 'Account disabled'
+                });
+            }
         }
 
         next();

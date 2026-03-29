@@ -17,6 +17,11 @@ const adminSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    role: {
+        type: String,
+        enum: ['Admin', 'HR'],
+        default: 'HR'
     }
 }, { timestamps: true });
 

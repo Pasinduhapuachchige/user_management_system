@@ -116,3 +116,21 @@ export const getEmployeesApi = async (query = {}) => {
         throw err.response?.data || { message: err.message };
     }
 };
+
+/**
+ * Get a single employee by ID
+ * @param {string} id - Employee ID
+ */
+export const getEmployeeByIdApi = async (id) => {
+    try {
+        const res = await axios.get(`${API}?_id=${id}`, {
+            withCredentials: true
+        });
+
+        return res.data;
+    } catch (err) {
+        console.error('Get Employee By ID Error:', err);
+        throw err.response?.data || { message: err.message };
+    }
+};
+

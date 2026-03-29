@@ -15,8 +15,8 @@ export const addAdmin = async (formData) => {
         const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/register`, formData, { withCredentials: true })
         return res.data;
     } catch (err) {
-        console.log(err);
-        return err.message;
+        console.error("API Error in addAdmin:", err);
+        throw err;
     }
 }
 

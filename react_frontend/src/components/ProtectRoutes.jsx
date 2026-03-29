@@ -5,8 +5,9 @@ import LoadingScreen from './LoadingScreen';
 import AuthErrorModal from './AuthErrorModel';
 import { useUserStore } from '../tools/user.zustand';
 
-function ProtectRoutes({ children }) {
+function ProtectRoutes({ children, allowedRoles }) {
     const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+    const [isAuthorized, setIsAuthorized] = React.useState(true);
     const [isLoading, setIsLoading] = React.useState(true);
     const [showErrorModal, setShowErrorModal] = React.useState(false);
     const [errorDetails, setErrorDetails] = React.useState({
@@ -59,6 +60,9 @@ function ProtectRoutes({ children }) {
                 if (res.success === true) {
                     setIsAuthenticated(true);
                     setUser(res.user);
+                    if (allowedRoles && res.user.role && !allowedRoles.includes(res.user.role)) {
+                        setIsAuthorized(false);
+                    }
                     console.log('User authenticated:', res.user);
                     setIsLoading(false);
                 } else {
@@ -104,6 +108,11 @@ function ProtectRoutes({ children }) {
     // Navigate to login if not authenticated
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
+    }
+
+    if (!isAuthorized) {
+        if (user?.role === 'Employee') return <Navigate to="/employee-dashboard" replace />;
+        return <Navigate to="/dashboard" replace />;
     }
 
     // Render protected content

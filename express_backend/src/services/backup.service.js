@@ -6,21 +6,27 @@ import archiver from 'archiver';
 import crypto from 'crypto';
 dotenv.config();
 
-const ENCRYPTION_KEY = crypto.createHash('sha256').update(process.env.BACKUP_ENCRYPTION_KEY).digest(); // 32-byte key
-const IV = crypto.randomBytes(16);
-
 const BACKUP_DIR = path.resolve('backups');
-const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-const tempDir = path.join(BACKUP_DIR, `temp-${timestamp}`);
-const zipFile = path.join(BACKUP_DIR, `backup-${timestamp}.zip`);
-const encryptedFile = `${zipFile}.enc`;
 
 export const createSystemBackup = async () => {
     try {
-        await fs.ensureDir(tempDir);
-        await mongoose.connect(process.env.MONGO_URI);
+        const ENCRYPTION_KEY = crypto.createHash('sha256').update(process.env.BACKUP_ENCRYPTION_KEY).digest(); // 32-byte key
+        const IV = crypto.randomBytes(16); // Unique IV for each backup run
 
-        const collections = await mongoose.connection.db.collections();
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const tempDir = path.join(BACKUP_DIR, `temp-${timestamp}`);
+        const zipFile = path.join(BACKUP_DIR, `backup-${timestamp}.zip`);
+        const encryptedFile = `${zipFile}.enc`;
+
+        await fs.ensureDir(tempDir);
+        
+        // Use existing connection instead of connecting/closing
+        const db = mongoose.connection.db;
+        if (!db) {
+            throw new Error('Database connection not established');
+        }
+
+        const collections = await db.collections();
 
         for (const collection of collections) {
             const data = await collection.find({}).toArray();
@@ -28,9 +34,9 @@ export const createSystemBackup = async () => {
             await fs.writeJson(filePath, data, { spaces: 2 });
         }
 
-        // Optional: Include uploads or other static files
+        // Include uploads but NOT .env
         await fs.copy('./src/uploads', path.join(tempDir, 'uploads'));
-        await fs.copy('./.env', path.join(tempDir, '.env'));
+        // Removed: await fs.copy('./.env', path.join(tempDir, '.env'));
 
         // Zip
         await new Promise((resolve, reject) => {
@@ -67,7 +73,6 @@ export const createSystemBackup = async () => {
     } catch (err) {
         console.error('❌ Backup failed:', err);
         throw err;
-    } finally {
-        mongoose.connection?.close?.();
     }
+    // Removed mongoose.connection?.close?() as it breaks the application
 };

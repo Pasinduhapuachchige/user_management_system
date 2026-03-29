@@ -104,56 +104,6 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
     return (
         <>
             {/* Custom Scrollbar Styles */}
-            <style jsx={'true'}>{`
-                .custom-scrollbar {
-                    scrollbar-width: thin;
-                    scrollbar-color: #CBD5E1 #F8FAFC;
-                }
-                
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #F8FAFC;
-                    border-radius: 10px;
-                    margin: 8px 0;
-                }
-                
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: linear-gradient(45deg, #CBD5E1, #94A3B8);
-                    border-radius: 10px;
-                    transition: background 0.3s ease;
-                }
-                
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: linear-gradient(45deg, #94A3B8, #64748B);
-                }
-                
-                .custom-scrollbar::-webkit-scrollbar-thumb:active {
-                    background: linear-gradient(45deg, #64748B, #475569);
-                }
-
-                /* Hide scrollbar when not needed */
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 0px;
-                    transition: width 0.3s ease;
-                }
-
-                .sidebar-container:hover .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-
-                /* Fade effect for scrollbar */
-                @keyframes fadeInScrollbar {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-
-                .sidebar-container:hover .custom-scrollbar::-webkit-scrollbar-thumb {
-                    animation: fadeInScrollbar 0.3s ease;
-                }
-            `}</style>
 
             <div
                 className={`sidebar-container fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -262,4 +212,5 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
     );
 };
 
+export default Sidebar;
 export default Sidebar;

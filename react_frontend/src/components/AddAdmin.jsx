@@ -6,7 +6,9 @@ import { getEmployeesApi } from '../apis/employee.api';
 const AddAdminForm = ({ onBack }) => {
     const [formData, setFormData] = useState({
         email: '',
-        epfNo: ''
+        epfNo: '',
+        password: '',
+        role: 'HR'
     });
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
@@ -271,6 +273,12 @@ const AddAdminForm = ({ onBack }) => {
             newErrors.epfNo = 'EPF number must be exactly 4 digits';
         }
 
+        if (!formData.password || formData.password.trim().length === 0) {
+            newErrors.password = 'Password is required';
+        } else if (formData.password.length < 6) {
+            newErrors.password = 'Password must be at least 6 characters';
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -302,56 +310,39 @@ const AddAdminForm = ({ onBack }) => {
         try {
             console.log({
                 email: formData.email.trim().toLowerCase(),
-                epfNo: parseInt(formData.epfNo)
+                epfNo: formData.epfNo,
+                role: formData.role
             });
 
             const dataToSub = {
                 email: formData.email.trim().toLowerCase(),
-                epfNo: parseInt(formData.epfNo)
+                epfNo: formData.epfNo,
+                password: formData.password,
+                role: formData.role
             }
 
             const response = await addAdmin(dataToSub);
 
-            // Check if response is successful first
-            if (response.success == true) {
+            if (response && response.success === true) {
                 // Success case - show success notification
                 showNotification('success', `Admin account created successfully! Login credentials have been sent to ${formData.email.trim()}`);
 
                 // Reset form
-                setFormData({ email: '', epfNo: '' });
+                setFormData({ email: '', epfNo: '', password: '', role: 'HR' });
                 setSelectedEmployee(null);
                 setErrors({});
-            } else {
-                // Handle error cases
-                let errorMessage = 'Failed to create admin account';
-
-                try {
-                    // Try to parse JSON response for error details
-                    const data = await response.json();
-
-                    if (data.errors) {
-                        setErrors(data.errors);
-                        return; // Don't show notification if we're setting field errors
-                    } else if (data.message) {
-                        errorMessage = data.message;
-                    }
-                } catch (jsonError) {
-                    // If JSON parsing fails, use the default error message
-                    console.warn('Could not parse error response as JSON:', jsonError);
-                }
-
-                showNotification('error', errorMessage);
             }
         } catch (error) {
             console.error('Error creating admin account:', error);
-            showNotification('error', 'Network error. Please try again.');
+            const backendMessage = error.response?.data?.message || error.message || 'Failed to create admin account';
+            showNotification('error', backendMessage);
         } finally {
             setLoading(false);
         }
     };
 
     const handleReset = () => {
-        setFormData({ email: '', epfNo: '' });
+        setFormData({ email: '', epfNo: '', password: '', role: 'HR' });
         setSelectedEmployee(null);
         setEmployeeSearchResults([]);
         setShowEmployeeDropdown(false);
@@ -361,11 +352,13 @@ const AddAdminForm = ({ onBack }) => {
     };
 
     // Check if form is valid for submit button
-    const isFormValid = formData.email.trim() &&
+    const isFormValid = Boolean(formData.email.trim() &&
         formData.epfNo.length === 4 &&
+        formData.password && formData.password.length >= 6 &&
         validateEmail(formData.email.trim()) &&
         !errors.email &&
-        !errors.epfNo;
+        !errors.password &&
+        !errors.epfNo);
 
     // Modal backdrop component
     const ModalBackdrop = ({ children, show, onClose }) => {
@@ -599,17 +592,54 @@ const AddAdminForm = ({ onBack }) => {
                             )}
                         </div>
 
-                        {/* Password Info */}
-                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                            <div className="flex items-start space-x-3">
-                                <Shield className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
-                                <div className="text-sm text-purple-800">
-                                    <p className="font-medium mb-1">Password Generation:</p>
-                                    <p className="text-purple-700">
-                                        A secure password will be automatically generated by the system and sent to the provided email address along with login instructions.
-                                    </p>
+                        {/* Role Selection */}
+                        <div>
+                            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+                                <div className="flex items-center space-x-2">
+                                    <Shield className="w-4 h-4 text-gray-500" />
+                                    <span>Account Role <span className="text-red-500">*</span></span>
                                 </div>
-                            </div>
+                            </label>
+                            <select
+                                id="role"
+                                name="role"
+                                value={formData.role}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                disabled={loading}
+                            >
+                                <option value="HR">HR</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+
+                        {/* Password Input */}
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                                <div className="flex items-center space-x-2">
+                                    <Shield className="w-4 h-4 text-gray-500" />
+                                    <span>Password <span className="text-red-500">*</span></span>
+                                </div>
+                            </label>
+                            <input
+                                type="text"
+                                id="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                className={`w-full px-4 py-3 rounded-lg border transition-colors duration-200 focus:outline-none focus:ring-2 ${errors.password
+                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                    : 'border-gray-300 focus:ring-purple-500 focus:border-purple-500'
+                                    }`}
+                                placeholder="Enter a secure password (min 6 characters)"
+                                disabled={loading}
+                            />
+                            {errors.password && (
+                                <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
+                                    <AlertCircle className="w-4 h-4" />
+                                    <span>{errors.password}</span>
+                                </p>
+                            )}
                         </div>
 
                         {/* Form Actions */}
@@ -706,6 +736,16 @@ const AddAdminForm = ({ onBack }) => {
                                         </div>
                                     </div>
                                 </div>
+
+                                <div className="border-t border-purple-200 pt-4">
+                                    <div className="flex items-start space-x-4">
+                                        <Shield className="w-5 h-5 text-purple-600 mt-1 flex-shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs text-purple-600 uppercase tracking-wide font-medium mb-1">Account Role</p>
+                                            <p className="text-purple-900 font-semibold text-base">{formData.role}</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -713,7 +753,7 @@ const AddAdminForm = ({ onBack }) => {
                                     <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                                     <div className="flex-1">
                                         <p className="text-sm text-blue-800 leading-relaxed">
-                                            A secure password will be generated and sent to <strong>{formData.email.trim()}</strong> along with login instructions.
+                                            The account will be created with the <strong>{formData.role}</strong> role and the assigned password.
                                         </p>
                                     </div>
                                 </div>
