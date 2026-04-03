@@ -18,6 +18,8 @@ import Login from './pages/auth';
 import ProtectRoutes from './components/ProtectRoutes';
 import 'react-phone-input-2/lib/style.css';
 import AdminProfilePage from './pages/AdminProfilePage';
+import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
+import { useUserStore } from './tools/user.zustand';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -64,6 +66,14 @@ function App() {
     </DashboardLayout>
   );
 
+  const DashboardContent = ({ currentPath }) => {
+    const { user } = useUserStore();
+    if (user?.role === 'superadmin') {
+      return <SuperAdminDashboard currentPath={currentPath} />;
+    }
+    return <DashboardHome currentPath={currentPath} />;
+  };
+
   return (
     <div className="App">
       <style jsx={'true'}>{`
@@ -84,7 +94,7 @@ function App() {
         <Route path="/" element={
           <ProtectRoutes>
             <DashboardWrapper>
-              <DashboardHome currentPath="dashboard" />
+              <DashboardContent currentPath="dashboard" />
             </DashboardWrapper>
           </ProtectRoutes>
         } />
@@ -92,7 +102,7 @@ function App() {
         <Route path="/dashboard" element={
           <ProtectRoutes>
             <DashboardWrapper>
-              <DashboardHome currentPath="dashboard" />
+              <DashboardContent currentPath="dashboard" />
             </DashboardWrapper>
           </ProtectRoutes>
         } />
@@ -252,7 +262,7 @@ function App() {
         <Route path="*" element={
           <ProtectRoutes>
             <DashboardWrapper>
-              <DashboardHome currentPath="dashboard" />
+              <DashboardContent currentPath="dashboard" />
             </DashboardWrapper>
           </ProtectRoutes>
         } />

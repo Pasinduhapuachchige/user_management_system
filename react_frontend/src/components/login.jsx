@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, User, Shield, CheckCircle, XCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, Shield, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { loginApi } from '../apis/login.api';
 
-// Professional Login UI Component
 const LoginUI = ({ forgotClicked = () => { } }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
@@ -22,8 +21,6 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
-
-        // Clear message when user starts typing
         if (message) {
             setMessage(null);
             setMessageType('');
@@ -39,12 +36,12 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
         try {
             const response = await loginApi(formData);
             if (response.success) {
-                setMessage(response.message || 'Login successful!');
+                setMessage(response.message || 'Access Granted');
                 setMessageType('success');
-                navigate('/dashboard');
+                setTimeout(() => navigate('/dashboard'), 1000);
             }
         } catch (error) {
-            setMessage(error.response?.data?.message || 'Login failed. Please try again.');
+            setMessage(error.response?.data?.message || 'Authentication failed. Please verify credentials.');
             setMessageType('error');
         } finally {
             setIsLoading(false);
@@ -52,219 +49,131 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
     };
 
     return (
-        <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
-            {/* Professional Gradient Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900"></div>
-
-            {/* Animated Background Elements */}
-            <div className="absolute inset-0">
-                {/* Floating Orbs */}
-                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
-
-                {/* Grid Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                    <div className="absolute inset-0" style={{
-                        backgroundImage: `
-                            linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
-                        `,
-                        backgroundSize: '50px 50px'
-                    }}></div>
-                </div>
-
-                {/* Geometric Shapes */}
-                <div className="absolute top-20 left-20 w-2 h-2 bg-blue-400/60 rotate-45 animate-ping"></div>
-                <div className="absolute top-40 right-32 w-3 h-3 bg-indigo-400/60 rotate-45 animate-ping" style={{ animationDelay: '1s' }}></div>
-                <div className="absolute bottom-32 left-40 w-2 h-2 bg-purple-400/60 rotate-45 animate-ping" style={{ animationDelay: '3s' }}></div>
-                <div className="absolute bottom-20 right-20 w-3 h-3 bg-blue-400/60 rotate-45 animate-ping" style={{ animationDelay: '2s' }}></div>
+        <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-6 bg-slate-950">
+            {/* Dynamic Mesh Gradient Background */}
+            <div className="absolute inset-0 z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/30 rounded-full blur-[120px] animate-pulse"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+                <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-violet-600/20 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '4s' }}></div>
             </div>
 
-            {/* Glass Morphism Container */}
-            <div className="relative w-full max-w-sm z-10">
-                <div className="backdrop-blur-xl bg-white/10 rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
-                    {/* Header Section */}
-                    <div className="relative px-6 py-6 text-center">
-                        {/* Background Decoration */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
-                        <div className="absolute -top-4 -right-4 w-20 h-20 bg-blue-500/20 rounded-full blur-2xl"></div>
-                        <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-indigo-500/20 rounded-full blur-2xl"></div>
+            {/* Content Container */}
+            <div className="relative z-10 w-full max-w-[440px] animate-fadeIn">
+                <div className="glass-card rounded-[2.5rem] p-8 sm:p-12 border border-white/10 bg-white/5 backdrop-blur-2xl shadow-2xl relative overflow-hidden group">
+                    {/* Subtle Top Glow */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-px bg-gradient-to-r from-transparent via-indigo-400 to-transparent"></div>
 
-                        <div className="relative z-10">
-                            {/* Logo Container */}
-                            <div className="mx-auto w-14 h-14 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-sm border border-white/20 shadow-lg">
-                                <Shield className="w-7 h-7 text-blue-300" />
-                            </div>
-
-                            <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">Welcome Back</h1>
-                            <p className="text-blue-200/80 text-sm font-medium">Please sign in to your account</p>
+                    {/* Header */}
+                    <div className="text-center mb-10">
+                        <div className="mx-auto w-16 h-16 premium-gradient rounded-2xl flex items-center justify-center mb-6 shadow-2xl shadow-indigo-500/20 group-hover:scale-110 transition-transform duration-500">
+                            <Shield className="w-8 h-8 text-white" />
                         </div>
+                        <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight uppercase">UMS <span className="text-indigo-400">Pro</span></h1>
+                        <p className="text-slate-400 text-sm font-medium">Secure Administrative Gateway</p>
                     </div>
 
-                    {/* Form Section */}
-                    <div className="px-6 py-6 bg-white/5 backdrop-blur-sm">
-                        <div className="space-y-4">
-                            {/* Message Display */}
-                            {message && (
-                                <div className={`
-                                    flex items-center gap-2 p-3 rounded-lg border backdrop-blur-sm transition-all duration-300 transform
-                                    ${messageType === 'success'
-                                        ? 'bg-green-500/20 border-green-400/30 text-green-200'
-                                        : 'bg-red-500/20 border-red-400/30 text-red-200'
-                                    }
-                                `} style={{
-                                        animation: 'messageSlideIn 0.3s ease-out'
-                                    }}>
-                                    <div className="flex-shrink-0">
-                                        {messageType === 'success' ? (
-                                            <CheckCircle className="w-4 h-4 text-green-400" />
-                                        ) : (
-                                            <XCircle className="w-4 h-4 text-red-400" />
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-xs font-medium">{message}</p>
-                                    </div>
-                                </div>
-                            )}
+                    {/* Status Message */}
+                    {message && (
+                        <div className={`mb-8 p-4 rounded-2xl border flex items-center space-x-3 transition-all animate-fadeIn ${
+                            messageType === 'success' 
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                            : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                        }`}>
+                            {messageType === 'success' ? <CheckCircle className="w-5 h-5 flex-shrink-0" /> : <AlertCircle className="w-5 h-5 flex-shrink-0" />}
+                            <span className="text-xs font-bold leading-tight">{message}</span>
+                        </div>
+                    )}
 
-                            {/* Email Field */}
-                            <div className="space-y-1">
-                                <label htmlFor="email" className="text-xs font-semibold text-white/90 block">
-                                    Email Address / EPF No
-                                </label>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-5">
+                            {/* Email / EPF */}
+                            <div>
+                                <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2">Account Identity</label>
                                 <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <User className="h-4 w-4 text-blue-500/70" />
-                                    </div>
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                     <input
-                                        id="email"
-                                        name="email"
                                         type="text"
+                                        name="email"
                                         required
                                         value={formData.email}
                                         onChange={handleInputChange}
-                                        className="w-full outline-none pl-10 pr-3 py-3 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all duration-200 bg-white/10 text-white placeholder-white/50 hover:bg-white/15 text-sm"
-                                        placeholder="Enter your email"
+                                        placeholder="Email or EPF Number"
+                                        className="w-full bg-slate-900/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all"
                                     />
                                 </div>
                             </div>
 
-                            {/* Password Field */}
-                            <div className="space-y-1">
-                                <label htmlFor="password" className="text-xs font-semibold text-white/90 block">
-                                    Password
-                                </label>
+                            {/* Password */}
+                            <div>
+                                <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2">Secret Code</label>
                                 <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Lock className="h-4 w-4 text-blue-500/70" />
-                                    </div>
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                     <input
-                                        id="password"
-                                        name="password"
                                         type={showPassword ? 'text' : 'password'}
+                                        name="password"
                                         required
                                         value={formData.password}
                                         onChange={handleInputChange}
-                                        className="w-full outline-none pl-10 pr-12 py-3 border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all duration-200 bg-white/10 text-white placeholder-white/50 hover:bg-white/15 text-sm"
-                                        placeholder="Enter your password"
+                                        placeholder="••••••••"
+                                        className="w-full bg-slate-900/50 border border-white/5 rounded-2xl py-4 pl-12 pr-12 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-blue-300/70 hover:text-blue-300 transition-colors duration-200"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
                                     >
-                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                     </button>
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Remember Me & Forgot Password */}
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                    <input
-                                        id="rememberMe"
-                                        name="rememberMe"
-                                        type="checkbox"
-                                        checked={formData.rememberMe}
-                                        onChange={handleInputChange}
-                                        className="h-3 w-3 text-blue-400 focus:ring-blue-400/50 border-white/30 rounded bg-white/10 transition-colors duration-200"
-                                    />
-                                    <label htmlFor="rememberMe" className="ml-2 text-xs text-white/80 font-medium">
-                                        Remember me
-                                    </label>
-                                </div>
-                                <button
-                                    onClick={forgotClicked}
-                                    type="button"
-                                    className="text-xs text-blue-300 hover:text-blue-200 font-semibold transition-colors duration-200 hover:underline"
-                                >
-                                    Forgot password?
-                                </button>
-                            </div>
-
-                            {/* Submit Button */}
+                        {/* Actions */}
+                        <div className="flex items-center justify-between px-1">
+                            <label className="flex items-center space-x-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    name="rememberMe"
+                                    checked={formData.rememberMe}
+                                    onChange={handleInputChange}
+                                    className="w-4 h-4 rounded border-white/10 bg-slate-900 text-indigo-600 focus:ring-indigo-500/20 shadow-sm"
+                                />
+                                <span className="text-xs text-slate-500 group-hover:text-slate-300 transition-colors">Remember Me</span>
+                            </label>
                             <button
-                                type="submit"
-                                disabled={isLoading}
-                                onClick={handleSubmit}
-                                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl text-sm"
+                                type="button"
+                                onClick={forgotClicked}
+                                className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
                             >
-                                {isLoading ? (
-                                    <div className="flex items-center justify-center">
-                                        <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        Signing In...
-                                    </div>
-                                ) : (
-                                    'Sign In'
-                                )}
+                                Recover Password
                             </button>
                         </div>
-                    </div>
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full premium-gradient text-white py-4 px-6 rounded-2xl font-bold flex items-center justify-center space-x-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50 group"
+                        >
+                            {isLoading ? (
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            ) : (
+                                <>
+                                    <span>Verify & Login</span>
+                                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                                </>
+                            )}
+                        </button>
+                    </form>
                 </div>
 
-                {/* Footer */}
-                <div className="mt-4 text-center">
-                    <p className="text-xs text-white/60 font-medium">
-                        © 2025 UMS Dashboard. All rights reserved.
+                {/* Footer Copyright */}
+                <div className="mt-8 text-center">
+                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+                        © 2026 Admin Management • Enterprise Edition
                     </p>
                 </div>
             </div>
-
-            <style>{`
-                @keyframes messageSlideIn {
-                    from {
-                        opacity: 0;
-                        transform: translateY(-10px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                
-                /* Custom scrollbar for the page */
-                ::-webkit-scrollbar {
-                    width: 8px;
-                }
-                
-                ::-webkit-scrollbar-track {
-                    background: rgba(0, 0, 0, 0.1);
-                }
-                
-                ::-webkit-scrollbar-thumb {
-                    background: rgba(59, 130, 246, 0.3);
-                    border-radius: 4px;
-                }
-                
-                ::-webkit-scrollbar-thumb:hover {
-                    background: rgba(59, 130, 246, 0.5);
-                }
-            `}</style>
         </div>
     );
 };

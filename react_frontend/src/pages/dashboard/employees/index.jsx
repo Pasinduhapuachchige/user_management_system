@@ -193,23 +193,22 @@ const EmployeesList = ({ currentPath }) => {
                     </div>
                 ) : error ? (
                     <ErrorState />
-                ) : filteredEmployees.length === 0 ? (
+                                ) : filteredEmployees.length === 0 ? (
                     <EmptyState />
                 ) : (
-                    // Employee cards - keeping the original structure
-                    filteredEmployees.map((employee, index) => (
-                        <div
-                            key={employee._id}
-                            className="mb-4"
-                            style={{
-                                animationDelay: `${index * 50}ms`,
-                                opacity: 0,
-                                animation: `fadeIn 0.3s ease ${index * 50}ms forwards`
-                            }}
-                        >
-                            <EmployeeWFullCard initialEmployee={employee} />
-                        </div>
-                    ))
+                    <div className="view-transition">
+                        {filteredEmployees.map((employee, index) => (
+                            <div
+                                key={employee._id}
+                                className="mb-4 premium-list-item"
+                                style={{
+                                    animationDelay: `${index * 50}ms`
+                                }}
+                            >
+                                <EmployeeWFullCard initialEmployee={employee} />
+                            </div>
+                        ))}
+                    </div>
                 )}
             </div>
 

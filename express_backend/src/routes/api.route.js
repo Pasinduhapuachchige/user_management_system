@@ -1,8 +1,8 @@
 import express from 'express';
 import { loginController } from '../controllers/login.controller.js';
-import { deleteAccountController, getAdminsController, registerController, tougleAccountStatusController } from '../controllers/register.controller.js';
+import { deleteAccountController, getAdminsController, registerController, resetAdminPasswordController, tougleAccountStatusController } from '../controllers/register.controller.js';
 import { logoutController } from '../controllers/logout.controller.js';
-import { verifyAuth } from '../middleware/checkauth.middleware.js';
+import { verifyAuth, verifySuperAdmin } from '../middleware/checkauth.middleware.js';
 import { createDepartment, getAllDepartments, getDepartmentById, updateDepartment, deleteDepartment }
     from '../controllers/department.controller.js';
 
@@ -16,9 +16,11 @@ import { accountRecoveryController, recoveryUpdatePassword, updatePasswordContro
 import { handleBackupDownload } from '../controllers/backup.controller.js';
 import { handleRestore } from '../controllers/restore.controller.js';
 import { getEmployeeEpfReportController } from '../controllers/epfReport.controller.js';
+import { initSuperAdminController } from '../controllers/init.controller.js';
 
 router.post('/login', loginController);
-router.post('/register', registerController);
+router.post('/register', verifySuperAdmin, registerController);
+router.post('/init-superadmin', initSuperAdminController);
 router.get('/logout', logoutController);
 
 router.post('/emp/', verifyAuth, upload.single('profilePicture'), createEmployeeController);
@@ -38,9 +40,10 @@ router.get("/epf/emp", verifyAuth, getEmployeeEpfsController);
 router.post("/epf/emp", verifyAuth, createOrUpdateEmployeeEpfController);
 router.delete("/epf/emp/:epfId", verifyAuth, deleteEmployeeEpfExpenseController);
 
-router.get('/admins', verifyAuth, getAdminsController);
-router.post('/admins', verifyAuth, tougleAccountStatusController);
-router.delete('/admins', verifyAuth, deleteAccountController);
+router.get('/admins', verifySuperAdmin, getAdminsController);
+router.post('/admins', verifySuperAdmin, tougleAccountStatusController);
+router.delete('/admins', verifySuperAdmin, deleteAccountController);
+router.put('/admins/reset-password', verifySuperAdmin, resetAdminPasswordController);
 
 router.get('/stats', verifyAuth, statsController);
 router.get('/stats/dep', verifyAuth, departmentStats)
@@ -66,7 +69,8 @@ router.get('/check-auth', verifyAuth, async (req, res) => {
         user: {
             _id: req.user._id,
             email: req.user.email,
-            name: admin?.name
+            name: admin?.name,
+            role: req.user.role
         }
     });
 });

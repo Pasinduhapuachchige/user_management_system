@@ -28,7 +28,7 @@ export const loginController = async (req, res) => {
         const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000; // ms
 
         const token = jwt.sign(
-            { id: admin._id, email: admin.email },
+            { id: admin._id, email: admin.email, role: admin.role },
             process.env.JWT_SECRET,
             { expiresIn }
         );

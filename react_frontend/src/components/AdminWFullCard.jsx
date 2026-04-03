@@ -18,9 +18,10 @@ import {
     UserX,
     Power,
     PowerOff,
-    LogOut
+    LogOut,
+    Key
 } from 'lucide-react';
-import { deleteAccount, tougleAccountStatus } from '../apis/admin.api';
+import { deleteAccount, resetAdminPassword, tougleAccountStatus } from '../apis/admin.api';
 import { useUserStore } from '../tools/user.zustand';
 
 const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
@@ -35,6 +36,7 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showToggleModal, setShowToggleModal] = useState(false);
+    const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
     const [showSelfDeactivationWarning, setShowSelfDeactivationWarning] = useState(false);
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
@@ -43,6 +45,7 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
         email: '',
         epfNo: ''
     });
+    const [newPassword, setNewPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     // Filter admin records based on search term
@@ -154,6 +157,27 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
             showSuccess('Admin account deleted successfully!');
         } catch (error) {
             console.error('Error deleting admin account:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Handle password reset
+    const handleResetPassword = async () => {
+        if (!newPassword) {
+            alert('Please enter a new password');
+            return;
+        }
+        setIsLoading(true);
+        try {
+            await resetAdminPassword(selectedRecord.email, newPassword);
+            setShowResetPasswordModal(false);
+            setNewPassword('');
+            setSelectedRecord(null);
+            showSuccess('Password reset successfully!');
+        } catch (error) {
+            console.error('Error resetting password:', error);
+            alert('Failed to reset password');
         } finally {
             setIsLoading(false);
         }
@@ -304,6 +328,17 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
                                         <div className="flex items-center space-x-2 ml-4">
                                             {isExpanded && (
                                                 <div className="flex items-center space-x-1 mr-2">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedRecord(record);
+                                                            setShowResetPasswordModal(true);
+                                                        }}
+                                                        className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded-lg transition-all duration-200 transform hover:scale-105"
+                                                        title="Reset Admin Password"
+                                                    >
+                                                        <Key className="w-4 h-4" />
+                                                    </button>
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
@@ -680,6 +715,69 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
                             <Trash2 className="w-4 h-4" />
                             <span>{isLoading ? 'Deleting...' : 'Delete Account'}</span>
                         </button>
+                    </div>
+                </div>
+            </ModalBackdrop>
+
+            {/* Reset Password Modal */}
+            <ModalBackdrop show={showResetPasswordModal} onClose={() => setShowResetPasswordModal(false)}>
+                <div className="p-6 text-left">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                <Key className="w-5 h-5 text-indigo-600" />
+                            </div>
+                            <h2 className="text-xl font-bold text-gray-900 text-left">Reset Admin Password</h2>
+                        </div>
+                        <button
+                            onClick={() => setShowResetPasswordModal(false)}
+                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                        >
+                            <X className="w-5 h-5 text-gray-500" />
+                        </button>
+                    </div>
+
+                    <div className="space-y-5">
+                        {selectedRecord && (
+                            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                                <p className="text-sm text-indigo-800">
+                                    Resetting password for: <strong>{selectedRecord.email}</strong>
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="text-left">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                New Password
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    className="w-full outline-none px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 transition-all text-left"
+                                    placeholder="Enter new password"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex space-x-3 pt-4">
+                            <button
+                                type="button"
+                                onClick={() => setShowResetPasswordModal(false)}
+                                className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors duration-200"
+                                disabled={isLoading}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleResetPassword}
+                                disabled={isLoading}
+                                className="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
+                            >
+                                {isLoading ? 'Processing...' : 'Reset Password'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </ModalBackdrop>

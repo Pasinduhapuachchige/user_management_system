@@ -1,7 +1,7 @@
 import Admin from '../models/admin.model.js';
 import bcrypt from 'bcryptjs';
 
-export const registerAdmin = async ({ email, password, epfNo }) => {
+export const registerAdmin = async ({ email, password, epfNo, role = 'admin' }) => {
     // Check if admin exists by email or epfNo
     const existingAdmin = await Admin.findOne({
         $or: [{ email }, { epfNo }]
@@ -20,6 +20,7 @@ export const registerAdmin = async ({ email, password, epfNo }) => {
         email,
         password: hashedPassword,
         epfNo,
+        role
     });
 
     // Save to DB

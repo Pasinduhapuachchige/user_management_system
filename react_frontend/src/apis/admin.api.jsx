@@ -45,3 +45,16 @@ export const deleteAccount = async (_id) => {
         return err.message;
     }
 };
+export const resetAdminPassword = async (email, password) => {
+    try {
+        const res = await axios.put(
+            `${import.meta.env.VITE_BACKEND_URL}/api/v1/admins/reset-password`,
+            { email, password },
+            { withCredentials: true }
+        );
+        return res.data;
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+};

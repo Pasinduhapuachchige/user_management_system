@@ -218,14 +218,20 @@ const DepartmentsList = ({ currentPath }) => {
                     </div>
                 ))
             ) : departmentsWithStats && departmentsWithStats.length > 0 ? (
-                departmentsWithStats.map((department) => (
-                    <div className="mb-4" key={department._id}>
-                        <DepartmentWFullCard
-                            initialDepartment={department}
-                            employeeCount={department.employeeCount}
-                        />
-                    </div>
-                ))
+                <div className="view-transition">
+                    {departmentsWithStats.map((department, index) => (
+                        <div 
+                            className="mb-4 premium-list-item" 
+                            key={department._id}
+                            style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                            <DepartmentWFullCard
+                                initialDepartment={department}
+                                employeeCount={department.employeeCount}
+                            />
+                        </div>
+                    ))}
+                </div>
             ) : (
                 <div className="bg-white rounded-xl shadow-md border border-gray-200 p-8 text-center">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
