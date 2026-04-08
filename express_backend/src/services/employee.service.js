@@ -1,6 +1,9 @@
 import Employee from '../models/employee.model.js';
 import mongoose from 'mongoose';
 import EmployeeEpf from '../models/employeeEpf.model.js';
+import Admin from '../models/admin.model.js';
+import { registerAdmin } from './register.service.js';
+import { deleteAccount } from './auth.service.js';
 
 export const createEmployee = async (data) => {
     if (!data || typeof data !== "object") {
@@ -29,7 +32,22 @@ export const createEmployee = async (data) => {
     const sanitizedData = sanitize(data);
 
     try {
-        return await Employee.create(sanitizedData);
+        const employee = await Employee.create(sanitizedData);
+
+        // Auto-create Admin account for the employee
+        try {
+            await registerAdmin({
+                email: employee.email || `${employee.epfNumber}@system.local`, // Fallback email if none provided
+                epfNo: employee.epfNumber,
+                password: 'Employee@123',
+                role: 'employee'
+            });
+        } catch (adminErr) {
+            console.error('Failed to create admin account for employee:', adminErr.message);
+            // We don't throw here to avoid failing the employee creation if admin account fails (e.g. duplicate EPF in Admin)
+        }
+
+        return employee;
     } catch (err) {
         throw new Error(`Failed to create employee: ${err.message}`);
     }
@@ -109,6 +127,16 @@ export const deleteEmployee = async (id) => {
         const deleted = await Employee.findByIdAndDelete(id);
         if (!deleted) {
             throw new Error('Employee not found for deletion');
+        }
+
+        // Auto-delete matching Admin account
+        try {
+            const admin = await Admin.findOne({ epfNo: deleted.epfNumber });
+            if (admin) {
+                await deleteAccount(admin._id);
+            }
+        } catch (adminErr) {
+            console.error('Failed to delete admin account for employee:', adminErr.message);
         }
 
         const deletedEpfRecords = await EmployeeEpf.deleteMany({ user: id });

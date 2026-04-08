@@ -32,6 +32,7 @@
     "nodemailer": "^7.0.5",
     "nodemon": "^3.1.10",
     "puppeteer": "^24.24.0",
-    "unzipper": "^0.12.3"
+    "unzipper": "^0.12.3",
+    "xlsx": "^0.18.5"
   }
 }

@@ -18,9 +18,13 @@ export async function generateEmployeeEpfReport(employeeId, year) {
         if (!epfConfig) throw new Error("EPF configuration not found");
 
         // 3️⃣ Get employee EPF data for that year
+        const targetYear = parseInt(year);
         const employeeEpf = await EmployeeEpf.findOne({
             user: employeeId,
-            year: new Date(year),
+            year: {
+                $gte: new Date(`${targetYear}-01-01`),
+                $lte: new Date(`${targetYear}-12-31`)
+            },
         });
         if (!employeeEpf)
             throw new Error(`No EPF data found for ${employee.name} in ${year}`);
@@ -83,6 +87,7 @@ export async function generateEmployeeEpfReport(employeeId, year) {
                 medicalUsed,
                 medicalRemaining,
                 medicalLimit,
+                medicalRecords: employee.medicalRecords || "No significant medical history recorded.",
                 epfConfig,
                 generatedAt: new Date().toLocaleString(),
             }

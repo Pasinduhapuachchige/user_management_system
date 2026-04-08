@@ -16,58 +16,63 @@ import { useUserStore } from '../tools/user.zustand';
 const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) => {
     const { user } = useUserStore();
 
+    const isEmployee = user?.role === 'employee';
+
     const menuItems = [
-        { id: 'dashboard', label: 'Overview', icon: LayoutDashboard, path: 'dashboard' },
-        {
-            id: 'employees',
-            label: 'Teams',
-            icon: Users,
-            path: 'employees',
-            subItems: [
-                { id: 'employees-list', label: 'Directory', path: 'employees' },
-                { id: 'employees-add', label: 'Onboard New', path: 'employees/add' }
-            ]
-        },
-        {
-            id: 'departments',
-            label: 'Structure',
-            icon: Building2,
-            path: 'departments',
-            subItems: [
-                { id: 'departments-list', label: 'Departments', path: 'departments' },
-                { id: 'departments-add', label: 'Create New', path: 'departments/add' }
-            ]
-        },
-        {
-            id: 'epf',
-            label: 'Healthcare',
-            icon: Shield,
-            path: 'epf',
-            subItems: [
-                { id: 'epf-list', label: 'Medical Logs', path: 'epf' },
-                { id: 'epf-add', label: 'New Entry', path: 'epf/add' }
-            ]
-        },
-        ...(user?.role === 'superadmin' ? [{
-            id: 'admins',
-            label: 'System Access',
-            icon: UserCog,
-            path: 'admins',
-            subItems: [
-                { id: 'admins-list', label: 'Administrators', path: 'admins' },
-                { id: 'admins-add', label: 'Provision New', path: 'admins/add' }
-            ]
-        }] : []),
-        {
-            id: 'settings',
-            label: 'Preferences',
-            icon: Settings,
-            path: 'settings',
-            subItems: [
-                { id: 'settings-epf', label: 'Config Panel', path: 'settings/epf' }
-            ]
-        },
-        { id: 'reports', label: 'Analytics', icon: BarChart3, path: 'reports' }
+        ...(!isEmployee ? [{ id: 'dashboard', label: 'Overview', icon: LayoutDashboard, path: 'dashboard' }] : []),
+        { id: 'profile', label: 'My Profile', icon: Shield, path: 'profile' },
+        ...(!isEmployee ? [
+            {
+                id: 'employees',
+                label: 'Teams',
+                icon: Users,
+                path: 'employees',
+                subItems: [
+                    { id: 'employees-list', label: 'Directory', path: 'employees' },
+                    { id: 'employees-add', label: 'Onboard New', path: 'employees/add' }
+                ]
+            },
+            {
+                id: 'departments',
+                label: 'Structure',
+                icon: Building2,
+                path: 'departments',
+                subItems: [
+                    { id: 'departments-list', label: 'Departments', path: 'departments' },
+                    { id: 'departments-add', label: 'Create New', path: 'departments/add' }
+                ]
+            },
+            {
+                id: 'epf',
+                label: 'Healthcare',
+                icon: Shield,
+                path: 'epf',
+                subItems: [
+                    { id: 'epf-list', label: 'Medical Logs', path: 'epf' },
+                    { id: 'epf-add', label: 'New Entry', path: 'epf/add' }
+                ]
+            },
+            ...(user?.role === 'superadmin' ? [{
+                id: 'admins',
+                label: 'System Access',
+                icon: UserCog,
+                path: 'admins',
+                subItems: [
+                    { id: 'admins-list', label: 'Administrators', path: 'admins' },
+                    { id: 'admins-add', label: 'Provision New', path: 'admins/add' }
+                ]
+            }] : []),
+            {
+                id: 'settings',
+                label: 'Preferences',
+                icon: Settings,
+                path: 'settings',
+                subItems: [
+                    { id: 'settings-epf', label: 'Config Panel', path: 'settings/epf' }
+                ]
+            },
+            { id: 'reports', label: 'Analytics', icon: BarChart3, path: 'reports' }
+        ] : [])
     ];
 
     const [expandedItems, setExpandedItems] = useState({});
@@ -132,7 +137,9 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-5 py-4 space-y-8">
                     {/* Menu Section */}
                     <div>
-                        <p className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-4">Core Platform</p>
+                        <p className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-4">
+                            {isEmployee ? 'Service Portal' : 'Core Platform'}
+                        </p>
                         <div className="space-y-1.5">
                             {menuItems.map((item) => (
                                 <div key={item.id}>
@@ -207,8 +214,8 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
                             {user?.name?.charAt(0) || 'A'}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-slate-800 truncate">{user?.name || 'Administrator'}</p>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{user?.role || 'Admin'}</p>
+                            <p className="text-sm font-bold text-slate-800 truncate">{user?.name || 'Staff Member'}</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{user?.role || 'Member'}</p>
                         </div>
                     </div>
                 </div>

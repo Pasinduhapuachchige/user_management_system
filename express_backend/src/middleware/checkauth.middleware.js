@@ -21,13 +21,13 @@ export const verifyAuth = async (req, res, next) => {
             role: decoded.role
         };
 
-        const [admin] = await getAdmins({ email: decoded.email });
+        const [admin] = await getAdmins({ _id: decoded.id });
 
         if (!admin) {
             return res.status(401).json({
                 success: false,
                 error: 'Unauthorized 1.1',
-                message: 'Invalid administration account'
+                message: 'Invalid account'
             });
         }
 

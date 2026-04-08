@@ -1,1198 +1,447 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-    User,
-    Edit3,
-    Trash2,
-    X,
-    Save,
-    AlertTriangle,
-    Calendar,
-    Mail,
-    Phone,
-    MapPin,
-    Building2,
-    CreditCard,
-    Users,
-    Heart,
-    Baby,
-    CheckCircle,
-    DollarSign,
-    Briefcase,
-    UserCheck,
-    Home,
-    School,
-    Plus
+    User, Edit3, Trash2, X, Save, AlertTriangle, Calendar, Mail, Phone,
+    Building2, CreditCard, Heart, CheckCircle, Briefcase, ChevronRight,
+    Camera, Info, Users, Baby
 } from 'lucide-react';
 import { deleteEmployeeApi, updateEmployeeApi } from '../apis/employee.api';
 import { fetchDepartmentsApi } from '../apis/department.api';
+import { getMaxEpf, getEmpEpf } from '../apis/epf.api';
 import { createPortal } from 'react-dom';
+import { GeneralTab, EmploymentTab, FamilyTab } from './EmployeeDetailTabs';
+import './EmployeeCardStyles.css';
 
 const EmployeeWFullCard = ({ initialEmployee }) => {
-
+    // --- STATE ---
     const [employee, setEmployee] = useState(initialEmployee);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-    const [successMessage, setSuccessMessage] = useState('');
+    const [notification, setNotification] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isDeleted, setIsDeleted] = useState(false);
-    const [editingSections, setEditingSections] = useState({});
-    const [editData, setEditData] = useState({});
+    const [activeTab, setActiveTab] = useState('general');
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedEmployee, setEditedEmployee] = useState(null);
     const [departments, setDepartments] = useState([]);
+    const [errors, setErrors] = useState({});
+    const [allowanceData, setAllowanceData] = useState({ total: 0, spent: 0 });
 
-    // Format date
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
-
-    React.useEffect(() => {
-        // Simulate API call to fetch departments
+    // --- EFFECTS ---
+    useEffect(() => {
         const fetchDepartments = async () => {
             try {
-                // Replace with actual API endpoint
                 const response = await fetchDepartmentsApi();
-                setDepartments(response.data);
+                setDepartments(response.data || []);
             } catch (error) {
-                showNotification('error', 'Failed to fetch departments');
+                console.error('Failed to fetch departments:', error);
             }
         };
         fetchDepartments();
     }, []);
 
-    // Calculate age
-    const calculateAge = (dateOfBirth) => {
-        if (!dateOfBirth) return 'N/A';
-        const today = new Date();
-        const birthDate = new Date(dateOfBirth);
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
+    // Fetch medical allowance when modal opens
+    useEffect(() => {
+        if (showDetailModal && employee?._id) {
+            const fetchAllowance = async () => {
+                try {
+                    const [configRes, epfRes] = await Promise.all([
+                        getMaxEpf(),
+                        getEmpEpf({ user_id: employee._id, year: new Date().getFullYear() })
+                    ]);
+
+                    const total = configRes?.data?.maxEpf || 15000;
+                    const spent = epfRes?.data?.length > 0 ? epfRes.data[0].expense : 0;
+                    
+                    setAllowanceData({ total, spent });
+                } catch (err) {
+                    console.error('Error fetching allowance data:', err);
+                }
+            };
+            fetchAllowance();
         }
-        return age;
+    }, [showDetailModal, employee?._id]);
+
+    // Sync editedEmployee when joining edit mode
+    useEffect(() => {
+        if (isEditing && !editedEmployee) {
+            setEditedEmployee({ ...employee });
+        }
+    }, [isEditing, employee, editedEmployee]);
+
+    // --- HELPERS ---
+    const showNotice = (type, message) => {
+        setNotification({ type, message });
+        setTimeout(() => setNotification(null), 3000);
     };
 
-    // Show success message
-    const showSuccess = (message) => {
-        setSuccessMessage(message);
-        setShowSuccessMessage(true);
-        setTimeout(() => {
-            setShowSuccessMessage(false);
-        }, 3000);
+    const handleToggleEdit = () => {
+        if (isEditing) {
+            setEditedEmployee(null);
+            setErrors({});
+        }
+        setIsEditing(!isEditing);
     };
 
-    // Handle edit section
-    const startEditing = (section) => {
-        setEditingSections({ ...editingSections, [section]: true });
-
-        // Initialize edit data based on section
-        switch (section) {
-            case 'personal':
-                setEditData({
-                    ...editData,
-                    personal: {
-                        name: employee.name,
-                        email: employee.email,
-                        contactNumber: employee.contactNumber,
-                        address: employee.address,
-                        dateOfBirth: employee.dateOfBirth ? employee.dateOfBirth.split('T')[0] : '',
-                        nicNumber: employee.nicNumber,
-                        gender: employee.gender
-                    }
-                });
-                break;
-            case 'employment':
-                setEditData({
-                    ...editData,
-                    employment: {
-                        epfNumber: employee.epfNumber,
-                        department: employee.department?._id || '',
-                        joinedDate: employee.joinedDate ? employee.joinedDate.split('T')[0] : '',
-                        basicSalary: employee.basicSalary,
-                        employmentType: employee.employmentType
-                    }
-                });
-
-                break;
-            case 'family':
-                setEditData({
-                    ...editData,
-                    family: {
-                        maritalStatus: employee.maritalStatus,
-                        spouseName: employee.spouseName || '',
-                        children: employee.children ? [...employee.children] : [],
-                        parents: employee.parents ? [...employee.parents] : []
-                    }
-                });
-                break;
-            case 'additional':
-                setEditData({
-                    ...editData,
-                    additional: {
-                        createdAt: employee.createdAt ? employee.createdAt.split('T')[0] : '',
-                        updatedAt: employee.updatedAt ? employee.updatedAt.split('T')[0] : ''
-                    }
-                });
-                break;
-            default:
-                break;
+    const handleUpdateField = (field, value) => {
+        setEditedEmployee(prev => ({ ...prev, [field]: value }));
+        // Basic real-time clear of errors
+        if (errors[field]) {
+            setErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            });
         }
     };
 
-    // Handle save section
-    const saveSection = async (section) => {
+    const handleUpdateFamilyItem = (type, index, field, value) => {
+        setEditedEmployee(prev => {
+            const items = [...(prev[type] || [])];
+            items[index] = { ...items[index], [field]: value };
+            return { ...prev, [type]: items };
+        });
+    };
+
+    const handleAddFamilyItem = (type, defaultValue) => {
+        setEditedEmployee(prev => ({
+            ...prev,
+            [type]: [...(prev[type] || []), defaultValue]
+        }));
+    };
+
+    const handleRemoveFamilyItem = (type, index) => {
+        setEditedEmployee(prev => ({
+            ...prev,
+            [type]: (prev[type] || []).filter((_, i) => i !== index)
+        }));
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+        if (!editedEmployee.name) newErrors.name = 'Name is required';
+        if (!editedEmployee.epfNumber) newErrors.epfNumber = 'EPF Number is required';
+        if (!editedEmployee.contactNumber) newErrors.contactNumber = 'Contact is required';
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    // --- API CALLS ---
+    const handleSave = async () => {
+        if (!validateForm()) {
+            showNotice('error', 'Please fix validation errors');
+            return;
+        }
+
         setIsLoading(true);
         try {
-            // Flatten the data: extract only the current section's data
-            let updatePayload = {};
-            switch (section) {
-                case 'personal':
-                    updatePayload = { ...editData.personal };
-                    break;
-                case 'employment':
-                    updatePayload = { ...editData.employment };
-                    break;
-                case 'family':
-                    updatePayload = { ...editData.family };
-                    break;
-                case 'additional':
-                    updatePayload = { ...editData.additional };
-                    break;
-                default:
-                    break;
+            // Processing for specific fields like basicSalary (ensure number)
+            const payload = { ...editedEmployee };
+            if (payload.basicSalary) payload.basicSalary = parseFloat(payload.basicSalary);
+            
+            // If department is an object, send only the ID
+            if (payload.department && typeof payload.department === 'object') {
+                payload.department = payload.department._id;
             }
 
-            // If basicSalary is present in the employment section, parse it to a number here.
-            if (section === 'employment' && updatePayload && Object.prototype.hasOwnProperty.call(updatePayload, 'basicSalary')) {
-                const raw = updatePayload.basicSalary;
-                // Allow commas and whitespace while editing; remove them before parsing
-                const cleaned = typeof raw === 'string' ? raw.replace(/,/g, '').trim() : raw;
-                const parsed = parseFloat(cleaned);
-                if (!isNaN(parsed)) {
-                    updatePayload.basicSalary = parsed;
-                } else {
-                    // If parsing fails, remove the field so we don't send NaN to the server
-                    delete updatePayload.basicSalary;
+            const response = await updateEmployeeApi(employee._id, payload);
+            
+            if (response?.success || (response?.data && response?.data._id)) {
+                // Update local state with returned data if available, or the edited state
+                const finalData = response.data || payload;
+                
+                // Re-hydrate department name if we only have ID
+                if (typeof finalData.department === 'string') {
+                    const deptObj = departments.find(d => d._id === finalData.department);
+                    if (deptObj) finalData.department = deptObj;
                 }
+
+                setEmployee(finalData);
+                setIsEditing(false);
+                setEditedEmployee(null);
+                showNotice('success', 'Employee updated successfully');
+            } else {
+                showNotice('error', response?.message || 'Failed to update employee');
             }
-
-            const res = await updateEmployeeApi(employee._id, updatePayload); // use employee._id
-
-            if (res?.success === true) {
-                showSuccess(`Employee updated`);
-            }
-
-            // Update the local employee state
-            const updatedEmployee = { ...employee };
-            switch (section) {
-                case 'personal':
-                    Object.assign(updatedEmployee, updatePayload);
-                    break;
-                case 'employment':
-                    Object.assign(updatedEmployee, updatePayload);
-                    // ✅ Better handling of department update
-                    if (updatePayload.department) {
-                        // Find the department name for display
-                        const selectedDept = departments.find(dept => dept._id === updatePayload.department);
-                        updatedEmployee.department = {
-                            _id: updatePayload.department,
-                            name: selectedDept?.name || 'Unknown Department'
-                        };
-                    }
-                    break;
-                case 'family':
-                    Object.assign(updatedEmployee, updatePayload);
-                    break;
-                case 'additional':
-                    Object.assign(updatedEmployee, updatePayload);
-                    break;
-            }
-
-            updatedEmployee.updatedAt = new Date().toISOString();
-            setEmployee(updatedEmployee);
-            setEditingSections({ ...editingSections, [section]: false });
-            showSuccess(`${section.charAt(0).toUpperCase() + section.slice(1)} information updated successfully!`);
         } catch (error) {
-            console.error('Error updating employee:', error);
+            console.error('Update Error:', error);
+            showNotice('error', error.message || 'An error occurred during update');
         } finally {
             setIsLoading(false);
         }
     };
 
-
-    // Add/remove child
-    const addChild = () => {
-        const newChild = {
-            name: '',
-            dateOfBirth: '',
-            gender: '',
-            school: '',
-            grade: ''
-        };
-        setEditData({
-            ...editData,
-            family: {
-                ...editData.family,
-                children: [...(editData.family?.children || []), newChild]
-            }
-        });
-    };
-
-    const removeChild = (index) => {
-        const updatedChildren = editData.family?.children?.filter((_, i) => i !== index) || [];
-        setEditData({
-            ...editData,
-            family: {
-                ...editData.family,
-                children: updatedChildren
-            }
-        });
-    };
-
-    const updateChild = (index, field, value) => {
-        const updatedChildren = [...(editData.family?.children || [])];
-        updatedChildren[index] = { ...updatedChildren[index], [field]: value };
-        setEditData({
-            ...editData,
-            family: {
-                ...editData.family,
-                children: updatedChildren
-            }
-        });
-    };
-
-    // Add/remove parent
-    const addParent = () => {
-        const newParent = {
-            name: '',
-            relationship: '',
-            contactNumber: ''
-        };
-        setEditData({
-            ...editData,
-            family: {
-                ...editData.family,
-                parents: [...(editData.family?.parents || []), newParent]
-            }
-        });
-    };
-
-    const removeParent = (index) => {
-        const updatedParents = editData.family?.parents?.filter((_, i) => i !== index) || [];
-        setEditData({
-            ...editData,
-            family: {
-                ...editData.family,
-                parents: updatedParents
-            }
-        });
-    };
-
-    const updateParent = (index, field, value) => {
-        const updatedParents = [...(editData.family?.parents || [])];
-        updatedParents[index] = { ...updatedParents[index], [field]: value };
-        setEditData({
-            ...editData,
-            family: {
-                ...editData.family,
-                parents: updatedParents
-            }
-        });
-    };
-
-    const handleDeleteConfirm = async () => {
+    const handleDelete = async () => {
         setIsLoading(true);
         try {
             const res = await deleteEmployeeApi(employee._id);
-            setIsDeleted(true);
-            setShowDeleteModal(false);
-            if (res?.success == true) {
-                showSuccess('Employee deleted successfully');
+            if (res?.success) {
+                setIsDeleted(true);
+                setShowDeleteModal(false);
+                showNotice('success', 'Employee deleted');
             }
         } catch (error) {
-            showSuccess(e.message || 'Error deleting employee');
+            showNotice('error', error.message || 'Error deleting');
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Modal backdrop component
-    const ModalBackdrop = ({ children, show, onClose }) => {
-        if (!show) return null;
+    // --- RENDER HELPERS ---
+    const getTabContent = () => {
+        const data = isEditing ? editedEmployee : employee;
+        if (!data) return null;
 
-        return createPortal(
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 py-6">
-                <div
-                    className="absolute inset-0 bg-black/50 transition-opacity duration-300"
-                    onClick={onClose}
-                />
-                <div className="relative bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100">
-                    {children}
-                </div>
-            </div>,
-            document.body // This renders the modal directly to body, bypassing parent containers
-        );
+        switch (activeTab) {
+            case 'general':
+                return <GeneralTab data={data} isEditing={isEditing} onUpdate={handleUpdateField} errors={errors} />;
+            case 'employment':
+                return (
+                    <EmploymentTab 
+                        data={data} 
+                        isEditing={isEditing} 
+                        onUpdate={handleUpdateField} 
+                        departments={departments} 
+                        errors={errors} 
+                        allowanceData={allowanceData}
+                    />
+                );
+            case 'family':
+                return (
+                    <FamilyTab 
+                        data={data} 
+                        isEditing={isEditing} 
+                        onUpdate={handleUpdateField} 
+                        errors={errors}
+                        onAddFamilyItem={handleAddFamilyItem}
+                        onRemoveFamilyItem={handleRemoveFamilyItem}
+                        onUpdateFamilyItem={handleUpdateFamilyItem}
+                    />
+                );
+            default:
+                return null;
+        }
     };
 
-    // Success notification
-    const SuccessNotification = () => {
-        if (!showSuccessMessage) return null;
-
-        return (
-            <div className="fixed top-4 right-4 z-60 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 transform transition-all duration-300">
-                <CheckCircle className="w-5 h-5" />
-                <span className="font-medium">{successMessage}</span>
-            </div>
-        );
-    };
-
-    // If deleted, show deleted state
     if (isDeleted) {
         return (
-            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-8 text-center">
+            <div className="bg-red-50/50 border border-red-100 rounded-2xl p-8 text-center animate-in">
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Trash2 className="w-8 h-8 text-red-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-red-900 mb-2">Employee Deleted</h3>
-                <p className="text-red-700">The employee has been successfully removed from the system.</p>
+                <h3 className="text-lg font-bold text-red-900 mb-2">Employee Removed</h3>
+                <p className="text-red-600 text-sm">This record has been successfully deleted from the system.</p>
             </div>
         );
     }
 
     return (
         <>
-            <SuccessNotification />
+            {/* Notifications */}
+            {notification && (
+                <div className={`fixed top-6 right-6 z-[10000] px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in ${
+                    notification.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+                }`}>
+                    {notification.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+                    <span className="font-semibold text-sm">{notification.message}</span>
+                </div>
+            )}
 
-            {/* Main Employee Card */}
+            {/* List Summary Card */}
             <div
-                className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 overflow-hidden group cursor-pointer"
+                className="premium-card premium-glass rounded-2xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer group"
                 onClick={() => setShowDetailModal(true)}
             >
-                {/* Card Header */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
+                <div className="p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-5">
+                        <div className="relative">
+                            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 overflow-hidden group-hover:scale-105 transition-transform">
                                 {employee.profilePicture && !employee.profilePicture.endsWith('/null') ? (
-                                    <img
-                                        src={employee.profilePicture}
-                                        alt={employee.name}
-                                        className="w-full h-full rounded-full object-cover"
-                                    />
+                                    <img src={employee.profilePicture} alt={employee.name} className="w-full h-full object-cover" />
                                 ) : (
-                                    <User className="w-8 h-8 text-white" />
+                                    <User className="w-7 h-7 text-white" />
                                 )}
                             </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
-                                    {employee.name}
-                                </h3>
-                                <div className="flex items-center space-x-4 text-sm text-gray-500">
-                                    <div className="flex items-center space-x-1">
-                                        <CreditCard className="w-4 h-4" />
-                                        <span>EPF: {employee.epfNumber}</span>
-                                    </div>
-                                    <div className="flex items-center space-x-1">
-                                        <Building2 className="w-4 h-4" />
-                                        <span>{employee.department?.name || 'N/A'}</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
                         </div>
-                        <div className="text-right">
-                            <div className="text-lg font-semibold text-green-600">
-                                Rs. {employee.basicSalary?.toLocaleString() || 'N/A'}
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                {employee.name}
+                            </h3>
+                            <div className="flex items-center gap-3 mt-1">
+                                <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">
+                                    <CreditCard className="w-3 h-3" /> {employee.epfNumber}
+                                </span>
+                                <span className="flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">
+                                    <Building2 className="w-3 h-3" /> {employee.department?.name || 'No Dept'}
+                                </span>
                             </div>
-                            <div className="text-sm text-gray-500">{employee.employmentType}</div>
                         </div>
                     </div>
-                </div>
-
-                {/* Card Body */}
-                <div className="px-6 py-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex items-center space-x-3">
-                            <Mail className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-600">{employee.email || 'N/A'}</span>
+                    <div className="flex items-center gap-6">
+                        <div className="hidden md:block text-right">
+                            <div className="text-sm font-bold text-green-600">Rs. {employee.basicSalary?.toLocaleString()}</div>
+                            <div className="text-[10px] uppercase tracking-widest font-black text-gray-300 mt-0.5">{employee.employmentType}</div>
                         </div>
-                        <div className="flex items-center space-x-3">
-                            <Phone className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-600">{employee.contactNumber}</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                            <Calendar className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-600">Joined {formatDate(employee.joinedDate)}</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                            <Heart className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-600">{employee.maritalStatus}</span>
+                        <div className="p-2 rounded-xl bg-gray-50 text-gray-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                            <ChevronRight className="w-5 h-5" />
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Detail Modal */}
-            <ModalBackdrop show={showDetailModal} onClose={() => setShowDetailModal(false)}>
-                <div className="p-6">
-                    {/* Modal Header */}
-                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
-                                {employee.profilePicture && !employee.profilePicture.endsWith('/null') ? (
-                                    <img
-                                        src={employee.profilePicture}
-                                        alt={employee.name}
-                                        className="w-full h-full rounded-full object-cover"
-                                    />
-                                ) : (
-                                    <User className="w-8 h-8 text-white" />
-                                )}
-
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-bold text-gray-900">{employee.name}</h2>
-                                <p className="text-gray-500">EPF: {employee.epfNumber}</p>
+            {showDetailModal && createPortal(
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 modal-overlay overflow-y-auto custom-scrollbar">
+                    <div 
+                        className="fixed inset-0" 
+                        onClick={() => !isEditing && setShowDetailModal(false)}
+                    />
+                    <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in">
+                        
+                        {/* Modal Top Bar */}
+                        <div className="relative h-40 bg-gradient-to-r from-blue-600 to-indigo-700 p-8 flex items-end">
+                            <button 
+                                onClick={() => setShowDetailModal(false)}
+                                className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all backdrop-blur-md"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                            
+                            <div className="flex items-end gap-6 translate-y-8">
+                                <div className="relative group">
+                                    <div className="w-28 h-28 rounded-3xl bg-white p-1 shadow-xl">
+                                        <div className="w-full h-full rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden">
+                                            {employee.profilePicture && !employee.profilePicture.endsWith('/null') ? (
+                                                <img src={employee.profilePicture} alt={employee.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <User className="w-12 h-12 text-gray-300" />
+                                            )}
+                                        </div>
+                                    </div>
+                                    <button className="absolute bottom-1 right-1 p-2 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all opacity-0 group-hover:opacity-100">
+                                        <Camera className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <div className="mb-2">
+                                    <h2 className="text-3xl font-black text-white drop-shadow-sm">{employee.name}</h2>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="px-3 py-1 bg-white/20 rounded-full text-white text-xs font-bold backdrop-blur-md border border-white/10">
+                                            {employee.epfNumber}
+                                        </span>
+                                        <span className="px-3 py-1 bg-green-400 text-white text-xs font-bold rounded-full shadow-lg shadow-green-900/20">
+                                            ACTIVE
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div className="flex items-center space-x-2">
+
+                        {/* Modal Body */}
+                        <div className="flex-1 flex flex-col mt-10 p-8 pt-6 overflow-hidden">
+                            {/* Tabs Navigation */}
+                            <div className="flex items-center gap-1 p-1 bg-gray-50 rounded-2xl mb-8 self-start">
+                                {[
+                                    { id: 'general', label: 'General', icon: Info },
+                                    { id: 'employment', label: 'Employment', icon: Briefcase },
+                                    { id: 'family', label: 'Family & Guardians', icon: Users }
+                                ].map(tab => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                                            activeTab === tab.id 
+                                                ? 'bg-white text-blue-600 shadow-sm' 
+                                                : 'text-gray-400 hover:text-gray-600'
+                                        }`}
+                                    >
+                                        <tab.icon className="w-4 h-4" />
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Scrollable Content */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                                {getTabContent()}
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-6 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
                             <button
                                 onClick={() => setShowDeleteModal(true)}
-                                className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-all duration-200"
-                                title="Delete Employee"
+                                className="flex items-center gap-2 px-5 py-2.5 text-red-600 font-bold hover:bg-red-50 rounded-2xl transition-all"
                             >
-                                <Trash2 className="w-5 h-5" />
+                                <Trash2 className="w-4 h-4" /> Delete Employee
                             </button>
-                            <button
-                                onClick={() => setShowDetailModal(false)}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                            >
-                                <X className="w-5 h-5 text-gray-500" />
-                            </button>
+                            
+                            <div className="flex items-center gap-3">
+                                {!isEditing ? (
+                                    <button
+                                        onClick={handleToggleEdit}
+                                        className="flex items-center gap-2 px-8 py-2.5 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all"
+                                    >
+                                        <Edit3 className="w-4 h-4" /> Edit Profile
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={handleToggleEdit}
+                                            className="px-6 py-2.5 text-gray-500 font-bold hover:bg-gray-200 rounded-2xl transition-all"
+                                            disabled={isLoading}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleSave}
+                                            disabled={isLoading}
+                                            className="flex items-center gap-2 px-8 py-2.5 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 shadow-lg shadow-green-200 transition-all"
+                                        >
+                                            {isLoading ? (
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <Save className="w-4 h-4" />
+                                            )}
+                                            {isLoading ? 'Saving...' : 'Save Changes'}
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
-
-                    <div className="space-y-6">
-                        {/* Personal Information */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center space-x-2">
-                                    <UserCheck className="w-5 h-5 text-blue-600" />
-                                    <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
-                                </div>
-                                {!editingSections.personal ? (
-                                    <button
-                                        onClick={() => startEditing('personal')}
-                                        className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors duration-200"
-                                    >
-                                        <Edit3 className="w-4 h-4" />
-                                    </button>
-                                ) : (
-                                    <div className="flex space-x-2">
-                                        <button
-                                            onClick={() => setEditingSections({ ...editingSections, personal: false })}
-                                            className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-200 rounded"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={() => saveSection('personal')}
-                                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                                        >
-                                            {isLoading ? 'Saving...' : 'Save'}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {!editingSections.personal ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">Full Name</span>
-                                        <p className="text-gray-900">{employee.name}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">Email</span>
-                                        <p className="text-gray-900">{employee.email || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">Phone</span>
-                                        <p className="text-gray-900">{employee.contactNumber}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">NIC Number</span>
-                                        <p className="text-gray-900">{employee.nicNumber || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">Date of Birth</span>
-                                        <p className="text-gray-900">{formatDate(employee.dateOfBirth)} ({calculateAge(employee.dateOfBirth)} years)</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">Gender</span>
-                                        <p className="text-gray-900">{employee.gender || 'N/A'}</p>
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <span className="text-sm font-medium text-gray-500">Address</span>
-                                        <p className="text-gray-900">{employee.address || 'N/A'}</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input
-                                        type="text"
-                                        placeholder="Full Name"
-                                        value={editData.personal?.name || ''}
-                                        onChange={(e) => setEditData({
-                                            ...editData,
-                                            personal: { ...editData.personal, name: e.target.value }
-                                        })}
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                    <input
-                                        type="email"
-                                        placeholder="Email"
-                                        value={editData.personal?.email || ''}
-                                        onChange={(e) => setEditData({
-                                            ...editData,
-                                            personal: { ...editData.personal, email: e.target.value }
-                                        })}
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                    <input
-                                        type="tel"
-                                        placeholder="Phone"
-                                        value={editData.personal?.contactNumber || ''}
-                                        onChange={(e) => setEditData({
-                                            ...editData,
-                                            personal: { ...editData.personal, contactNumber: e.target.value }
-                                        })}
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="NIC Number"
-                                        value={editData.personal?.nicNumber || ''}
-                                        onChange={(e) => setEditData({
-                                            ...editData,
-                                            personal: { ...editData.personal, nicNumber: e.target.value }
-                                        })}
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                    <input
-                                        type="date"
-                                        value={editData.personal?.dateOfBirth || ''}
-                                        onChange={(e) => setEditData({
-                                            ...editData,
-                                            personal: { ...editData.personal, dateOfBirth: e.target.value }
-                                        })}
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                    <select
-                                        value={editData.personal?.gender || ''}
-                                        onChange={(e) => setEditData({
-                                            ...editData,
-                                            personal: { ...editData.personal, gender: e.target.value }
-                                        })}
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    >
-                                        <option value="">Select Gender</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                    <textarea
-                                        placeholder="Address"
-                                        value={editData.personal?.address || ''}
-                                        onChange={(e) => setEditData({
-                                            ...editData,
-                                            personal: { ...editData.personal, address: e.target.value }
-                                        })}
-                                        className="md:col-span-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                                        rows={2}
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Employment Information */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center space-x-2">
-                                    <Briefcase className="w-5 h-5 text-blue-600" />
-                                    <h3 className="text-lg font-semibold text-gray-900">Employment Information</h3>
-                                </div>
-                                {!editingSections.employment ? (
-                                    <button
-                                        onClick={() => startEditing('employment')}
-                                        className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors duration-200"
-                                    >
-                                        <Edit3 className="w-4 h-4" />
-                                    </button>
-                                ) : (
-                                    <div className="flex space-x-2">
-                                        <button
-                                            onClick={() => setEditingSections({ ...editingSections, employment: false })}
-                                            className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-200 rounded"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={() => saveSection('employment')}
-                                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                                        >
-                                            {isLoading ? 'Saving...' : 'Save'}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {!editingSections.employment ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">EPF Number</span>
-                                        <p className="text-gray-900">{employee.epfNumber}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">Main Location</span>
-                                        <p className="text-gray-900">{employee?.mainLocation || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">Department</span>
-                                        <p className="text-gray-900">{employee.department?.name || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">Join Date</span>
-                                        <p className="text-gray-900">{formatDate(employee.joinedDate)}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">Employment Type</span>
-                                        <p className="text-gray-900">{employee.employmentType || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-gray-500">Basic Salary</span>
-                                        <p className="text-lg font-semibold text-green-600">
-                                            Rs. {employee.basicSalary?.toLocaleString() || 'N/A'}
-                                        </p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input
-                                        type="text"
-                                        placeholder="EPF Number"
-                                        value={editData.employment?.epfNumber || ''}
-                                        onChange={(e) => setEditData({
-                                            ...editData,
-                                            employment: { ...editData.employment, epfNumber: e.target.value }
-                                        })}
-
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                    <select
-                                        id="mainLocation"
-                                        name="mainLocation"
-                                        value={editData.employment?.mainLocation || ''}  // ✅ Correct reference
-                                        onChange={(e) =>
-                                            setEditData({
-                                                ...editData,
-                                                employment: {
-                                                    ...editData.employment,
-                                                    mainLocation: e.target.value   // ✅ Correct structure
-                                                }
-                                            })
-                                        }
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    >
-                                        <option value="">Select Main Location</option>
-                                        <option value="Head Office">Head Office</option>
-                                        <option value="Rathmalana">Rathmalana</option>
-                                        <option value="Osusala">Osusala</option>
-                                    </select>
-                                    <select
-                                        id="department"
-                                        name="department"
-                                        value={editData.employment?.department || ''}  // ✅ Correct reference
-                                        onChange={(e) =>
-                                            setEditData({
-                                                ...editData,
-                                                employment: {
-                                                    ...editData.employment,
-                                                    department: e.target.value   // ✅ Correct structure
-                                                }
-                                            })
-                                        }
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    >
-                                        <option value="">Select Department</option>
-                                        {departments.map((dept) => (
-                                            <option key={dept._id} value={dept._id}>
-                                                {dept.name}
-                                            </option>
-                                        ))}
-                                    </select>
-
-                                    <input
-                                        type="date"
-                                        value={editData.employment?.joinedDate || ''}
-                                        onChange={(e) => setEditData({
-                                            ...editData,
-                                            employment: { ...editData.employment, joinedDate: e.target.value }
-                                        })}
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                    <select
-                                        value={editData.employment?.employmentType || ''}
-                                        onChange={(e) => setEditData({
-                                            ...editData,
-                                            employment: { ...editData.employment, employmentType: e.target.value }
-                                        })}
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    >
-                                        <option value="">Select Type</option>
-                                        <option value="Permanent">Permanent</option>
-                                        <option value="Contract">Contract</option>
-                                        <option value="Intern">Intern</option>
-                                    </select>
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        placeholder="Basic Salary"
-                                        value={editData.employment?.basicSalary || ''}
-                                        onChange={(e) => setEditData({
-                                            ...editData,
-                                            employment: { ...editData.employment, basicSalary: e.target.value }
-                                        })}
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Family Information */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center space-x-2">
-                                    <Heart className="w-5 h-5 text-blue-600" />
-                                    <h3 className="text-lg font-semibold text-gray-900">Family Information</h3>
-                                </div>
-                                {!editingSections.family ? (
-                                    <button
-                                        onClick={() => startEditing('family')}
-                                        className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors duration-200"
-                                    >
-                                        <Edit3 className="w-4 h-4" />
-                                    </button>
-                                ) : (
-                                    <div className="flex space-x-2">
-                                        <button
-                                            onClick={() => setEditingSections({ ...editingSections, family: false })}
-                                            className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-200 rounded"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={() => saveSection('family')}
-                                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                                        >
-                                            {isLoading ? 'Saving...' : 'Save'}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {!editingSections.family ? (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <span className="text-sm font-medium text-gray-500">Marital Status</span>
-                                            <p className="text-gray-900">{employee.maritalStatus}</p>
-                                        </div>
-                                        {employee.maritalStatus === 'Married' && employee.spouseName && (
-                                            <div>
-                                                <span className="text-sm font-medium text-gray-500">Spouse Name</span>
-                                                <p className="text-gray-900">{employee.spouseName}</p>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Children */}
-                                    {employee.children && employee.children.length > 0 && (
-                                        <div>
-                                            <span className="text-sm font-medium text-gray-500 mb-2 block">Children</span>
-                                            <div className="space-y-2">
-                                                {employee.children.map((child, index) => (
-                                                    <div key={index} className="bg-white p-3 rounded border border-gray-200">
-                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-                                                            <div>
-                                                                <span className="font-medium text-gray-600">Name:</span>
-                                                                <span className="ml-1">{child.name}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="font-medium text-gray-600">Age:</span>
-                                                                <span className="ml-1">{calculateAge(child.dateOfBirth)} years</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="font-medium text-gray-600">Gender:</span>
-                                                                <span className="ml-1">{child.gender}</span>
-                                                            </div>
-                                                            {child.school && (
-                                                                <div>
-                                                                    <span className="font-medium text-gray-600">School:</span>
-                                                                    <span className="ml-1">{child.school}</span>
-                                                                </div>
-                                                            )}
-                                                            {child.grade && (
-                                                                <div>
-                                                                    <span className="font-medium text-gray-600">Grade:</span>
-                                                                    <span className="ml-1">{child.grade}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Parents */}
-                                    {employee.parents && employee.parents.length > 0 && (
-                                        <div>
-                                            <span className="text-sm font-medium text-gray-500 mb-2 block">Parents/Guardians</span>
-                                            <div className="space-y-2">
-                                                {employee.parents.map((parent, index) => (
-                                                    <div key={index} className="bg-white p-3 rounded border border-gray-200">
-                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-                                                            <div>
-                                                                <span className="font-medium text-gray-600">Name:</span>
-                                                                <span className="ml-1">{parent.name}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="font-medium text-gray-600">Relationship:</span>
-                                                                <span className="ml-1">{parent.relationship}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="font-medium text-gray-600">Contact:</span>
-                                                                <span className="ml-1">{parent.contactNumber || `Not Available`}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                    {/* Parents */}
-                                    {employee.spouseParents && employee.spouseParents.length > 0 && (
-                                        <div>
-                                            <span className="text-sm font-medium text-gray-500 mb-2 block">Spouse Parents/Guardians</span>
-                                            <div className="space-y-2">
-                                                {employee.spouseParents.map((parent, index) => (
-                                                    <div key={index} className="bg-white p-3 rounded border border-gray-200">
-                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-                                                            <div>
-                                                                <span className="font-medium text-gray-600">Name:</span>
-                                                                <span className="ml-1">{parent.name}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="font-medium text-gray-600">Relationship:</span>
-                                                                <span className="ml-1">{parent.relationship}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="font-medium text-gray-600">Contact:</span>
-                                                                <span className="ml-1">{parent.contactNumber || `Not Available`}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    {/* Basic Family Info */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <select
-                                            value={editData.family?.maritalStatus || ''}
-                                            onChange={(e) => setEditData({
-                                                ...editData,
-                                                family: { ...editData.family, maritalStatus: e.target.value }
-                                            })}
-                                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            <option value="">Select Marital Status</option>
-                                            <option value="Unmarried">Unmarried</option>
-                                            <option value="Married">Married</option>
-                                        </select>
-                                        {editData.family?.maritalStatus === 'Married' && (
-                                            <input
-                                                type="text"
-                                                placeholder="Spouse Name"
-                                                value={editData.family?.spouseName || ''}
-                                                onChange={(e) => setEditData({
-                                                    ...editData,
-                                                    family: { ...editData.family, spouseName: e.target.value }
-                                                })}
-                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            />
-                                        )}
-                                    </div>
-
-                                    {/* Children Section */}
-                                    <div>
-                                        <div className="flex items-center justify-between mb-3">
-                                            <h4 className="text-md font-semibold text-gray-700 flex items-center">
-                                                <Baby className="w-4 h-4 mr-2" />
-                                                Children
-                                            </h4>
-                                            <button
-                                                onClick={addChild}
-                                                className="flex items-center space-x-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200"
-                                            >
-                                                <Plus className="w-4 h-4" />
-                                                <span>Add Child</span>
-                                            </button>
-                                        </div>
-                                        <div className="space-y-3">
-                                            {editData.family?.children?.map((child, index) => (
-                                                <div key={index} className="bg-white p-4 rounded-lg border border-gray-200">
-                                                    <div className="flex justify-between items-start mb-3">
-                                                        <h5 className="text-sm font-medium text-gray-600">Child {index + 1}</h5>
-                                                        <button
-                                                            onClick={() => removeChild(index)}
-                                                            className="text-red-500 hover:text-red-700 p-1"
-                                                        >
-                                                            <X className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Child Name"
-                                                            value={child.name || ''}
-                                                            onChange={(e) => updateChild(index, 'name', e.target.value)}
-                                                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                                        />
-                                                        <input
-                                                            type="date"
-                                                            placeholder="Date of Birth"
-                                                            value={child.dateOfBirth ? child.dateOfBirth.split('T')[0] : ''}
-                                                            onChange={(e) => updateChild(index, 'dateOfBirth', e.target.value)}
-                                                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                                        />
-                                                        <select
-                                                            value={child.gender || ''}
-                                                            onChange={(e) => updateChild(index, 'gender', e.target.value)}
-                                                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                                        >
-                                                            <option value="">Select Gender</option>
-                                                            <option value="Male">Male</option>
-                                                            <option value="Female">Female</option>
-                                                        </select>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="School (Optional)"
-                                                            value={child.school || ''}
-                                                            onChange={(e) => updateChild(index, 'school', e.target.value)}
-                                                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                                        />
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Grade (Optional)"
-                                                            value={child.grade || ''}
-                                                            onChange={(e) => updateChild(index, 'grade', e.target.value)}
-                                                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Parents Section */}
-                                    <div>
-                                        <div className="flex items-center justify-between mb-3">
-                                            <h4 className="text-md font-semibold text-gray-700 flex items-center">
-                                                <Users className="w-4 h-4 mr-2" />
-                                                Parents/Guardians
-                                            </h4>
-                                            <button
-                                                onClick={addParent}
-                                                className="flex items-center space-x-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200"
-                                            >
-                                                <Plus className="w-4 h-4" />
-                                                <span>Add Parent</span>
-                                            </button>
-                                        </div>
-                                        <div className="space-y-3">
-                                            {editData.family?.parents?.map((parent, index) => (
-                                                <div key={index} className="bg-white p-4 rounded-lg border border-gray-200">
-                                                    <div className="flex justify-between items-start mb-3">
-                                                        <h5 className="text-sm font-medium text-gray-600">Parent/Guardian {index + 1}</h5>
-                                                        <button
-                                                            onClick={() => removeParent(index)}
-                                                            className="text-red-500 hover:text-red-700 p-1"
-                                                        >
-                                                            <X className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Parent Name"
-                                                            value={parent.name || ''}
-                                                            onChange={(e) => updateParent(index, 'name', e.target.value)}
-                                                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                                        />
-                                                        <select
-                                                            value={parent.relationship || ''}
-                                                            onChange={(e) => updateParent(index, 'relationship', e.target.value)}
-                                                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                                        >
-                                                            <option value="">Select Relationship</option>
-                                                            <option value="Father">Father</option>
-                                                            <option value="Mother">Mother</option>
-                                                            <option value="Guardian">Guardian</option>
-                                                        </select>
-                                                        <input
-                                                            type="tel"
-                                                            placeholder="Contact Number"
-                                                            value={parent.contactNumber || ''}
-                                                            onChange={(e) => updateParent(index, 'contactNumber', e.target.value)}
-                                                            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Additional Information */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center space-x-2">
-                                    <Calendar className="w-5 h-5 text-blue-600" />
-                                    <h3 className="text-lg font-semibold text-gray-900">Additional Information</h3>
-                                </div>
-                                {!editingSections.additional ? (
-                                    <button
-                                        onClick={() => startEditing('additional')}
-                                        className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors duration-200"
-                                    >
-                                        <Edit3 className="w-4 h-4" />
-                                    </button>
-                                ) : (
-                                    <div className="flex space-x-2">
-                                        <button
-                                            onClick={() => setEditingSections({ ...editingSections, additional: false })}
-                                            className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-200 rounded"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={() => saveSection('additional')}
-                                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                                        >
-                                            {isLoading ? 'Saving...' : 'Save'}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {!editingSections.additional ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                    <div>
-                                        <span className="font-medium text-gray-500">Created</span>
-                                        <p className="text-gray-900">{formatDate(employee.createdAt)}</p>
-                                    </div>
-                                    <div>
-                                        <span className="font-medium text-gray-500">Last Updated</span>
-                                        <p className="text-gray-900">{formatDate(employee.updatedAt)}</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input
-                                        type="date"
-                                        readOnly
-                                        value={editData.additional?.createdAt || ''}
-                                        onChange={(e) =>
-                                            setEditData({
-                                                ...editData,
-                                                additional: { ...editData.additional, createdAt: e.target.value }
-                                            })
-                                        }
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                    <input
-                                        type="date"
-                                        readOnly
-                                        value={editData.additional?.updatedAt || ''}
-                                        onChange={(e) =>
-                                            setEditData({
-                                                ...editData,
-                                                additional: { ...editData.additional, updatedAt: e.target.value }
-                                            })
-                                        }
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-
-                    </div>
-                </div>
-            </ModalBackdrop>
+                </div>,
+                document.body
+            )}
 
             {/* Delete Confirmation Modal */}
-            <ModalBackdrop show={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-                <div className="p-6">
-                    <div className="flex items-center space-x-3 mb-6">
-                        <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                            <AlertTriangle className="w-6 h-6 text-red-600" />
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in">
+                    <div className="bg-white rounded-[2rem] p-8 max-w-sm w-full text-center shadow-2xl">
+                        <div className="w-20 h-20 bg-red-100 rounded-3xl flex items-center justify-center mx-auto mb-6 text-red-600">
+                            <AlertTriangle className="w-10 h-10" />
                         </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900">Delete Employee</h2>
-                            <p className="text-sm text-gray-500 mt-1">This action cannot be undone</p>
-                        </div>
-                    </div>
-
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                        <p className="text-red-800">
-                            Are you sure you want to delete <strong>"{employee.name}"</strong> (EPF: {employee.epfNumber})?
-                            This will permanently remove the employee and all associated data.
+                        <h3 className="text-2xl font-black text-gray-900 mb-2">Are you sure?</h3>
+                        <p className="text-gray-500 mb-8 text-sm leading-relaxed">
+                            This will permanently remove <span className="font-bold text-gray-900">{employee.name}</span>'s record from the database. This action cannot be undone.
                         </p>
-                    </div>
-
-                    <div className="flex space-x-3">
-                        <button
-                            type="button"
-                            onClick={() => setShowDeleteModal(false)}
-                            className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors duration-200"
-                            disabled={isLoading}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleDeleteConfirm}
-                            disabled={isLoading}
-                            className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 disabled:opacity-50"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            <span>{isLoading ? 'Deleting...' : 'Delete Employee'}</span>
-                        </button>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                className="flex-1 px-6 py-3 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-all"
+                            >
+                                Go Back
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                className="flex-1 px-6 py-3 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 shadow-lg shadow-red-200 transition-all"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </ModalBackdrop>
+            )}
         </>
     );
 };

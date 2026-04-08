@@ -68,6 +68,14 @@ function App() {
 
   const DashboardContent = ({ currentPath }) => {
     const { user } = useUserStore();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+      if (user?.role === 'employee' && currentPath !== 'profile') {
+        navigate('/profile');
+      }
+    }, [user, navigate, currentPath]);
+
     if (user?.role === 'superadmin') {
       return <SuperAdminDashboard currentPath={currentPath} />;
     }

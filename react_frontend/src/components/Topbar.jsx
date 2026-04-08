@@ -128,7 +128,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                         {loading ? (
                             <div className="py-20 text-center">
                                 <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                                <p className="text-slate-400 text-sm">Searching system records...</p>
+                                <p className="text-slate-400 text-sm">Searching records...</p>
                             </div>
                         ) : searchQuery ? (
                             <div className="space-y-6">
@@ -168,7 +168,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                         ) : (
                             <div className="py-20 text-center">
                                 <Search className="w-12 h-12 text-slate-100 mx-auto mb-4" />
-                                <p className="text-slate-400 text-sm">Start searching for anything in the system</p>
+                                <p className="text-slate-400 text-sm">Start searching for records...</p>
                             </div>
                         )}
                     </div>
@@ -226,7 +226,7 @@ const Topbar = ({ setSidebarOpen, currentPage }) => {
                             </h2>
                             <div className="flex items-center space-x-2 mt-1 px-1">
                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Live System Status</span>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Profile Active</span>
                             </div>
                         </div>
                     </div>
@@ -260,8 +260,8 @@ const Topbar = ({ setSidebarOpen, currentPage }) => {
                                         <User className="w-5 h-5 text-white" />
                                     </div>
                                     <div className="hidden sm:block text-left pr-2">
-                                        <p className="text-[12px] font-black text-slate-900 leading-none">{user?.name || 'Admin User'}</p>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{user?.role || 'Admin'}</p>
+                                        <p className="text-[12px] font-black text-slate-900 leading-none">{user?.name || 'Staff Member'}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{user?.role || 'Member'}</p>
                                     </div>
                                     <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
                                 </button>
@@ -276,10 +276,13 @@ const Topbar = ({ setSidebarOpen, currentPage }) => {
                                             <UserCircle className="w-5 h-5 text-slate-400" />
                                             <span className="font-semibold">My Profile</span>
                                         </button>
-                                        <button onClick={() => { navigate('/settings/epf'); setIsProfileDropdownOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-2xl transition-all">
-                                            <Settings className="w-5 h-5 text-slate-400" />
-                                            <span className="font-semibold">System Preferences</span>
-                                        </button>
+                                        
+                                        {user?.role !== 'employee' && (
+                                            <button onClick={() => { navigate('/settings/epf'); setIsProfileDropdownOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-2xl transition-all">
+                                                <Settings className="w-5 h-5 text-slate-400" />
+                                                <span className="font-semibold">System Preferences</span>
+                                            </button>
+                                        )}
                                         <div className="h-px bg-slate-50 my-1 mx-4"></div>
                                         <button onClick={handleLogout} className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-rose-600 hover:bg-rose-50 rounded-2xl transition-all">
                                             <LogOut className="w-5 h-5" />

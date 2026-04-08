@@ -1,6 +1,5 @@
-@import "tailwindcss";
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
 
 :root {
   --primary-600: #4f46e5;
@@ -39,6 +38,7 @@ h1, h2, h3, h4, h5, h6 {
 .text-gradient {
   background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 

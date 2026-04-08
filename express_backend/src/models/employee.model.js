@@ -115,6 +115,10 @@ const employeeSchema = new mongoose.Schema({
     contactNumber: {
         type: String,
         required: true,
+    },
+    medicalRecords: {
+        type: String,
+        default: "",
     }
 }, { timestamps: true });
 

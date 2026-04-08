@@ -1,49 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Users,
-    Building2,
-    Shield,
-    UserCog,
-    Activity,
-    Zap,
-    TrendingUp,
-    ShieldCheck,
-    Lock,
-    Key,
-    UserPlus,
-    Settings,
-    Database,
-    Bell,
-    Cpu,
-    Server,
-    Globe,
-    Terminal,
-    ChevronRight,
-    AlertCircle
+    Users, Building2, Shield, UserCog, Activity, Zap, TrendingUp,
+    ShieldCheck, Lock, Key, UserPlus, Settings, Database, Bell,
+    Cpu, Server, Globe, Terminal, ChevronRight, AlertCircle,
+    Download, PieChart as PieIcon, BarChart3, Clock, Share2,
+    RefreshCw, HardDrive, FileBarChart, Upload
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { 
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
+    ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar,
+    Legend
+} from 'recharts';
 import Tab from '../../layout/Tab';
 import TabHeader from '../../components/TabHeader';
-import { getStatsApi } from '../../apis/stats.api';
+import { 
+    getStatsApi, 
+    getSystemHealthApi, 
+    getRecentActivityApi,
+    getDepartmentStatsApi,
+    getEpfMonthlyContributionApi
+} from '../../apis/stats.api';
 
 const SuperAdminDashboard = ({ currentPath }) => {
+    // --- State ---
     const [stats, setStats] = useState({});
+    const [health, setHealth] = useState(null);
+    const [activities, setActivities] = useState([]);
+    const [deptData, setDeptData] = useState([]);
+    const [epfTrends, setEpfTrends] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4'];
+
+    // --- Fetch Logic ---
     useEffect(() => {
-        const fetchStats = async () => {
+        const fetchDashboardData = async () => {
+            setLoading(true);
             try {
-                const response = await getStatsApi();
-                if (response.success) {
-                    setStats(response.data);
-                }
+                const [statsRes, healthRes, activityRes, deptRes, epfRes] = await Promise.all([
+                    getStatsApi(),
+                    getSystemHealthApi(),
+                    getRecentActivityApi(),
+                    getDepartmentStatsApi(),
+                    getEpfMonthlyContributionApi()
+                ]);
+
+                if (statsRes.success) setStats(statsRes.data);
+                if (healthRes.success) setHealth(healthRes.data);
+                if (activityRes.success) setActivities(activityRes.data);
+                if (deptRes.success) setDeptData(deptRes.data);
+                if (epfRes.success) setEpfTrends(epfRes.data);
+
             } catch (error) {
-                console.error('Error fetching super admin stats:', error);
+                console.error('Error fetching dashboard data:', error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchStats();
+        fetchDashboardData();
     }, []);
 
     const QuickAction = ({ icon: Icon, label, description, onClick, colorGradient }) => (
@@ -52,16 +66,13 @@ const SuperAdminDashboard = ({ currentPath }) => {
             className="group relative glass-card p-6 rounded-[2rem] border border-white/5 hover:border-white/10 hover:-translate-y-1 transition-all duration-500 text-left overflow-hidden bg-slate-900/40 backdrop-blur-3xl"
         >
             <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorGradient} opacity-5 group-hover:opacity-10 transition-opacity blur-3xl rounded-full -mr-16 -mt-16 group-hover:scale-150 duration-700`}></div>
-            
             <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colorGradient} p-0.5 shadow-lg group-hover:rotate-6 transition-all duration-500 mb-6`}>
                 <div className="w-full h-full bg-slate-900/60 backdrop-blur-md rounded-[0.9rem] flex items-center justify-center text-white">
                     <Icon className="w-7 h-7" />
                 </div>
             </div>
-
             <h3 className="text-lg font-black text-white uppercase tracking-tight mb-2">{label}</h3>
             <p className="text-xs text-slate-500 font-medium leading-relaxed mb-4">{description}</p>
-            
             <div className="flex items-center text-[10px] font-black text-indigo-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0">
                 <span>Execute Protocol</span>
                 <ChevronRight className="w-3 h-3 ml-1" />
@@ -73,153 +84,226 @@ const SuperAdminDashboard = ({ currentPath }) => {
         <Tab>
             <TabHeader
                 title="Super Admin Control Center"
-                subtitle="High-level system overview and administrative controls"
+                subtitle="High-level system overview and administrative protocols"
                 currentPath={currentPath}
             />
 
-            <div className="p-1 space-y-8 animate-fadeIn">
-                {/* Hero Stats Section */}
+            <div className="p-1 space-y-8 animate-fadeIn pb-20">
+                {/* 1. Hero Hub (Main Stats) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="glass-card group bg-indigo-600 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden transition-all duration-500 hover:-translate-y-1">
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-white opacity-10 rounded-full blur-3xl -mr-24 -mt-24 group-hover:scale-110 transition-transform duration-1000"></div>
+                    {/* Admin Count */}
+                    <div className="glass-card group bg-indigo-600 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden transition-all duration-500">
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-white opacity-10 rounded-full blur-3xl -mr-24 -mt-24 group-hover:scale-110 duration-1000"></div>
                         <div className="relative z-10">
                             <div className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-6 border border-white/30 shadow-xl">
                                 <ShieldCheck className="w-8 h-8" />
                             </div>
-                            <p className="text-indigo-100/60 text-[10px] font-black uppercase tracking-[0.3em] mb-1">System Guardians</p>
+                            <p className="text-indigo-100/60 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Guardians</p>
                             <h2 className="text-5xl font-black tracking-tighter font-outfit mb-4">{loading ? '...' : stats.adminUsersCount}</h2>
                             <div className="inline-flex items-center space-x-2 bg-black/20 px-3 py-1 rounded-full backdrop-blur-md border border-white/10">
                                 <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                                <span className="text-[10px] font-black uppercase tracking-widest">Active Security</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest">Auth Active</span>
                             </div>
                         </div>
                     </div>
 
+                    {/* Employee Count */}
                     <div className="glass-card group rounded-[2.5rem] p-8 bg-slate-900/40 backdrop-blur-3xl border border-white/5 relative overflow-hidden transition-all duration-500 hover:-translate-y-1">
                         <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500 opacity-5 rounded-full blur-3xl -mr-24 -mt-24"></div>
                         <div className="relative z-10">
-                            <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-6 border border-emerald-500/20 text-emerald-400 shadow-xl">
+                            <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-6 border border-emerald-500/20 text-emerald-400">
                                 <Users className="w-8 h-8" />
                             </div>
-                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Grid Population</p>
+                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Staff Density</p>
                             <h2 className="text-5xl font-black text-white tracking-tighter font-outfit mb-4">{loading ? '...' : stats.employees?.totalEmployees}</h2>
                             <div className="flex items-center text-[10px] font-black text-emerald-400 uppercase tracking-widest">
                                 <TrendingUp className="w-4 h-4 mr-1.5" />
-                                <span>Global Data Set</span>
+                                <span>Core Population</span>
                             </div>
                         </div>
                     </div>
 
+                    {/* Spending Summary */}
                     <div className="glass-card group rounded-[2.5rem] p-8 bg-slate-900/40 backdrop-blur-3xl border border-white/5 relative overflow-hidden transition-all duration-500 hover:-translate-y-1">
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500 opacity-5 rounded-full blur-3xl -mr-24 -mt-24"></div>
                         <div className="relative z-10">
-                            <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center mb-6 border border-indigo-500/20 text-indigo-400 shadow-xl">
-                                <Building2 className="w-8 h-8" />
+                            <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-6 border border-amber-500/20 text-amber-500">
+                                <Activity className="w-8 h-8" />
                             </div>
-                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1">System Nodes</p>
-                            <h2 className="text-5xl font-black text-white tracking-tighter font-outfit mb-4">{loading ? '...' : stats.departmentCount}</h2>
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Core Mapped Clusters</span>
+                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Yearly Spending</p>
+                            <h2 className="text-5xl font-black text-white tracking-tighter font-outfit mb-4">
+                                {loading ? '...' : (stats.epfThisYear?.totalEpfThisYear / 1000).toFixed(0)}K
+                            </h2>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Medical Claims</span>
                         </div>
                     </div>
 
-                    <div className="glass-card group bg-slate-950 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden transition-all duration-500 hover:-translate-y-1 border border-white/5">
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500 opacity-10 rounded-full blur-3xl -mr-24 -mt-24 group-hover:scale-110 duration-1000"></div>
+                    {/* Health Status Dashboard */}
+                    <div className="glass-card group bg-slate-950 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden transition-all duration-500 border border-white/5">
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500 opacity-10 rounded-full blur-3xl -mr-24 -mt-24"></div>
                         <div className="relative z-10">
                             <div className="w-14 h-14 bg-emerald-500/20 rounded-2xl flex items-center justify-center mb-6 border border-emerald-500/30">
                                 <Zap className="w-8 h-8 text-emerald-400" />
                             </div>
-                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Core Integrity</p>
-                            <h2 className="text-3xl font-black text-emerald-400 tracking-tight uppercase mb-4">Optimal</h2>
-                            <div className="flex items-center space-x-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                                <div className="flex space-x-1">
-                                    {[1, 2, 3, 4].map(i => (
-                                        <div key={i} className={`w-1 h-3 rounded-full ${i <= 3 ? 'bg-emerald-500' : 'bg-emerald-500/20'}`}></div>
-                                    ))}
-                                </div>
-                                <span>Latency 12ms</span>
+                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Cluster Integrity</p>
+                            <h2 className="text-3xl font-black text-emerald-400 tracking-tight uppercase mb-4">
+                                {loading ? 'Checking...' : (health?.database === 'connected' ? 'Optimal' : 'Degraded')}
+                            </h2>
+                            <div className="flex items-center space-x-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                <Globe className="w-3 h-3 text-indigo-400" />
+                                <span>DB Node: {health?.database || 'Pending'}</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Exclusive Super Admin Actions */}
+                {/* 2. Advanced Analytics Layer */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Monthly Trends Chart */}
+                    <div className="lg:col-span-2 glass-card p-10 rounded-[3rem] bg-slate-900/40 backdrop-blur-3xl border border-white/5 relative overflow-hidden group">
+                        <div className="flex items-center justify-between mb-10">
+                            <div>
+                                <h3 className="text-2xl font-black text-white uppercase tracking-tight">Financial Velocity</h3>
+                                <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Medical Spending (Last 12 Months)</p>
+                            </div>
+                            <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                                <TrendingUp className="w-6 h-6" />
+                            </div>
+                        </div>
+                        <div className="h-80 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={epfTrends}>
+                                    <defs>
+                                        <linearGradient id="colorAmt" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                                    <XAxis dataKey="month" stroke="#64748b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} />
+                                    <YAxis stroke="#64748b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} tickFormatter={(val) => `Rs.${val/1000}k`} />
+                                    <Tooltip 
+                                        contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem', color: '#fff' }}
+                                        itemStyle={{ color: '#818cf8', fontWeight: 'bold' }}
+                                    />
+                                    <Area type="monotone" dataKey="amount" stroke="#6366f1" strokeWidth={4} fillOpacity={1} fill="url(#colorAmt)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* Department Distribution Pie */}
+                    <div className="glass-card p-10 rounded-[3rem] bg-slate-900/40 backdrop-blur-3xl border border-white/5 flex flex-col items-center">
+                        <h3 className="text-xl font-black text-white uppercase tracking-tight mb-8 self-start">Grid Allocation</h3>
+                        <div className="h-64 w-full relative">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={deptData}
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={10}
+                                        dataKey="value"
+                                    >
+                                        {deptData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(255,255,255,0.05)" />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span className="text-2xl font-black text-white">{stats.employees?.totalEmployees}</span>
+                                <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Staff Members</span>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 w-full mt-8">
+                            {deptData.slice(0, 4).map((dept, index) => (
+                                <div key={dept.name} className="flex items-center space-x-2">
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index] }}></div>
+                                    <span className="text-[10px] font-bold text-slate-400 truncate uppercase">{dept.name}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* 3. Action Protocol Hub */}
                 <div className="space-y-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-black text-white tracking-tight uppercase flex items-center">
-                            <Lock className="w-6 h-6 mr-3 text-indigo-500" />
-                            Administrative Protocols
+                            <Shield className="w-6 h-6 mr-3 text-indigo-500" />
+                            Security Protocol Nexus
                         </h2>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <QuickAction 
                             icon={UserPlus} 
-                            label="Provision Root" 
-                            description="Forge new administrative credentials with full system entropy access."
+                            label="Auth Provision" 
+                            description="Forge new high-level administrative credentials."
                             colorGradient="from-blue-600 to-indigo-600"
-                            onClick={() => window.location.href = '/admins/add'}
+                            onClick={() => window.location.href = '/admins/'}
                         />
                         <QuickAction 
-                            icon={Terminal} 
-                            label="Security Log" 
-                            description="Stream live authentication events and system-wide state changes."
-                            colorGradient="from-indigo-600 to-purple-600"
-                            onClick={() => {}}
+                            icon={Upload} 
+                            label="Force Import" 
+                            description="Execute mass data synchronization via legacy grid protocols."
+                            colorGradient="from-emerald-600 to-teal-600"
+                            onClick={() => window.location.href = '/reports/'}
                         />
                          <QuickAction 
                             icon={Database} 
-                            label="Node Backup" 
+                            label="State Backup" 
                             description="Serialize master database state to encrypted cold storage."
-                            colorGradient="from-purple-600 to-pink-600"
-                            onClick={() => window.location.href = '/backup'}
+                            colorGradient="from-indigo-600 to-purple-600"
+                            onClick={() => window.location.href = '/settings/'}
                         />
                         <QuickAction 
-                            icon={Cpu} 
-                            label="Core Kernel" 
-                            description="Configure system-wide parameters and medical contribution logic."
+                            icon={FileBarChart} 
+                            label="Master Ledger" 
+                            description="Generate Organization-wide medical spending analytics."
                             colorGradient="from-slate-700 to-slate-900"
-                            onClick={() => window.location.href = '/settings/epf'}
+                            onClick={() => window.location.href = '/reports/'}
                         />
                     </div>
                 </div>
 
-                {/* Security Insights */}
+                {/* 4. Live Stream (Recent Activity) */}
                 <div className="glass-card p-10 rounded-[3rem] bg-slate-900/40 backdrop-blur-3xl border border-white/5 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/5 blur-3xl -mr-48 -mt-48 transition-all duration-1000 group-hover:bg-indigo-600/10"></div>
-                    
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-10 relative z-10">
                         <div>
-                            <div className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] mb-2">Real-time Stream</div>
-                            <h2 className="text-3xl font-black text-white tracking-tight uppercase">Security Insights</h2>
-                            <p className="text-slate-500 text-sm font-medium mt-1">Cross-network administrative action monitoring</p>
+                            <div className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] mb-2">Audit Pipeline</div>
+                            <h2 className="text-3xl font-black text-white tracking-tight uppercase">Activity Stream</h2>
                         </div>
-                        <button className="bg-white/10 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10 active:scale-95 shadow-2xl">
-                            Export Master Log
-                        </button>
+                        <div className="flex items-center space-x-2 bg-indigo-500/10 px-4 py-2 rounded-xl border border-indigo-500/20">
+                            <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Watching 104 Nodes</span>
+                        </div>
                     </div>
 
-                    <div className="relative group/log">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-[2rem] blur opacity-0 group-hover/log:opacity-100 transition duration-1000"></div>
-                        <div className="relative h-80 flex items-center justify-center bg-slate-950/40 rounded-[2rem] border border-white/5 border-dashed overflow-hidden">
-                            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-                            <div className="text-center relative z-10">
-                                <div className="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center mb-6 mx-auto border border-white/5 shadow-2xl">
-                                    <Activity className="w-10 h-10 text-slate-700 animate-pulse" />
-                                </div>
-                                <p className="text-white font-black uppercase tracking-[0.2em] mb-2">Audit Stream Active</p>
-                                <p className="text-slate-500 text-sm font-medium italic">Monitoring system entropy and peer-to-peer data sync...</p>
+                    <div className="space-y-4">
+                        {loading ? (
+                            <div className="h-40 flex items-center justify-center text-slate-500">
+                                <RefreshCw className="w-8 h-8 animate-spin" />
                             </div>
-                        </div>
-                    </div>
-
-                    <div className="mt-8 flex flex-wrap gap-4 relative z-10">
-                        <div className="bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20 flex items-center space-x-3">
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest font-outfit tracking-widest">Master Node: Verified</span>
-                        </div>
-                        <div className="bg-indigo-500/10 px-4 py-2 rounded-xl border border-indigo-500/20 flex items-center space-x-3">
-                            <Globe className="w-4 h-4 text-indigo-400" />
-                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Network Latency: 4ms</span>
-                        </div>
+                        ) : activities.map((activity, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-5 bg-slate-950/40 rounded-2xl border border-white/5 hover:border-white/10 transition-all group/item">
+                                <div className="flex items-center space-x-5">
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                                        activity.type === 'admin' ? 'bg-purple-500/10 text-purple-400' : 'bg-blue-500/10 text-blue-400'
+                                    } border border-white/5`}>
+                                        {activity.type === 'admin' ? <Shield className="w-6 h-6" /> : <UserCog className="w-6 h-6" />}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-black text-white group-hover/item:text-indigo-400 transition-colors uppercase">{activity.title}</p>
+                                        <p className="text-xs text-slate-500 font-bold">{activity.description}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{new Date(activity.time).toLocaleDateString()}</p>
+                                    <p className="text-[8px] font-bold text-slate-600 uppercase mt-1">{new Date(activity.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
