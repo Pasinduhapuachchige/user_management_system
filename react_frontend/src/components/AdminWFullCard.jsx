@@ -19,12 +19,14 @@ import {
     Power,
     PowerOff,
     LogOut,
-    Key
+    Key,
+    RefreshCw
 } from 'lucide-react';
 import { deleteAccount, resetAdminPassword, tougleAccountStatus } from '../apis/admin.api';
 import { useUserStore } from '../tools/user.zustand';
 
-const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
+const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) => {
+    const isGuardian = type === 'admins';
 
     const { user } = useUserStore();
 
@@ -48,10 +50,16 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
     const [newPassword, setNewPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    // Sync state when initialAdminRecords changes
+    React.useEffect(() => {
+        setAdminRecords(initialAdminRecords);
+    }, [initialAdminRecords]);
+
     // Filter admin records based on search term
     const filteredAdminRecords = (Array.isArray(adminRecords) ? adminRecords : []).filter(record =>
         record.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         record.epfNo?.toString().includes(searchTerm) ||
+        record.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (record.isActive ? 'active' : 'inactive').includes(searchTerm.toLowerCase())
     );
 
@@ -103,9 +111,9 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
             setAdminRecords(updatedRecords);
             setShowEditModal(false);
             setSelectedRecord(null);
-            showSuccess('Admin account viewed successfully!');
+            showSuccess(`${isGuardian ? 'Guardian' : 'Staff'} account viewed successfully!`);
         } catch (error) {
-            console.error('Error viewing admin account:', error);
+            console.error('Error viewing account:', error);
         } finally {
             setIsLoading(false);
         }
@@ -117,25 +125,33 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
         try {
             const res = await tougleAccountStatus(selectedRecord._id)
 
-            const updatedRecords = adminRecords.map(record =>
-                record._id === selectedRecord._id
-                    ? {
-                        ...record,
-                        isActive: !record.isActive,
-                        updatedAt: new Date().toISOString()
-                    }
-                    : record
-            );
+            if (res.success) {
+                const updatedRecords = adminRecords.map(record =>
+                    record._id === selectedRecord._id
+                        ? {
+                            ...record,
+                            isActive: !record.isActive,
+                            updatedAt: new Date().toISOString()
+                        }
+                        : record
+                );
 
-            setAdminRecords(updatedRecords);
-            setShowToggleModal(false);
-            setShowSelfDeactivationWarning(false);
-            const newStatus = !selectedRecord.isActive;
-            setSelectedRecord(null);
-            showSuccess(`Admin account ${newStatus ? 'activated' : 'deactivated'} successfully!`);
-            window.location.reload()
+                setAdminRecords(updatedRecords);
+                setShowToggleModal(false);
+                setShowSelfDeactivationWarning(false);
+                const newStatus = !selectedRecord.isActive;
+                setSelectedRecord(null);
+                showSuccess(`${isGuardian ? 'Guardian' : 'Staff'} account ${newStatus ? 'activated' : 'deactivated'} successfully!`);
+                
+                // Add a small delay for the success message to be seen before reload
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                alert(res.message || 'Failed to toggle account status. Please check your permissions.');
+            }
         } catch (error) {
-            console.error('Error toggling admin status:', error);
+            console.error('Error toggling status:', error);
         } finally {
             setIsLoading(false);
         }
@@ -145,18 +161,22 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
     const handleDeleteConfirm = async () => {
         setIsLoading(true);
         try {
-            await deleteAccount(selectedRecord._id)
+            const res = await deleteAccount(selectedRecord._id)
 
-            const updatedRecords = (Array.isArray(adminRecords) ? adminRecords : []).filter(
-                record => record._id !== selectedRecord._id
-            );
-            setAdminRecords(updatedRecords);
-            setShowDeleteModal(false);
-            setSelectedRecord(null);
-            setExpandedCard(null);
-            showSuccess('Admin account deleted successfully!');
+            if (res.success) {
+                const updatedRecords = (Array.isArray(adminRecords) ? adminRecords : []).filter(
+                    record => record._id !== selectedRecord._id
+                );
+                setAdminRecords(updatedRecords);
+                setShowDeleteModal(false);
+                setSelectedRecord(null);
+                setExpandedCard(null);
+                showSuccess(`${isGuardian ? 'Guardian' : 'Staff'} account deleted successfully!`);
+            } else {
+                alert(res.message || 'Failed to delete account. Please check your permissions.');
+            }
         } catch (error) {
-            console.error('Error deleting admin account:', error);
+            console.error('Error deleting account:', error);
         } finally {
             setIsLoading(false);
         }
@@ -257,7 +277,7 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                         <input
                             type="text"
-                            placeholder="Search by email, EPF number, or account status..."
+                            placeholder={`Search by email, EPF, role or status...`}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200 outline-none"
@@ -265,7 +285,7 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
                     </div>
                     {searchTerm && (
                         <p className="text-sm text-gray-600 mt-2">
-                            Found {filteredAdminRecords.length} admin{filteredAdminRecords.length !== 1 ? 's' : ''}
+                            Found {filteredAdminRecords.length} record{filteredAdminRecords.length !== 1 ? 's' : ''}
                         </p>
                     )}
                 </div>
@@ -273,8 +293,8 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
                 {/* Admin Records */}
                 {filteredAdminRecords.length === 0 ? (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-                        <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-600">No admin accounts found matching your search.</p>
+                        {isGuardian ? <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" /> : <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />}
+                        <p className="text-gray-600">No {isGuardian ? 'guardian' : 'staff'} accounts found matching your search.</p>
                     </div>
                 ) : (
                     filteredAdminRecords.map((record) => {
@@ -287,97 +307,46 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
                             >
                                 {/* Clickable Header */}
                                 <div
-                                    className="bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4 border-b border-gray-100 cursor-pointer hover:from-purple-100 hover:to-indigo-100 hover:shadow-md transition-all duration-200 group"
+                                    className={`bg-gradient-to-r ${isGuardian ? 'from-purple-50 to-indigo-50' : 'from-emerald-50 to-teal-50'} px-6 py-4 border-b border-gray-100 cursor-pointer hover:shadow-md transition-all duration-200 group`}
                                     onClick={() => toggleCard(record._id)}
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-4 flex-1">
-                                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow duration-200">
-                                                <Shield className="w-5 h-5 text-white" />
+                                            <div className={`w-10 h-10 bg-gradient-to-br ${isGuardian ? 'from-purple-500 to-indigo-600' : 'from-emerald-500 to-teal-600'} rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow duration-200`}>
+                                                {isGuardian ? <Shield className="w-5 h-5 text-white" /> : <User className="w-5 h-5 text-white" />}
                                             </div>
                                             <div className="flex items-center justify-between flex-1">
                                                 <div className="w-64 min-w-64">
-                                                    <p className="text-xs text-gray-500 uppercase tracking-wide">Email Address</p>
+                                                    <p className="text-xs text-gray-500 uppercase tracking-wide">Identifier</p>
                                                     <p className="font-semibold text-gray-900 truncate">{record.email}</p>
                                                 </div>
+                                                <div className="w-32 min-w-32 text-center border-x border-gray-100">
+                                                    <p className="text-xs text-gray-500 uppercase tracking-wide">Role</p>
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
+                                                        record.role === 'superadmin' ? 'bg-indigo-100 text-indigo-700' : 
+                                                        record.role === 'admin' ? 'bg-blue-100 text-blue-700' : 
+                                                        record.role === 'hr_manager' ? 'bg-purple-100 text-purple-700' :
+                                                        'bg-slate-100 text-slate-700'
+                                                    }`}>
+                                                        {record.role}
+                                                    </span>
+                                                </div>
                                                 <div className="w-32 min-w-32 text-center">
-                                                    <p className="text-xs text-gray-500 uppercase tracking-wide">EPF Number</p>
+                                                    <p className="text-xs text-gray-500 uppercase tracking-wide">EPF Hub</p>
                                                     <p className="font-semibold text-gray-900">{record.epfNo}</p>
                                                 </div>
                                                 <div className="w-32 min-w-32 text-center">
-                                                    <p className="text-xs text-gray-500 uppercase tracking-wide">Status</p>
+                                                    <p className="text-xs text-gray-500 uppercase tracking-wide">Integrity</p>
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${record.isActive
                                                         ? 'bg-green-100 text-green-800'
                                                         : 'bg-red-100 text-red-800'
                                                         }`}>
-                                                        {record.isActive ? (
-                                                            <>
-                                                                <UserCheck className="w-3 h-3 mr-1" />
-                                                                Active
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <UserX className="w-3 h-3 mr-1" />
-                                                                Inactive
-                                                            </>
-                                                        )}
+                                                        {record.isActive ? 'Active' : 'Inactive'}
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="flex items-center space-x-2 ml-4">
-                                            {isExpanded && (
-                                                <div className="flex items-center space-x-1 mr-2">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setSelectedRecord(record);
-                                                            setShowResetPasswordModal(true);
-                                                        }}
-                                                        className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 rounded-lg transition-all duration-200 transform hover:scale-105"
-                                                        title="Reset Admin Password"
-                                                    >
-                                                        <Key className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            openEditModal(record);
-                                                        }}
-                                                        className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-200 rounded-lg transition-all duration-200 transform hover:scale-105"
-                                                        title="View Admin Details"
-                                                    >
-                                                        <Edit3 className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            openToggleModal(record);
-                                                        }}
-                                                        className={`p-2 hover:bg-opacity-20 rounded-lg transition-all duration-200 transform hover:scale-105 ${record.isActive
-                                                            ? 'text-orange-600 hover:text-orange-800 hover:bg-orange-200'
-                                                            : 'text-green-600 hover:text-green-800 hover:bg-green-200'
-                                                            }`}
-                                                        title={record.isActive ? 'Deactivate Account' : 'Activate Account'}
-                                                    >
-                                                        {record.isActive ? (
-                                                            <PowerOff className="w-4 h-4" />
-                                                        ) : (
-                                                            <Power className="w-4 h-4" />
-                                                        )}
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            openDeleteModal(record);
-                                                        }}
-                                                        className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-all duration-200 transform hover:scale-105"
-                                                        title="Delete Admin"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            )}
                                             <div className="group-hover:text-purple-600 transition-colors duration-200">
                                                 {isExpanded ? (
                                                     <ChevronUp className="w-5 h-5" />
@@ -391,80 +360,80 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords }) => {
 
                                 {/* Expandable Content */}
                                 {isExpanded && (
-                                    <div className="bg-gradient-to-br from-purple-25 via-slate-50 to-indigo-25 px-6 py-6 animate-in slide-in-from-top duration-300 border-t border-purple-100/50">
-                                        <div className="space-y-6">
-                                            {/* Admin Information */}
-                                            <div className="flex items-start space-x-3 bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-purple-100/30 shadow-sm hover:shadow-md transition-all duration-200">
-                                                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
-                                                    <User className="w-4 h-4 text-white" />
+                                    <div className="bg-white/50 px-6 py-6 border-t border-gray-100 animate-fadeIn">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                            {/* Details Section */}
+                                            <div className="space-y-4">
+                                                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm text-slate-400">
+                                                        <Mail className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact Node</p>
+                                                        <p className="text-sm font-bold text-slate-800">{record.email}</p>
+                                                    </div>
                                                 </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-semibold text-purple-800 mb-3">Administrator Details</p>
-                                                    <div className="space-y-3">
-                                                        <div className="flex items-center space-x-3">
-                                                            <Mail className="w-4 h-4 text-gray-500" />
-                                                            <div>
-                                                                <p className="text-xs text-gray-500 uppercase tracking-wide">Email Address</p>
-                                                                <p className="text-gray-900 font-medium">{record.email}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center space-x-3">
-                                                            <Badge className="w-4 h-4 text-gray-500" />
-                                                            <div>
-                                                                <p className="text-xs text-gray-500 uppercase tracking-wide">EPF Number</p>
-                                                                <p className="text-gray-900 font-medium">{record.epfNo}</p>
-                                                            </div>
-                                                        </div>
+                                                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm text-slate-400">
+                                                        <Badge className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Registry Code</p>
+                                                        <p className="text-sm font-bold text-slate-800">{record.epfNo}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm text-slate-400">
+                                                        <UserCheck className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Access Protocol</p>
+                                                        <p className="text-sm font-bold text-slate-800 tracking-wide uppercase">{record.role}</p>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            {/* Account Status */}
-                                            <div className="flex items-start space-x-3 bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-green-100/30 shadow-sm hover:shadow-md transition-all duration-200">
-                                                <div className={`w-8 h-8 bg-gradient-to-br rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm ${record.isActive
-                                                    ? 'from-green-500 to-emerald-600'
-                                                    : 'from-red-500 to-red-600'
-                                                    }`}>
-                                                    {record.isActive ? (
-                                                        <UserCheck className="w-4 h-4 text-white" />
-                                                    ) : (
-                                                        <UserX className="w-4 h-4 text-white" />
+                                            {/* Actions Section */}
+                                            <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden group/actions">
+                                                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl -mr-16 -mt-16 group-hover/actions:scale-150 transition-all duration-700"></div>
+                                                <h4 className="text-xs font-black uppercase tracking-[0.3em] text-indigo-400 mb-6">Execution Protocols</h4>
+                                                
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <button 
+                                                        onClick={() => setShowResetPasswordModal(true)}
+                                                        className="flex flex-col items-center justify-center p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all group/btn"
+                                                    >
+                                                        <Key className="w-6 h-6 mb-2 text-indigo-400 group-hover/btn:scale-110 transition-transform" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">Reset Password</span>
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => openToggleModal(record)}
+                                                        className="flex flex-col items-center justify-center p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all group/btn"
+                                                    >
+                                                        {record.isActive ? <PowerOff className="w-6 h-6 mb-2 text-orange-400" /> : <Power className="w-6 h-6 mb-2 text-green-400" />}
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">{record.isActive ? 'Deactivate' : 'Activate'} Account</span>
+                                                    </button>
+                                                    {record.role !== 'superadmin' && (
+                                                        <button 
+                                                            onClick={() => openDeleteModal(record)}
+                                                            className="flex flex-col items-center justify-center p-4 bg-red-500/10 hover:bg-red-500/20 rounded-2xl border border-red-500/20 transition-all col-span-2 group/btn"
+                                                        >
+                                                            <Trash2 className="w-6 h-6 mb-2 text-red-500 group-hover/btn:scale-110 transition-transform" />
+                                                            <span className="text-[10px] font-black uppercase tracking-widest text-red-400">Purge Record</span>
+                                                        </button>
                                                     )}
                                                 </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className={`text-sm font-semibold mb-2 ${record.isActive ? 'text-green-800' : 'text-red-800'
-                                                        }`}>
-                                                        Account Status
-                                                    </p>
-                                                    <div className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium ${record.isActive
-                                                        ? 'bg-green-100 text-green-800 border border-green-200'
-                                                        : 'bg-red-100 text-red-800 border border-red-200'
-                                                        }`}>
-                                                        {record.isActive ? (
-                                                            <>
-                                                                <UserCheck className="w-4 h-4 mr-2" />
-                                                                Active - Full access granted
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <UserX className="w-4 h-4 mr-2" />
-                                                                Inactive - Access restricted
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
                                             </div>
+                                        </div>
 
-                                            {/* Timestamps */}
-                                            <div className="flex items-center justify-between pt-3 mt-2 border-t border-purple-200/50 text-sm text-gray-500 bg-white/30 rounded-lg px-4 py-3 backdrop-blur-sm">
-                                                <div className="flex items-center space-x-2">
-                                                    <Calendar className="w-4 h-4 text-purple-500" />
-                                                    <span>Created {formatDate(record.createdAt)}</span>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <Edit3 className="w-4 h-4 text-purple-500" />
-                                                    <span>Updated {formatDate(record.updatedAt)}</span>
-                                                </div>
+                                        <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest border-t border-gray-100 pt-4 px-2">
+                                            <div className="flex items-center">
+                                                <Calendar className="w-3 h-3 mr-2" />
+                                                <span>Initialized: {formatDate(record.createdAt)}</span>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <RefreshCw className="w-3 h-3 mr-2" />
+                                                <span>Last Sync: {formatDate(record.updatedAt)}</span>
                                             </div>
                                         </div>
                                     </div>

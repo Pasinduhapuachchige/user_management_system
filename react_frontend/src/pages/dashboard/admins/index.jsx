@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, UserX } from 'lucide-react';
+import { Users, UserX, Shield } from 'lucide-react';
 import Tab from '../../../layout/Tab';
 import TabHeader from '../../../components/TabHeader';
 import AdminWFullCard from '../../../components/AdminWFullCard';
@@ -68,6 +68,7 @@ const AdminsList = ({ currentPath }) => {
     const [admins, setAdmins] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
+    const [activeTab, setActiveTab] = React.useState('admins'); // 'admins' or 'employees'
 
     const fetchAdmins = async () => {
         try {
@@ -87,13 +88,23 @@ const AdminsList = ({ currentPath }) => {
         fetchAdmins();
     }, []);
 
+    // Categorize accounts
+    const systemAdmins = (Array.isArray(admins) ? admins : []).filter(
+        a => a.role !== 'employee'
+    );
+    const employeeAccounts = (Array.isArray(admins) ? admins : []).filter(
+        a => a.role === 'employee'
+    );
+
+    const activeList = activeTab === 'admins' ? systemAdmins : employeeAccounts;
+
     // Show loading skeleton
     if (loading) {
         return (
             <Tab>
                 <TabHeader
-                    title="Admin Management"
-                    subtitle="Manage system administrators and permissions"
+                    title="Account Management"
+                    subtitle="Manage system guardians and employee digital credentials"
                     currentPath={currentPath}
                 />
                 <div className="space-y-4">
@@ -108,8 +119,8 @@ const AdminsList = ({ currentPath }) => {
         return (
             <Tab>
                 <TabHeader
-                    title="Admin Management"
-                    subtitle="Manage system administrators and permissions"
+                    title="Account Management"
+                    subtitle="Manage system guardians and employee digital credentials"
                     currentPath={currentPath}
                 />
                 <div className="flex flex-col items-center justify-center py-16 px-8 text-center">
@@ -117,7 +128,7 @@ const AdminsList = ({ currentPath }) => {
                         <UserX className="h-12 w-12 text-red-500" />
                     </div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        Error Loading Administrators
+                        Error Loading Accounts
                     </h3>
                     <p className="text-gray-500 mb-6 max-w-md">
                         {error}
@@ -133,31 +144,71 @@ const AdminsList = ({ currentPath }) => {
         );
     }
 
-    // Show empty state
-    if (!admins || admins.length === 0) {
-        return (
-            <Tab>
-                <TabHeader
-                    title="Admin Management"
-                    subtitle="Manage system administrators and permissions"
-                    currentPath={currentPath}
-                />
-                <EmptyAdminsState />
-            </Tab>
-        );
-    }
-
-    // Show admins list
     return (
         <Tab>
             <TabHeader
-                title="Admin Management"
-                subtitle="Manage system administrators and permissions"
+                title="Account Management"
+                subtitle="High-level orchestration of system access and employee credentials"
                 currentPath={currentPath}
             />
-            <div>
-                <AdminWFullCard adminRecords={admins} />
+            
+            <div className="mb-8">
+                <div className="flex p-1 bg-slate-100/50 backdrop-blur-md rounded-2xl w-fit border border-slate-200/60 shadow-inner">
+                    <button
+                        onClick={() => setActiveTab('admins')}
+                        className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center space-x-2 ${
+                            activeTab === 'admins'
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                                : 'text-slate-500 hover:bg-white/80 hover:text-indigo-600'
+                        }`}
+                    >
+                        <Shield className="w-4 h-4" />
+                        <span>System Guardians</span>
+                        <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] ${
+                            activeTab === 'admins' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
+                        }`}>
+                            {systemAdmins.length}
+                        </span>
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('employees')}
+                        className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center space-x-2 ${
+                            activeTab === 'employees'
+                                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200'
+                                : 'text-slate-500 hover:bg-white/80 hover:text-emerald-600'
+                        }`}
+                    >
+                        <Users className="w-4 h-4" />
+                        <span>Staff Access Hub</span>
+                        <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] ${
+                            activeTab === 'employees' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
+                        }`}>
+                            {employeeAccounts.length}
+                        </span>
+                    </button>
+                </div>
             </div>
+
+            {activeList.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 bg-white/40 backdrop-blur-xl rounded-[2.5rem] border border-slate-200/50 shadow-xl border-dashed">
+                    <div className={`p-6 rounded-full ${activeTab === 'admins' ? 'bg-indigo-50 text-indigo-400' : 'bg-emerald-50 text-emerald-400'} mb-6`}>
+                        {activeTab === 'admins' ? <Shield className="w-12 h-12" /> : <Users className="w-12 h-12" />}
+                    </div>
+                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-2">
+                        {activeTab === 'admins' ? 'No Guardians Registered' : 'No Staff Accounts Provisioned'}
+                    </h3>
+                    <p className="text-sm text-slate-500 font-medium max-w-xs text-center leading-relaxed">
+                        The secure enclave is currently empty for this sector. Please synchronize or add new credentials.
+                    </p>
+                </div>
+            ) : (
+                <div className="animate-fadeIn">
+                    <AdminWFullCard 
+                        adminRecords={activeList} 
+                        type={activeTab}
+                    />
+                </div>
+            )}
         </Tab>
     );
 };

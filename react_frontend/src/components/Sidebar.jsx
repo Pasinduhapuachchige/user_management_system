@@ -52,7 +52,7 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
                     { id: 'epf-add', label: 'New Entry', path: 'epf/add' }
                 ]
             },
-            ...(user?.role === 'superadmin' ? [{
+            ...(user?.role === 'superadmin' || user?.role === 'hr_manager' ? [{
                 id: 'admins',
                 label: 'System Access',
                 icon: UserCog,
