@@ -298,6 +298,15 @@
     </table>
   </div>
 
+  <% if (typeof medicalRecords !== 'undefined' && medicalRecords) { %>
+    <div class="section">
+      <div class="section-title">Medical History & Notes</div>
+      <div style="padding: 15px; border: 1px solid #d0d0d0; background: #fcfcfc; border-radius: 4px; font-size: 11pt; color: #333;">
+        <%= medicalRecords %>
+      </div>
+    </div>
+  <% } %>
+
   <div class="section">
     <div class="section-title">Summary</div>
     <table class="info-table">

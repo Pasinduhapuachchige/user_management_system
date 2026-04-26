@@ -1,8 +1,15 @@
 import express from 'express';
 import { loginController } from '../controllers/login.controller.js';
-import { deleteAccountController, getAdminsController, registerController, tougleAccountStatusController } from '../controllers/register.controller.js';
+import { 
+    deleteAccountController, 
+    getAdminsController, 
+    registerController, 
+    resetAdminPasswordController, 
+    tougleAccountStatusController,
+    syncEmployeesToAdminsController
+} from '../controllers/register.controller.js';
 import { logoutController } from '../controllers/logout.controller.js';
-import { verifyAuth } from '../middleware/checkauth.middleware.js';
+import { verifyAuth, verifySuperAdmin } from '../middleware/checkauth.middleware.js';
 import { createDepartment, getAllDepartments, getDepartmentById, updateDepartment, deleteDepartment }
     from '../controllers/department.controller.js';
 
@@ -11,14 +18,17 @@ import { upload } from '../middleware/multer.middleware.js'
 import { createEmployeeController, deleteEmployeeController, getEmployeesController, updateEmployeeController } from '../controllers/employee.controller.js';
 import { createOrUpdateEmployeeEpfController, deleteEmployeeEpfExpenseController, getEmployeeEpfsController, getMaxEpfController, updateMaxEpfController } from '../controllers/epf.controller.js';
 import { getEmployeesByQuery } from '../services/employee.service.js';
-import { departmentStats, epfMonthlyContribution, statsController } from '../controllers/stats.controller.js';
+import { departmentStats, epfMonthlyContribution, statsController, getSystemHealth, getRecentActivity } from '../controllers/stats.controller.js';
 import { accountRecoveryController, recoveryUpdatePassword, updatePasswordController, validateOtpController } from '../controllers/recovery.controller.js';
 import { handleBackupDownload } from '../controllers/backup.controller.js';
 import { handleRestore } from '../controllers/restore.controller.js';
-import { getEmployeeEpfReportController } from '../controllers/epfReport.controller.js';
+import { getEmployeeEpfReportController, getMedicalSummaryReportController } from '../controllers/epfReport.controller.js';
+import { initSuperAdminController } from '../controllers/init.controller.js';
+import { bulkImportEpfController } from '../controllers/bulkImport.controller.js';
 
 router.post('/login', loginController);
-router.post('/register', registerController);
+router.post('/register', verifySuperAdmin, registerController);
+router.post('/init-superadmin', initSuperAdminController);
 router.get('/logout', logoutController);
 
 router.post('/emp/', verifyAuth, upload.single('profilePicture'), createEmployeeController);
@@ -36,15 +46,20 @@ router.post('/epf/max', verifyAuth, updateMaxEpfController);
 router.get('/epf/max', verifyAuth, getMaxEpfController);
 router.get("/epf/emp", verifyAuth, getEmployeeEpfsController);
 router.post("/epf/emp", verifyAuth, createOrUpdateEmployeeEpfController);
+router.post("/epf/bulk-import", verifyAuth, upload.single('file'), bulkImportEpfController);
 router.delete("/epf/emp/:epfId", verifyAuth, deleteEmployeeEpfExpenseController);
 
-router.get('/admins', verifyAuth, getAdminsController);
-router.post('/admins', verifyAuth, tougleAccountStatusController);
-router.delete('/admins', verifyAuth, deleteAccountController);
+router.get('/admins', verifySuperAdmin, getAdminsController);
+router.post('/admins', verifySuperAdmin, tougleAccountStatusController);
+router.delete('/admins', verifySuperAdmin, deleteAccountController);
+router.put('/admins/reset-password', verifySuperAdmin, resetAdminPasswordController);
+router.post('/admins/sync-employees', verifySuperAdmin, syncEmployeesToAdminsController);
 
 router.get('/stats', verifyAuth, statsController);
 router.get('/stats/dep', verifyAuth, departmentStats)
 router.get('/stats/epf', verifyAuth, epfMonthlyContribution)
+router.get('/stats/health', verifySuperAdmin, getSystemHealth)
+router.get('/stats/activity', verifySuperAdmin, getRecentActivity)
 
 router.post('/recovery/otp', accountRecoveryController);
 router.post('/recovery/validate-otp', validateOtpController);
@@ -56,6 +71,7 @@ router.get('/backup', handleBackupDownload);
 //router.post('/restore', handleRestore);
 
 router.get('/reports/epf/:employeeId/:year', verifyAuth, getEmployeeEpfReportController);
+router.get('/reports/medical-summary/:year', verifyAuth, getMedicalSummaryReportController);
 
 router.get('/check-auth', verifyAuth, async (req, res) => {
     const admins = await getEmployeesByQuery({ email: req.user.email })
@@ -66,7 +82,8 @@ router.get('/check-auth', verifyAuth, async (req, res) => {
         user: {
             _id: req.user._id,
             email: req.user.email,
-            name: admin?.name
+            name: admin?.name,
+            role: req.user.role
         }
     });
 });

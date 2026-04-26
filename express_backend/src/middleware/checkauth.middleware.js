@@ -17,16 +17,17 @@ export const verifyAuth = async (req, res, next) => {
 
         req.user = {
             _id: decoded.id,
-            email: decoded.email
+            email: decoded.email,
+            role: decoded.role
         };
 
-        const [admin] = await getAdmins({ email: decoded.email });
+        const [admin] = await getAdmins({ _id: decoded.id });
 
         if (!admin) {
             return res.status(401).json({
                 success: false,
                 error: 'Unauthorized 1.1',
-                message: 'Invalid administration account'
+                message: 'Invalid account'
             });
         }
 
@@ -46,4 +47,18 @@ export const verifyAuth = async (req, res, next) => {
             message: 'Session expired or invalid token'
         });
     }
+};
+
+export const verifySuperAdmin = async (req, res, next) => {
+    verifyAuth(req, res, () => {
+        if (req.user && req.user.role === 'superadmin') {
+            next();
+        } else {
+            return res.status(403).json({
+                success: false,
+                error: 'Forbidden',
+                message: 'Admin access only: Require Super Admin Role'
+            });
+        }
+    });
 };

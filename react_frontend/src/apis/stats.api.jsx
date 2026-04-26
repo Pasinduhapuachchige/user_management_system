@@ -40,3 +40,25 @@ export const getEpfMonthlyContributionApi = async () => {
         return { success: false, message: err.message };
     }
 };
+
+// Fetch system health status
+export const getSystemHealthApi = async () => {
+    try {
+        const res = await axiosInstance.get('/stats/health');
+        return res.data;
+    } catch (err) {
+        console.error('Failed to fetch system health:', err);
+        return { success: false, message: err.message };
+    }
+};
+
+// Fetch recent administrative activity
+export const getRecentActivityApi = async () => {
+    try {
+        const res = await axiosInstance.get('/stats/activity');
+        return res.data;
+    } catch (err) {
+        console.error('Failed to fetch recent activity:', err);
+        return { success: false, message: err.message };
+    }
+};

@@ -2,6 +2,7 @@ import { getEmployeesByQuery } from "../services/employee.service.js";
 import departmentService from "../services/department.service.js";
 import { getEmployeeEpfs } from "../services/epf.service.js";
 import { getAdmins } from "../services/register.service.js";
+import mongoose from 'mongoose';
 
 export const statsController = async (req, res) => {
     try {
@@ -190,6 +191,45 @@ export const epfMonthlyContribution = async (req, res) => {
 
     } catch (err) {
         console.error("Error calculating EPF monthly contribution:", err.message);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+export const getSystemHealth = async (req, res) => {
+    try {
+        const dbStatus = mongoose.connection.readyState;
+        const statusMap = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
+        return res.status(200).json({
+            success: true,
+            data: { database: statusMap[dbStatus] || 'unknown', uptime: process.uptime(), timestamp: new Date() }
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+export const getRecentActivity = async (req, res) => {
+    try {
+        const employees = await getEmployeesByQuery({});
+        const admins = await getAdmins();
+        const activities = [];
+        employees.slice(-10).forEach(emp => activities.push({
+            type: 'employee',
+            title: `New Staff: ${emp.name}`,
+            description: `Onboarded to ${emp.department?.name || 'Unassigned'}`,
+            time: emp.createdAt,
+            id: emp._id
+        }));
+        admins.slice(-10).forEach(adm => activities.push({
+            type: 'admin',
+            title: `Admin Created: ${adm.email}`,
+            description: `Provisioned as ${adm.role || 'Member'}`,
+            time: adm.createdAt,
+            id: adm._id
+        }));
+        activities.sort((a, b) => new Date(b.time) - new Date(a.time));
+        return res.status(200).json({ success: true, data: activities.slice(0, 8) });
+    } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
     }
 };

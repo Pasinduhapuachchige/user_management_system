@@ -23,7 +23,8 @@ export const validateUser = async (email = '', epf = '', password) => {
         return {
             _id: admin._id,
             email: admin.email,
-            epfNo: admin.epfNo
+            epfNo: admin.epfNo,
+            role: admin.role
         };
 
     } catch (e) {

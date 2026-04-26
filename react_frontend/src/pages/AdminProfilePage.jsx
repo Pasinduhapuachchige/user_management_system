@@ -20,7 +20,8 @@ import {
     Eye,
     EyeOff,
     Check,
-    AlertCircle
+    AlertCircle,
+    Activity
 } from 'lucide-react';
 
 // Import the actual functions
@@ -29,6 +30,7 @@ import { getEmployeesApi } from '../apis/employee.api';
 import TabHeader from '../components/TabHeader';
 import ForgotPassword from '../components/forgot_password';
 import { updatePassword } from '../apis/recovery.api';
+import { getMaxEpf, getEmpEpf } from '../apis/epf.api';
 
 
 // Component 1: Profile Header
@@ -67,11 +69,13 @@ const ProfileHeader = ({ adminData, onChangePassword }) => {
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                         <div>
                             <h1 className="text-xl font-semibold text-gray-900 truncate">
-                                {adminData?.name || 'Admin User'}
+                                {adminData?.name || 'Staff Member'}
                             </h1>
                             <p className="text-sm text-gray-600 flex items-center mt-1">
-                                <Shield className="w-4 h-4 mr-1" />
-                                Administrator
+                                <Shield className="w-4 h-4 mr-1 transition-colors group-hover:text-blue-500" />
+                                <span className="uppercase tracking-widest text-[10px] font-black">
+                                    {adminData?.role || 'Staff Member'}
+                                </span>
                             </p>
                             <p className="text-sm text-gray-500 mt-1">
                                 Member since {adminData?.joinedDate ? formatDate(adminData.joinedDate) : 'N/A'}
@@ -155,6 +159,16 @@ const PersonalInfoCard = ({ adminData }) => {
                         <div className="flex items-center text-gray-900 mt-1">
                             <Phone className="w-4 h-4 mr-2 text-gray-400" />
                             {adminData?.contactNumber || 'N/A'}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-sm font-medium text-gray-500">Medical History</label>
+                        <div className="flex items-start text-gray-900 mt-1">
+                            <Activity className="w-4 h-4 mr-2 text-red-400 mt-1 flex-shrink-0" />
+                            <p className="text-sm whitespace-pre-line">{adminData?.medicalRecords || 'No medical history recorded.'}</p>
                         </div>
                     </div>
                 </div>
@@ -248,7 +262,9 @@ const EmploymentInfoCard = ({ adminData }) => {
                         <label className="text-sm font-medium text-gray-500">Department</label>
                         <div className="flex items-center text-gray-900 mt-1">
                             <Building className="w-4 h-4 mr-2 text-gray-400" />
-                            {adminData?.department || 'Administration'}
+                            {typeof adminData?.department === 'object' 
+                                ? adminData.department.name 
+                                : (adminData?.department || 'Administration')}
                         </div>
                     </div>
                 </div>
@@ -298,7 +314,69 @@ const EmploymentInfoCard = ({ adminData }) => {
     );
 };
 
-// Component 4: Family Information Card
+// Component 3.5: Medical Allowance Status Card
+const MedicalAllowanceCard = ({ allowanceData }) => {
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'LKR',
+            minimumFractionDigits: 2
+        }).format(amount).replace('LKR', 'Rs.');
+    };
+
+    const spent = allowanceData?.spent || 0;
+    const total = allowanceData?.total || 15000;
+    const balance = Math.max(0, total - spent);
+    const percentage = Math.min(100, (spent / total) * 100);
+
+    return (
+        <div className="border border-gray-200 rounded-lg p-6 bg-gradient-to-br from-white to-blue-50/30">
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <Heart className="w-5 h-5 mr-2 text-red-500" />
+                    Medical Allowance (Current Year)
+                </h2>
+                <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                    Benefits
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
+                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">Total Allocation</p>
+                    <p className="text-lg font-bold text-gray-900">{formatCurrency(total)}</p>
+                </div>
+                <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
+                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">Amount Spent</p>
+                    <p className="text-lg font-bold text-blue-600">{formatCurrency(spent)}</p>
+                </div>
+                <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
+                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">Remaining Balance</p>
+                    <p className={`text-lg font-bold ${balance > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(balance)}
+                    </p>
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <div className="flex justify-between text-xs font-bold text-gray-500 uppercase">
+                    <span>Usage Status</span>
+                    <span>{Math.round(percentage)}% Used</span>
+                </div>
+                <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden border border-gray-200">
+                    <div 
+                        className={`h-full transition-all duration-500 ${
+                            percentage > 90 ? 'bg-red-500' : 
+                            percentage > 70 ? 'bg-amber-500' : 
+                            'bg-green-500'
+                        }`}
+                        style={{ width: `${percentage}%` }}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+};
 const ChangePasswordModal = ({ isOpen, onClose, forgotClicked }) => {
     const [passwords, setPasswords] = useState({
         current: '',
@@ -674,6 +752,7 @@ const AdminProfilePage = ({ currentPath }) => {
     const [error, setError] = useState(null);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [showForgotPassword, setShowForgotPassword] = useState(false);
+    const [allowanceData, setAllowanceData] = useState({ total: 0, spent: 0 });
 
     useEffect(() => {
         const fetchAdminData = async () => {
@@ -682,13 +761,29 @@ const AdminProfilePage = ({ currentPath }) => {
                 setError(null);
                 const response = await getEmployeesApi({ email: user.email });
                 if (response.success && response.data.length > 0) {
-                    setAdminData(response.data[0]);
+                    const emp = response.data[0];
+                    setAdminData(emp);
+
+                    // Fetch Allowance Details
+                    try {
+                        const [configRes, epfRes] = await Promise.all([
+                            getMaxEpf(),
+                            getEmpEpf({ user_id: emp._id, year: new Date().getFullYear() })
+                        ]);
+
+                        const total = configRes?.data?.maxEpf || 15000;
+                        const spent = epfRes?.data?.length > 0 ? epfRes.data[0].expense : 0;
+                        
+                        setAllowanceData({ total, spent });
+                    } catch (epfErr) {
+                        console.error('Error fetching allowance data:', epfErr);
+                    }
                 } else {
-                    setError('No admin data found');
+                    setError('No profile data found');
                 }
             } catch (error) {
-                console.error('Error fetching admin data:', error);
-                setError('Failed to load admin data');
+                console.error('Error fetching profile data:', error);
+                setError('Failed to load profile data');
             } finally {
                 setLoading(false);
             }
@@ -740,6 +835,7 @@ const AdminProfilePage = ({ currentPath }) => {
                 />
 
                 <div className="space-y-6">
+                    <MedicalAllowanceCard allowanceData={allowanceData} />
                     <PersonalInfoCard adminData={adminData} />
                     <EmploymentInfoCard adminData={adminData} />
                     <FamilyInfoCard adminData={adminData} />
