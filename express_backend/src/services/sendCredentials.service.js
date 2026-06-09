@@ -5,7 +5,7 @@ export const sendCredentials = async ({ name, email, password }) => {
 
     const appUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 
-    const subject = '🎉 Your Account Credentials for UMS';
+    const subject = '🎉 Your Account Credentials for SPC HR Management System';
     const text = `Hi ${name}, your account has been created.\n\nLogin Email: ${email}\nPassword: ${password}\n\nVisit: ${appUrl}`;
 
     const html = `
@@ -14,9 +14,11 @@ export const sendCredentials = async ({ name, email, password }) => {
         
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center; color: white;">
-            <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 10px; margin: 0 auto 15px; line-height: 50px; text-align: center; font-size: 20px; font-weight: bold;">U</div>
-            <h1 style="margin: 0; font-size: 22px; font-weight: 700;">UMS Dashboard</h1>
-            <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">User Management System</p>
+            <div style="width: 60px; height: 60px; background: white; border-radius: 12px; margin: 0 auto 15px; line-height: 60px; text-align: center;">
+                <img src="${appUrl}/spc-logo.png" alt="SPC" style="max-width: 80%; max-height: 80%; vertical-align: middle;" />
+            </div>
+            <h1 style="margin: 0; font-size: 22px; font-weight: 700;">SPC HR Dashboard</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">SPC HR Management System</p>
         </div>
 
         <!-- Content -->
@@ -64,7 +66,7 @@ export const sendCredentials = async ({ name, email, password }) => {
             <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
                 <p style="color: #a0aec0; font-size: 12px; margin: 0; line-height: 1.4;">
                     Need help? Contact support<br>
-                    © UMS Dashboard System
+                    © SPC HR Management System
                 </p>
             </div>
             

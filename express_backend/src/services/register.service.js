@@ -1,32 +1,39 @@
 import Admin from '../models/admin.model.js';
 import bcrypt from 'bcryptjs';
 
-export const registerAdmin = async ({ email, password, epfNo, role = 'admin' }) => {
-    // Check if admin exists by email or epfNo
-    const existingAdmin = await Admin.findOne({
-        $or: [{ email }, { epfNo }]
-    });
-
-    if (existingAdmin) {
-        throw new Error('Admin with this email or EPF number already exists');
+export const registerAdmin = async ({ email, password, epfNo, role = 'hr_officer' }) => {
+    // 1. Check if the email is already in use by ANOTHER account (different EPF number)
+    const emailConflict = await Admin.findOne({ email, epfNo: { $ne: epfNo } });
+    if (emailConflict) {
+        throw new Error('Admin with this email already exists');
     }
 
-    // Hash the password
+    // 2. Hash the password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create new admin
-    const newAdmin = new Admin({
-        email,
-        password: hashedPassword,
-        epfNo,
-        role
-    });
+    // 3. Check if a credentials record already exists for this EPF number
+    let admin = await Admin.findOne({ epfNo });
 
-    // Save to DB
-    await newAdmin.save();
+    if (admin) {
+        // Elevate/update the existing credentials record
+        admin.email = email;
+        admin.password = hashedPassword;
+        admin.role = role;
+        admin.isActive = true; // Ensure the account is enabled
+        await admin.save();
+    } else {
+        // Create a new credentials record
+        admin = new Admin({
+            email,
+            password: hashedPassword,
+            epfNo,
+            role
+        });
+        await admin.save();
+    }
 
-    return newAdmin;
+    return admin;
 };
 
 export const updatePassword = async (email, password) => {

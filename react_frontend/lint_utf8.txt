@@ -1,0 +1,114 @@
+﻿
+> react_frontend@0.0.0 lint
+> eslint .
+
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\App.jsx
+  53:6  warning  React Hook useEffect has a missing dependency: 'handlePageChange'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\apis\admin.api.jsx
+  27:14  error  'err' is defined but never used  no-unused-vars
+  28:21  error  'e' is not defined               no-undef
+  29:16  error  'e' is not defined               no-undef
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\AddAdmin.jsx
+  6:25  error  'onBack' is defined but never used  no-unused-vars
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\AddDepartment.jsx
+   5:30  error  'onBack' is defined but never used  no-unused-vars
+  84:21  error  'data' is not defined               no-undef
+  85:31  error  'data' is not defined               no-undef
+  86:28  error  'data' is not defined               no-undef
+  87:47  error  'data' is not defined               no-undef
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\AddEmployee.jsx
+    7:28  error    'onBack' is defined but never used                                                                                          no-unused-vars
+   51:22  error    'error' is defined but never used                                                                                           no-unused-vars
+   78:8   warning  React Hook useEffect has a missing dependency: 'formData.parents.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  204:17  error    Unexpected lexical declaration in case block                                                                                no-case-declarations
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\AddEpf.jsx
+    7:23  error    'onBack' is defined but never used                                                                                 no-unused-vars
+   25:12  error    'currentEpfExpense' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                  no-unused-vars
+   25:31  error    'setCurrentEpfExpense' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u               no-unused-vars
+   45:8   warning  React Hook useEffect has a missing dependency: 'fetchEpfRanges'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  276:17  error    Unexpected lexical declaration in case block                                                                       no-case-declarations
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\AdminWFullCard.jsx
+   94:11  error  'handleEditSubmit' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  207:11  error  'openEditModal' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\DashboardView.jsx
+   62:24  error  'setSearchTerm' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+   63:20  error  'setSortBy' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u      no-unused-vars
+   64:23  error  'setSortOrder' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u   no-unused-vars
+  138:36  error  'Icon' is defined but never used                                                               no-unused-vars
+  177:38  error  'Icon' is defined but never used                                                               no-unused-vars
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\EmployeeDetailTabs.jsx
+  358:41  error  'Icon' is defined but never used       no-unused-vars
+  372:42  error  'Icon' is defined but never used       no-unused-vars
+  372:55  error  'itemLabel' is defined but never used  no-unused-vars
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\EmployeeSearchbar.jsx
+   68:76   error    Unnecessary escape character: \+                                                                                                                                                                                                                                                                               no-useless-escape
+   68:115  error    Unnecessary escape character: \+                                                                                                                                                                                                                                                                               no-useless-escape
+  118:21   error    Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                   no-case-declarations
+  119:21   error    Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                   no-case-declarations
+  126:21   error    Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                   no-case-declarations
+  127:21   error    Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                   no-case-declarations
+  134:21   error    Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                   no-case-declarations
+  135:21   error    Unexpected lexical declaration in case block                                                                                                                                                                                                                                                                   no-case-declarations
+  266:8    warning  React Hook useEffect has a missing dependency: 'performSearch'. Either include it or remove the dependency array                                                                                                                                                                                               react-hooks/exhaustive-deps
+  279:8    warning  React Hook useEffect has missing dependencies: 'hasActiveFilters', 'onSearchResults', 'searchResults.length', and 'searchTerm'. Either include them or remove the dependency array. If 'onSearchResults' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\EpfWFullCard.jsx
+    1:51   error    'useMemo' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                    no-unused-vars
+  123:8    warning  React Hook useEffect has a missing dependency: 'isUrlFiltered'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  562:114  error    Unexpected constant truthiness on the left-hand side of a `||` expression                                         no-constant-binary-expression
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\ProtectRoutes.jsx
+  16:13  error    'user' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                      no-unused-vars
+  82:8   warning  React Hook React.useEffect has a missing dependency: 'handleAuthError'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\Sidebar.jsx
+  92:8  warning  React Hook useEffect has a missing dependency: 'menuItems'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\TabHeader.jsx
+  117:8   warning  React Hook useEffect has a missing dependency: 'getPageLabel'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  245:68  error    'index' is defined but never used                                                                                no-unused-vars
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\Topbar.jsx
+  24:10  error  'getEmpEpf' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                   no-unused-vars
+  30:28  error  'setSelectedFilter' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  31:12  error  'recentSearches' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+  31:28  error  'setRecentSearches' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  34:12  error  'epfRecords' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u         no-unused-vars
+  34:24  error  'setEpfRecords' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u      no-unused-vars
+  36:12  error  'error' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u              no-unused-vars
+  36:19  error  'setError' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u           no-unused-vars
+  40:11  error  'systemNavigation' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u   no-unused-vars
+  48:11  error  'filters' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u            no-unused-vars
+  64:18  error  'err' is defined but never used                                                                    no-unused-vars
+  80:18  error  'err' is defined but never used                                                                    no-unused-vars
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\UpdateEpfConfiguration.jsx
+  34:8  warning  React Hook useEffect has a missing dependency: 'fetchCurrentEPFConfig'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\components\forgot_password.jsx
+  120:18  error  'error' is defined but never used  no-unused-vars
+  147:18  error  'error' is defined but never used  no-unused-vars
+  166:18  error  'error' is defined but never used  no-unused-vars
+  220:18  error  'error' is defined but never used  no-unused-vars
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\pages\AdminProfilePage.jsx
+  444:33  error  'e' is defined but never used                                                            no-unused-vars
+  449:15  error  'res' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u      no-unused-vars
+  748:29  error  'currentPath' is defined but never used                                                  no-unused-vars
+  749:19  error  'setUser' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\Pasindu Hapuachchige\Desktop\New folder (2)\user_management_system\react_frontend\src\pages\dashboard\SuperAdminDashboard.jsx
+  63:34  error  'Icon' is defined but never used  no-unused-vars
+
+Γ£û 69 problems (59 errors, 10 warnings)
+

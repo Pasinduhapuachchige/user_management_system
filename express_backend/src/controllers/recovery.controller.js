@@ -1,5 +1,6 @@
 import { isOtpVerified, sendOtp, validateOtp } from "../services/otp.service.js";
 import { getAdmins, updatePassword } from "../services/register.service.js";
+import Otp from "../models/otp.model.js";
 
 export const accountRecoveryController = async (req, res) => {
     try {
@@ -11,7 +12,7 @@ export const accountRecoveryController = async (req, res) => {
         }
 
         // Optional: Check if the email exists first
-        const admins = await getAdmins({ email });
+        const admins = await getAdmins({ email: { $regex: new RegExp(`^${email.trim()}$`, 'i') } });
         const admin = Array.isArray(admins) ? admins[0] : admins;
 
         if (!admin) {
@@ -70,6 +71,17 @@ export const recoveryUpdatePassword = async (req, res) => {
         const response = await updatePassword(email, password);
         if (response?.success !== true) {
             return res.status(500).json({ message: 'Failed to update password' });
+        }
+
+        // Invalidate OTP on successful password change
+        try {
+            const admins = await getAdmins({ email: { $regex: new RegExp(`^${email.trim()}$`, 'i') } });
+            const admin = Array.isArray(admins) ? admins[0] : admins;
+            if (admin) {
+                await Otp.deleteMany({ user: admin._id });
+            }
+        } catch (otpErr) {
+            console.error('Failed to clear OTP:', otpErr.message);
         }
 
         return res.status(200).json({ success: true, message: 'Password updated successfully', success: true });

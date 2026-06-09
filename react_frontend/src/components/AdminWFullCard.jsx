@@ -25,6 +25,24 @@ import {
 import { deleteAccount, resetAdminPassword, tougleAccountStatus } from '../apis/admin.api';
 import { useUserStore } from '../tools/user.zustand';
 
+// Defined outside the component so React sees a stable reference across renders.
+// If defined inside, every re-render creates a new component type → input loses focus on each keystroke.
+const ModalBackdrop = ({ children, show, onClose }) => {
+    if (!show) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+            <div
+                className="absolute inset-0 bg-black/50 transition-opacity duration-300"
+                onClick={onClose}
+            />
+            <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100">
+                {children}
+            </div>
+        </div>
+    );
+};
+
 const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) => {
     const isGuardian = type === 'admins';
 
@@ -182,10 +200,21 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) 
         }
     };
 
+    // Open reset password modal
+    const openResetPasswordModal = (record) => {
+        setSelectedRecord(record);
+        setNewPassword('');
+        setShowResetPasswordModal(true);
+    };
+
     // Handle password reset
     const handleResetPassword = async () => {
         if (!newPassword) {
             alert('Please enter a new password');
+            return;
+        }
+        if (newPassword.length < 8) {
+            alert('Password must be at least 8 characters long');
             return;
         }
         setIsLoading(true);
@@ -197,7 +226,7 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) 
             showSuccess('Password reset successfully!');
         } catch (error) {
             console.error('Error resetting password:', error);
-            alert('Failed to reset password');
+            alert(error?.response?.data?.message || 'Failed to reset password. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -237,22 +266,6 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) 
         setShowDeleteModal(true);
     };
 
-    // Modal backdrop component
-    const ModalBackdrop = ({ children, show, onClose }) => {
-        if (!show) return null;
-
-        return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
-                <div
-                    className="absolute inset-0 bg-black/50 transition-opacity duration-300"
-                    onClick={onClose}
-                />
-                <div className="relative bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100">
-                    {children}
-                </div>
-            </div>
-        );
-    };
 
     // Success notification
     const SuccessNotification = () => {
@@ -324,6 +337,7 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) 
                                                     <p className="text-xs text-gray-500 uppercase tracking-wide">Role</p>
                                                     <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
                                                         record.role === 'superadmin' ? 'bg-indigo-100 text-indigo-700' : 
+                                                        record.role === 'hr_officer' ? 'bg-teal-100 text-teal-700' :
                                                         record.role === 'admin' ? 'bg-blue-100 text-blue-700' : 
                                                         record.role === 'hr_manager' ? 'bg-purple-100 text-purple-700' :
                                                         'bg-slate-100 text-slate-700'
@@ -400,7 +414,7 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) 
                                                 
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <button 
-                                                        onClick={() => setShowResetPasswordModal(true)}
+                                                        onClick={() => openResetPasswordModal(record)}
                                                         className="flex flex-col items-center justify-center p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all group/btn"
                                                     >
                                                         <Key className="w-6 h-6 mb-2 text-indigo-400 group-hover/btn:scale-110 transition-transform" />

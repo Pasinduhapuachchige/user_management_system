@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import Tab from '../../layout/Tab';
 import TabHeader from '../../components/TabHeader';
+import { useNavigate } from 'react-router-dom';
 import { 
     getStatsApi, 
     getSystemHealthApi, 
@@ -22,6 +23,7 @@ import {
 } from '../../apis/stats.api';
 
 const SuperAdminDashboard = ({ currentPath }) => {
+    const navigate = useNavigate();
     // --- State ---
     const [stats, setStats] = useState({});
     const [health, setHealth] = useState(null);
@@ -241,28 +243,28 @@ const SuperAdminDashboard = ({ currentPath }) => {
                             label="Auth Provision" 
                             description="Forge new high-level administrative credentials."
                             colorGradient="from-blue-600 to-indigo-600"
-                            onClick={() => window.location.href = '/admins/'}
+                            onClick={() => navigate('/admins/add')}
                         />
                         <QuickAction 
                             icon={Upload} 
                             label="Force Import" 
                             description="Execute mass data synchronization via legacy grid protocols."
                             colorGradient="from-emerald-600 to-teal-600"
-                            onClick={() => window.location.href = '/reports/'}
+                            onClick={() => navigate('/reports')}
                         />
                          <QuickAction 
                             icon={Database} 
                             label="State Backup" 
                             description="Serialize master database state to encrypted cold storage."
                             colorGradient="from-indigo-600 to-purple-600"
-                            onClick={() => window.location.href = '/settings/'}
+                            onClick={() => navigate('/settings/epf')}
                         />
                         <QuickAction 
                             icon={FileBarChart} 
                             label="Master Ledger" 
                             description="Generate Organization-wide medical spending analytics."
                             colorGradient="from-slate-700 to-slate-900"
-                            onClick={() => window.location.href = '/reports/'}
+                            onClick={() => navigate('/reports')}
                         />
                     </div>
                 </div>

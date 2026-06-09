@@ -12,6 +12,7 @@ import {
     LayoutDashboard
 } from 'lucide-react';
 import { useUserStore } from '../tools/user.zustand';
+import spcLogo from '../assets/spc-logo.png';
 
 const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) => {
     const { user } = useUserStore();
@@ -52,7 +53,7 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
                     { id: 'epf-add', label: 'New Entry', path: 'epf/add' }
                 ]
             },
-            ...(user?.role === 'superadmin' || user?.role === 'hr_manager' ? [{
+            ...(user?.role === 'superadmin' || user?.role === 'hr_manager' || user?.role === 'hr_officer' ? [{
                 id: 'admins',
                 label: 'System Access',
                 icon: UserCog,
@@ -115,14 +116,14 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
                 {/* Brand Header */}
                 <div className="flex items-center justify-between h-24 px-8 flex-shrink-0">
                     <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 premium-gradient rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 group transition-transform hover:scale-105">
-                            <Shield className="text-white w-6 h-6" />
+                        <div className="w-12 h-12 flex items-center justify-center transition-transform hover:scale-105">
+                            <img src={spcLogo} alt="SPC Logo" className="w-full h-full object-contain" />
                         </div>
                         <div>
                             <h1 className="text-xl font-extrabold tracking-tight text-slate-900 leading-none">
-                                UMS <span className="text-indigo-600">Pro</span>
+                                SPC <span className="text-indigo-600">HR</span>
                             </h1>
-                            <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-widest mt-1">Enterprise</p>
+                            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1">Management System</p>
                         </div>
                     </div>
                     <button

@@ -9,22 +9,25 @@ export const generateOtp = async (email) => {
     try {
         const otp = Math.floor(100000 + Math.random() * 900000);
 
-        const admin = await getAdmins({ email });
-        if (!admin || (Array.isArray(admin) && admin.length === 0)) {
+        const admins = await getAdmins({ email: { $regex: new RegExp(`^${email.trim()}$`, 'i') } });
+        if (!admins || (Array.isArray(admins) && admins.length === 0)) {
             throw new Error('Admin account not found');
         }
 
-        const adminAccount = Array.isArray(admin) ? admin[0] : admin;
+        const adminAccount = Array.isArray(admins) ? admins[0] : admins;
         if (!adminAccount.isActive) {
             throw new Error('Admin account disabled');
         }
 
-        const employee = await getEmployeesByQuery({ email });
-        if (!employee || (Array.isArray(employee) && employee.length === 0)) {
-            throw new Error('Employee account not found');
+        let employeeName = adminAccount.email.split('@')[0];
+        try {
+            const employee = await getEmployeesByQuery({ epfNumber: String(adminAccount.epfNo) });
+            if (employee && Array.isArray(employee) && employee.length > 0) {
+                employeeName = employee[0].name;
+            }
+        } catch (err) {
+            console.error('Failed to retrieve employee name for OTP:', err.message);
         }
-
-        const employeeAccount = Array.isArray(employee) ? employee[0] : employee;
 
         // ✅ Delete all previous OTPs
         await Otp.deleteMany({ user: adminAccount._id });
@@ -39,7 +42,7 @@ export const generateOtp = async (email) => {
 
         await newOtp.save();
 
-        return { otp, name: employeeAccount.name };
+        return { otp, name: employeeName };
     } catch (e) {
         console.error('Error generating OTP:', e);
         throw new Error(e.message || 'Failed to generate OTP');
@@ -52,7 +55,7 @@ export const sendOtp = async (name, email, password) => {
 
         const { otp, name: adminName } = await generateOtp(email);
 
-        const subject = '🔐 OTP for Admin Verification - UMS';
+        const subject = '🔐 OTP for Admin Verification - SPC HR Management System';
         const text = `Hi ${adminName},\n\nYour OTP is: ${otp}\nThis OTP will expire in 1 hour.\n\nLogin Email: ${email}\nPassword: ${password}\n\nVisit: ${appUrl}`;
 
         const html = `
@@ -60,9 +63,11 @@ export const sendOtp = async (name, email, password) => {
     <div style="max-width: 100%; width: 100%; margin: 0 auto; background: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
         
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center; color: white;">
-            <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 10px; margin: 0 auto 15px; line-height: 50px; text-align: center; font-size: 20px; font-weight: bold;">U</div>
-            <h1 style="margin: 0; font-size: 22px; font-weight: 700;">UMS Dashboard</h1>
-            <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">User Management System</p>
+            <div style="width: 60px; height: 60px; background: white; border-radius: 12px; margin: 0 auto 15px; line-height: 60px; text-align: center;">
+                <img src="${appUrl}/spc-logo.png" alt="SPC" style="max-width: 80%; max-height: 80%; vertical-align: middle;" />
+            </div>
+            <h1 style="margin: 0; font-size: 22px; font-weight: 700;">SPC HR Dashboard</h1>
+            <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">SPC HR Management System</p>
         </div>
 
         <div style="padding: 25px 20px;">
@@ -91,7 +96,7 @@ export const sendOtp = async (name, email, password) => {
             <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
                 <p style="color: #a0aec0; font-size: 12px; margin: 0; line-height: 1.4;">
                     Need help? Contact support<br>
-                    © UMS Dashboard System
+                    © SPC HR Management System
                 </p>
             </div>
         </div>
@@ -110,7 +115,7 @@ export const sendOtp = async (name, email, password) => {
 
 export const validateOtp = async (email, otp) => {
     try {
-        const admins = await getAdmins({ email });
+        const admins = await getAdmins({ email: { $regex: new RegExp(`^${email.trim()}$`, 'i') } });
         const admin = Array.isArray(admins) ? admins[0] : admins;
 
         if (!admin) throw new Error('Account not found');
@@ -146,7 +151,7 @@ export const validateOtp = async (email, otp) => {
 
 export const isOtpVerified = async (email) => {
     try {
-        const admins = await getAdmins({ email });
+        const admins = await getAdmins({ email: { $regex: new RegExp(`^${email.trim()}$`, 'i') } });
         const admin = Array.isArray(admins) ? admins[0] : admins;
         if (!admin) return false;
 

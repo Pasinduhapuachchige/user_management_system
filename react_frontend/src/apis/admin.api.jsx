@@ -15,8 +15,8 @@ export const addAdmin = async (formData) => {
         const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/register`, formData, { withCredentials: true })
         return res.data;
     } catch (err) {
-        console.log(err);
-        return err.message;
+        console.error(err);
+        throw err.response?.data || { message: err.message };
     }
 }
 
@@ -25,8 +25,8 @@ export const tougleAccountStatus = async (_id) => {
         const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/admins`, { _id }, { withCredentials: true })
         return res.data
     } catch (err) {
-        console.log(e);
-        return e.message;
+        console.log(err);
+        return { success: false, message: err?.response?.data?.message || err.message };
     }
 }
 

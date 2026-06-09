@@ -9,7 +9,7 @@ export const sendEmailApi = async (email) => {
         return res.data;
     } catch (e) {
         console.error(e);
-        return e?.response?.data?.message || e.message;
+        return { success: false, message: e?.response?.data?.message || e.message };
     }
 };
 
@@ -20,7 +20,7 @@ export const validateOtpApi = async (payload) => {
         return res.data;
     } catch (e) {
         console.error(e);
-        return e?.response?.data?.message || e.message;
+        return { success: false, message: e?.response?.data?.message || e.message };
     }
 };
 
@@ -31,7 +31,7 @@ export const updateRecoveryPasswordApi = async (payload) => {
         return res.data;
     } catch (e) {
         console.error(e);
-        return e?.response?.data?.message || e.message;
+        return { success: false, message: e?.response?.data?.message || e.message };
     }
 };
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import spcLogo from '../assets/spc-logo.png';
 
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -31,12 +32,12 @@ const LoadingScreen = ({ isLoading = true, onLoadingComplete }) => {
                 {/* Logo container with minimal design */}
                 <div className="relative">
                     {/* Logo */}
-                    <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg ring-1 ring-blue-100 transform hover:scale-105 transition-transform duration-300">
-                        <span className="text-white font-bold text-2xl md:text-3xl tracking-wide">U</span>
+                    <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center transform hover:scale-105 transition-transform duration-300">
+                        <img src={spcLogo} alt="SPC Logo" className="w-full h-full object-contain" />
                     </div>
 
                     {/* Subtle pulse effect */}
-                    <div className="absolute inset-0 bg-blue-500/20 rounded-xl animate-ping"></div>
+                    <div className="absolute inset-0 bg-blue-500/10 rounded-xl animate-ping"></div>
                 </div>
 
                 {/* Modern loading indicator */}

@@ -2,7 +2,6 @@ import { deleteAccount, tougleAccountStatus } from "../services/auth.service.js"
 import { getEmployeesByQuery, updateEmployee } from "../services/employee.service.js";
 import { passwordGenerator } from "../services/passwordGenerator.service.js";
 import { getAdmins, registerAdmin, updatePassword } from "../services/register.service.js";
-import { sendCredentials } from "../services/sendCredentials.service.js";
 
 export const registerController = async (req, res) => {
     const { email, password, epfNo } = req.body;
@@ -17,36 +16,32 @@ export const registerController = async (req, res) => {
     }
 
     try {
-        const admin = await registerAdmin({
-            email,
-            password: generatedPassword || password,
-            epfNo
-        });
-
         const [savedAdmin] = await getEmployeesByQuery({ epfNumber: epfNo });
 
         if (!savedAdmin) {
             return res.status(404).json({ message: 'Employee with this EPF number not found' });
         }
 
+        const admin = await registerAdmin({
+            email,
+            password: generatedPassword || password,
+            epfNo
+        });
+
         if (savedAdmin.email !== email) {
             savedAdmin.email = email;
             await updateEmployee(savedAdmin._id, savedAdmin);
         }
 
-        await sendCredentials({
-            email,
-            name: savedAdmin.name || 'New Admin',
-            password: generatedPassword || password
-        });
-
         res.status(201).json({
-            message: 'Admin registered successfully',
+            message: 'HR Officer account created successfully',
             success: true,
             admin: {
                 id: admin._id,
                 email: admin.email,
                 epfNo: admin.epfNo,
+                role: admin.role,
+                temporaryPassword: generatedPassword || null
             },
         });
 

@@ -8,7 +8,7 @@ const DashboardHome = ({ currentPath }) => (
     <Tab>
         <TabHeader
             title="Dashboard Overview"
-            subtitle="Welcome to the User Management System"
+            subtitle="Welcome to the SPC HR Management System"
             currentPath={currentPath}
         />
 
