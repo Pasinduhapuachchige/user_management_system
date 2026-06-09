@@ -6,8 +6,8 @@ import AddEpfForm from '../../../components/AddEpf';
 const AddEPF = ({ currentPath }) => (
     <Tab>
         <TabHeader
-            title="Add EPF Entry"
-            subtitle="Create a new EPF record"
+            title="Add Medical Report"
+            subtitle="Create a new Medical Report"
             currentPath={currentPath}
         />
         <div className="">

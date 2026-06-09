@@ -37,7 +37,7 @@ export const getEmpEpf = async (query = {}) => {
         console.error("Error fetching employee EPF:", err);
 
         const message =
-            err.response?.data?.message || "Failed to fetch employee EPF records.";
+            err.response?.data?.message || "Failed to fetch employee Medical Report records.";
         throw new Error(message);
     }
 };

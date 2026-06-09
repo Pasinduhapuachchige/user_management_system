@@ -44,8 +44,8 @@ const EPFList = ({ currentPath }) => {
             const res = await getEmpEpf();
             setEpfRecords(res.data || []);
         } catch (err) {
-            console.error("Error fetching EPF records:", err);
-            setError("Failed to fetch EPF records. Please try again.");
+            console.error("Error fetching Medical Report records:", err);
+            setError("Failed to fetch Medical Report records. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -58,7 +58,7 @@ const EPFList = ({ currentPath }) => {
     return (
         <Tab>
             <TabHeader
-                title="EPF Records"
+                title="Medical Report"
                 subtitle="Manage Employee Provident Fund records"
                 currentPath={currentPath}
             />

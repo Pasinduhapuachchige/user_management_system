@@ -51,7 +51,7 @@ const EpfWFullCard = ({ epfRecords: initialEpfRecords }) => {
 
 
 
-    // Set EPF records on component mount
+    // Set Medical Report records on component mount
     useEffect(() => {
         if (initialEpfRecords) {
             // Handle nested data structure
@@ -526,11 +526,11 @@ const EpfWFullCard = ({ epfRecords: initialEpfRecords }) => {
                             <p onClick={handleClearFilters} className='mr-1 text-blue-600 cursor-pointer hover:text-blue-800 transition-colors'>Clear Filters</p>
                         </div>
 
-                        {/* EPF Records */}
+                        {/* Medical Report */}
                         {filteredEpfRecords.length === 0 ? (
                             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
                                 <Wallet className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                <p className="text-gray-600">No EPF records found matching your search.</p>
+                                <p className="text-gray-600">No Medical Report records found matching your search.</p>
                             </div>
                         ) : (
                             filteredEpfRecords.map((record) => {

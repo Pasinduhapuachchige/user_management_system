@@ -136,12 +136,12 @@ const DashboardView = () => {
     };
 
     const GlassStatCard = ({ icon: Icon, title, value, change, changeType, colorGradient, link }) => (
-        <div 
+        <div
             onClick={() => link && (window.location.href = link)}
             className={`glass-card group p-6 rounded-[2rem] border border-white/5 relative overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-${colorGradient.split('-')[1]}/10 cursor-pointer`}
         >
             <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorGradient} opacity-5 group-hover:opacity-10 transition-opacity blur-3xl rounded-full -mr-16 -mt-16`}></div>
-            
+
             <div className="flex items-start justify-between relative z-10 mb-6">
                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colorGradient} p-0.5 shadow-lg group-hover:scale-110 transition-all duration-500`}>
                     <div className="w-full h-full bg-slate-900/40 backdrop-blur-md rounded-[0.9rem] flex items-center justify-center">
@@ -149,9 +149,8 @@ const DashboardView = () => {
                     </div>
                 </div>
                 {change && (
-                    <div className={`flex items-center space-x-1 text-[10px] font-black px-2.5 py-1 rounded-full backdrop-blur-md border ${
-                        changeType === 'positive' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                    }`}>
+                    <div className={`flex items-center space-x-1 text-[10px] font-black px-2.5 py-1 rounded-full backdrop-blur-md border ${changeType === 'positive' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                        }`}>
                         {changeType === 'positive' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                         <span>{change}</span>
                     </div>
@@ -175,7 +174,7 @@ const DashboardView = () => {
     );
 
     const QuickActionItem = ({ icon: Icon, label, color, link, desc }) => (
-        <div 
+        <div
             onClick={() => window.location.href = link}
             className="group flex flex-col items-center p-4 rounded-[2rem] bg-slate-950/20 border border-white/5 hover:border-white/10 hover:bg-slate-950/40 transition-all duration-300 cursor-pointer text-center"
         >
@@ -189,34 +188,7 @@ const DashboardView = () => {
 
     return (
         <div className="space-y-8 animate-fadeIn pb-12">
-            {/* Announcement Section */}
-            <div className="relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-[2.5rem] opacity-90 group-hover:opacity-100 transition-opacity"></div>
-                <div className="absolute top-0 right-0 w-[40%] h-full bg-white/10 skew-x-[-20deg] translate-x-1/2 group-hover:translate-x-1/3 transition-transform duration-1000"></div>
-                
-                <div className="relative z-10 p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6">
-                    <div className="flex items-center space-x-6">
-                        <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-3xl flex items-center justify-center border border-white/30 shadow-2xl rotate-3 group-hover:rotate-0 transition-all duration-500">
-                            <Trophy className="w-10 h-10 text-white" />
-                        </div>
-                        <div>
-                            <div className="flex items-center space-x-2 text-white/70 text-[10px] font-black uppercase tracking-[0.3em] mb-2">
-                                <Activity className="w-3 h-3 animate-pulse" />
-                                <span>Critical Intel Stream</span>
-                            </div>
-                            <h2 className="text-3xl font-black text-white tracking-tight uppercase leading-none mb-3">
-                                Employee Metrics Pending
-                            </h2>
-                            <p className="text-white/60 text-sm max-w-lg font-medium leading-relaxed">
-                                IT department data harvest from <span className="text-white border-b border-white/30 font-bold italic">Google Core</span> is serialized but not yet integrated into the master HR database.
-                            </p>
-                        </div>
-                    </div>
-                    <button className="flex-shrink-0 bg-white text-indigo-600 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition-all active:scale-95 shadow-2xl">
-                        Review Stream
-                    </button>
-                </div>
-            </div>
+
 
             {/* Quick Access Grid */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -290,18 +262,18 @@ const DashboardView = () => {
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                                <XAxis 
-                                    dataKey="month" 
-                                    stroke="rgba(255,255,255,0.3)" 
-                                    fontSize={10} 
-                                    tickLine={false} 
+                                <XAxis
+                                    dataKey="month"
+                                    stroke="rgba(255,255,255,0.3)"
+                                    fontSize={10}
+                                    tickLine={false}
                                     axisLine={false}
                                     tick={{ fill: '#64748b', fontWeight: 900, textTransform: 'uppercase' }}
                                 />
-                                <YAxis 
-                                    stroke="rgba(255,255,255,0.3)" 
-                                    fontSize={10} 
-                                    tickLine={false} 
+                                <YAxis
+                                    stroke="rgba(255,255,255,0.3)"
+                                    fontSize={10}
+                                    tickLine={false}
                                     axisLine={false}
                                     tickFormatter={(value) => `${(value / 1000)}K`}
                                     tick={{ fill: '#64748b', fontWeight: 900 }}
@@ -340,13 +312,13 @@ const DashboardView = () => {
                             <h3 className="text-2xl font-black text-white tracking-tight uppercase">Population Grid</h3>
                         </div>
                         <div className="flex bg-slate-950/40 p-1 rounded-xl border border-white/5">
-                            <button 
+                            <button
                                 onClick={() => setDepartmentViewMode('pie')}
                                 className={`p-2 rounded-lg transition-all ${departmentViewMode === 'pie' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'text-slate-500 hover:text-white'}`}
                             >
                                 <Grid className="w-4 h-4" />
                             </button>
-                            <button 
+                            <button
                                 onClick={() => setDepartmentViewMode('list')}
                                 className={`p-2 rounded-lg transition-all ${departmentViewMode === 'list' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'text-slate-500 hover:text-white'}`}
                             >

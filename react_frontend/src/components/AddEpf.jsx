@@ -704,7 +704,7 @@ const AddEpfForm = ({ onBack }) => {
                                 <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                     <div className='w-full flex items-center justify-between mb-3'>
                                         <h5 className="font-medium text-blue-800 mb-3">Selected Employee</h5>
-                                        <h5 onClick={() => { navigate(`epf?id=${employeeEpfData._id}`, '_blank') }} className="font-sm text-green-500 cursor-pointer hover:text-green-600 mb-3">All EPF Records</h5>
+                                        <h5 onClick={() => { navigate(`epf?id=${employeeEpfData._id}`, '_blank') }} className="font-sm text-green-500 cursor-pointer hover:text-green-600 mb-3">All Medical Reports</h5>
                                     </div>
                                     <div className="flex items-start space-x-4">
                                         <ProfilePicture user={selectedUser} size="lg" />
@@ -767,7 +767,7 @@ const AddEpfForm = ({ onBack }) => {
                                             ) : (
                                                 <div className="mt-3 pt-3 border-t border-blue-200">
                                                     <div className="text-sm text-blue-600">
-                                                        No EPF records found for {formData.year}
+                                                        No Medical Report records found for {formData.year}
                                                     </div>
                                                 </div>
                                             )}
