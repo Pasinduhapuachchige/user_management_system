@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
     Menu, 
     Bell, 
@@ -16,7 +16,12 @@ import {
     Settings, 
     BarChart3, 
     AlertCircle,
-    Command
+    Command,
+    Send,
+    Check,
+    CheckCheck,
+    Trash2,
+    Plus
 } from 'lucide-react';
 import { logoutApi } from '../apis/logout.api';
 import { getEmployeesApi } from '../apis/employee.api';
@@ -24,6 +29,9 @@ import { fetchDepartmentsApi } from '../apis/department.api';
 import { getEmpEpf } from '../apis/epf.api';
 import { useUserStore } from '../tools/user.zustand';
 import { useNavigate } from 'react-router-dom';
+import { getNotificationsApi, markReadApi, markAllReadApi, deleteNotificationApi } from '../apis/notification.api';
+import NotificationModal from './NotificationModal';
+import { createPortal } from 'react-dom';
 
 const SearchModal = ({ isOpen, onClose }) => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -178,6 +186,251 @@ const SearchModal = ({ isOpen, onClose }) => {
     );
 };
 
+// ─── Notification Bell Dropdown ───────────────────────────────────────────────
+const NotificationBell = ({ user }) => {
+    const [open, setOpen] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [bellPos, setBellPos] = useState({ top: 0, right: 0 });
+    const bellRef = useRef(null);
+
+    const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+    const fetchNotifs = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await getNotificationsApi();
+            setNotifications(res.data || []);
+        } catch {}
+        finally { setLoading(false); }
+    }, []);
+
+    // Fetch on mount and every 30s
+    useEffect(() => {
+        fetchNotifs();
+        const interval = setInterval(fetchNotifs, 30000);
+        return () => clearInterval(interval);
+    }, [fetchNotifs]);
+
+    // Close on outside click
+    useEffect(() => {
+        const handler = (e) => {
+            if (bellRef.current && !bellRef.current.contains(e.target)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const handleMarkOne = async (id) => {
+        await markReadApi(id);
+        setNotifications((prev) =>
+            prev.map((n) => n._id === id ? { ...n, isRead: true } : n)
+        );
+    };
+
+    const handleMarkAll = async () => {
+        await markAllReadApi();
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    };
+
+    const handleDelete = async (id, e) => {
+        e.stopPropagation();
+        await deleteNotificationApi(id);
+        setNotifications((prev) => prev.filter((n) => n._id !== id));
+    };
+
+    const formatTime = (dateStr) => {
+        const diff = Date.now() - new Date(dateStr).getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) return 'Just now';
+        if (mins < 60) return `${mins}m ago`;
+        const hrs = Math.floor(mins / 60);
+        if (hrs < 24) return `${hrs}h ago`;
+        return `${Math.floor(hrs / 24)}d ago`;
+    };
+
+    const getRoleBadge = (role) => {
+        if (role === 'all') return { label: 'Everyone', color: 'bg-purple-100 text-purple-600' };
+        if (role === 'employee') return { label: 'Employees', color: 'bg-blue-100 text-blue-600' };
+        return { label: 'HR Admins', color: 'bg-emerald-100 text-emerald-600' };
+    };
+
+    return (
+        <div className="relative" ref={bellRef}>
+            {/* Bell Button */}
+            <button
+                id="notification-bell-btn"
+                onClick={() => {
+                    if (!open && bellRef.current) {
+                        const rect = bellRef.current.getBoundingClientRect();
+                        setBellPos({
+                            top: rect.bottom + 8,
+                            right: window.innerWidth - rect.right,
+                        });
+                        fetchNotifs();
+                    }
+                    setOpen(!open);
+                }}
+                className="p-3 text-slate-400 hover:text-indigo-600 rounded-2xl hover:bg-white transition-all relative group"
+            >
+                <Bell className="w-6 h-6" />
+                {unreadCount > 0 && (
+                    <span className="absolute top-2 right-2 min-w-[18px] h-[18px] px-1 bg-rose-500 rounded-full border-2 border-slate-50 flex items-center justify-center text-[9px] font-black text-white group-hover:scale-110 transition-transform">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                )}
+                {unreadCount === 0 && (
+                    <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-slate-50 opacity-0" />
+                )}
+            </button>
+
+            {/* Dropdown */}
+            {open && createPortal(
+                <div 
+                    className="fixed w-96 bg-white rounded-3xl shadow-2xl shadow-indigo-200/40 border border-slate-200 overflow-hidden z-[1000] animate-fadeIn"
+                    style={{ top: `${bellPos.top}px`, right: `${bellPos.right}px` }}
+                >
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                        <div className="flex items-center space-x-2">
+                            <Bell className="w-4 h-4 text-indigo-600" />
+                            <span className="text-sm font-black text-slate-900">Notifications</span>
+                            {unreadCount > 0 && (
+                                <span className="px-2 py-0.5 bg-rose-100 text-rose-600 rounded-full text-[10px] font-black">
+                                    {unreadCount} new
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            {unreadCount > 0 && (
+                                <button
+                                    onClick={handleMarkAll}
+                                    className="flex items-center space-x-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 px-2 py-1 rounded-lg hover:bg-indigo-50 transition-all"
+                                    title="Mark all as read"
+                                >
+                                    <CheckCheck className="w-3.5 h-3.5" />
+                                    <span>All read</span>
+                                </button>
+                            )}
+                            {user?.role === 'superadmin' && (
+                                <button
+                                    id="send-notification-btn"
+                                    onClick={() => { setOpen(false); setShowModal(true); }}
+                                    className="flex items-center space-x-1 text-[11px] font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 px-3 py-1.5 rounded-xl hover:shadow-md transition-all"
+                                >
+                                    <Plus className="w-3 h-3" />
+                                    <span>Send</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* List */}
+                    <div className="max-h-[380px] overflow-y-auto">
+                        {loading ? (
+                            <div className="py-12 text-center">
+                                <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                                <p className="text-xs text-slate-400">Loading...</p>
+                            </div>
+                        ) : notifications.length === 0 ? (
+                            <div className="py-14 text-center px-6">
+                                <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                    <Bell className="w-7 h-7 text-slate-300" />
+                                </div>
+                                <p className="text-sm font-bold text-slate-400">No notifications yet</p>
+                                <p className="text-xs text-slate-300 mt-1">You're all caught up!</p>
+                            </div>
+                        ) : (
+                            <div className="divide-y divide-slate-50">
+                                {notifications.map((notif) => {
+                                    const badge = getRoleBadge(notif.targetRole);
+                                    return (
+                                        <div
+                                            key={notif._id}
+                                            onClick={() => !notif.isRead && handleMarkOne(notif._id)}
+                                            className={`group flex items-start space-x-3 px-5 py-4 cursor-pointer transition-all hover:bg-slate-50 ${
+                                                !notif.isRead ? 'bg-indigo-50/40' : ''
+                                            }`}
+                                        >
+                                            {/* Unread dot */}
+                                            <div className="flex-shrink-0 mt-1.5">
+                                                {notif.isRead ? (
+                                                    <div className="w-2 h-2 rounded-full bg-slate-200" />
+                                                ) : (
+                                                    <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                                                )}
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <p className={`text-sm leading-tight ${
+                                                        notif.isRead ? 'font-medium text-slate-600' : 'font-black text-slate-900'
+                                                    }`}>
+                                                        {notif.title}
+                                                    </p>
+                                                    <span className="text-[9px] text-slate-400 whitespace-nowrap flex-shrink-0 mt-0.5">
+                                                        {formatTime(notif.createdAt)}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">
+                                                    {notif.message}
+                                                </p>
+                                                <div className="flex items-center justify-between mt-2">
+                                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${badge.color}`}>
+                                                        {badge.label}
+                                                    </span>
+                                                    <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        {!notif.isRead && (
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); handleMarkOne(notif._id); }}
+                                                                className="p-1 rounded-lg hover:bg-indigo-100 text-indigo-400 hover:text-indigo-600 transition-all"
+                                                                title="Mark as read"
+                                                            >
+                                                                <Check className="w-3 h-3" />
+                                                            </button>
+                                                        )}
+                                                        {user?.role === 'superadmin' && (
+                                                            <button
+                                                                onClick={(e) => handleDelete(notif._id, e)}
+                                                                className="p-1 rounded-lg hover:bg-rose-100 text-rose-300 hover:text-rose-500 transition-all"
+                                                                title="Delete"
+                                                            >
+                                                                <Trash2 className="w-3 h-3" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Footer */}
+                    {notifications.length > 0 && (
+                        <div className="px-5 py-3 border-t border-slate-100 text-center">
+                            <p className="text-[10px] text-slate-400 font-medium">
+                                Showing {notifications.length} notification{notifications.length !== 1 ? 's' : ''}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Send Notification Modal (superadmin) */}
+            <NotificationModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                onSent={fetchNotifs}
+            />
+        </div>
+    );
+};
+
+// ─── Topbar ───────────────────────────────────────────────────────────────────
 const Topbar = ({ setSidebarOpen, currentPage }) => {
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -246,10 +499,7 @@ const Topbar = ({ setSidebarOpen, currentPage }) => {
                         </button>
 
                         <div className="flex items-center space-x-2 border-l border-slate-200 pl-4 ml-4">
-                            <button className="p-3 text-slate-400 hover:text-indigo-600 rounded-2xl hover:bg-white transition-all relative group">
-                                <Bell className="w-6 h-6" />
-                                <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-slate-50 group-hover:scale-110 transition-transform"></span>
-                            </button>
+                            <NotificationBell user={user} />
 
                             <div className="relative" ref={dropdownRef}>
                                 <button 

@@ -25,6 +25,13 @@ import { handleRestore } from '../controllers/restore.controller.js';
 import { getEmployeeEpfReportController, getMedicalSummaryReportController } from '../controllers/epfReport.controller.js';
 import { initSuperAdminController } from '../controllers/init.controller.js';
 import { bulkImportEpfController } from '../controllers/bulkImport.controller.js';
+import {
+    sendNotificationController,
+    getNotificationsController,
+    markReadController,
+    markAllReadController,
+    deleteNotificationController,
+} from '../controllers/notification.controller.js';
 
 router.post('/login', loginController);
 router.post('/register', verifySuperAdmin, registerController);
@@ -72,6 +79,13 @@ router.get('/backup', handleBackupDownload);
 
 router.get('/reports/epf/:employeeId/:year', verifyAuth, getEmployeeEpfReportController);
 router.get('/reports/medical-summary/:year', verifyAuth, getMedicalSummaryReportController);
+
+// Notification routes
+router.post('/notifications', verifySuperAdmin, sendNotificationController);
+router.get('/notifications', verifyAuth, getNotificationsController);
+router.put('/notifications/read-all', verifyAuth, markAllReadController);
+router.put('/notifications/:id/read', verifyAuth, markReadController);
+router.delete('/notifications/:id', verifySuperAdmin, deleteNotificationController);
 
 router.get('/check-auth', verifyAuth, async (req, res) => {
     const admins = await getEmployeesByQuery({ email: req.user.email })
