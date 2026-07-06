@@ -88,15 +88,27 @@ router.put('/notifications/:id/read', verifyAuth, markReadController);
 router.delete('/notifications/:id', verifySuperAdmin, deleteNotificationController);
 
 router.get('/check-auth', verifyAuth, async (req, res) => {
-    const admins = await getEmployeesByQuery({ email: req.user.email })
-    const admin = admins[0];
+    let name = undefined;
+
+    // Try the Employee collection first (most users)
+    const employees = await getEmployeesByQuery({ email: req.user.email });
+    if (employees && employees.length > 0) {
+        name = employees[0]?.name;
+    }
+
+    // Fallback: look up in the Admin collection (superadmin has no employee record)
+    if (!name) {
+        const { getAdmins } = await import('../services/register.service.js');
+        const admins = await getAdmins({ _id: req.user._id });
+        name = admins[0]?.email?.split('@')[0] || 'Super Admin';
+    }
 
     res.status(200).json({
         success: true,
         user: {
             _id: req.user._id,
             email: req.user.email,
-            name: admin?.name,
+            name,
             role: req.user.role
         }
     });

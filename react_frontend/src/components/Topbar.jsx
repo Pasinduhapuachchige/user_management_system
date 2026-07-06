@@ -1,20 +1,20 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { 
-    Menu, 
-    Bell, 
-    Search, 
-    User, 
-    ChevronDown, 
-    UserCircle, 
-    LogOut, 
-    Filter, 
-    X, 
-    Clock, 
-    Users, 
-    Building2, 
-    FileText, 
-    Settings, 
-    BarChart3, 
+import {
+    Menu,
+    Bell,
+    Search,
+    User,
+    ChevronDown,
+    UserCircle,
+    LogOut,
+    Filter,
+    X,
+    Clock,
+    Users,
+    Building2,
+    FileText,
+    Settings,
+    BarChart3,
     AlertCircle,
     Command,
     Send,
@@ -131,7 +131,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                             <span>ESC</span>
                         </div>
                     </div>
-                    
+
                     <div className="max-h-[400px] overflow-y-auto p-4 custom-scrollbar">
                         {loading ? (
                             <div className="py-20 text-center">
@@ -145,7 +145,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                                         <h4 className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Employees</h4>
                                         <div className="space-y-1">
                                             {employees.map(emp => (
-                                                <button key={emp._id} onClick={() => { window.location.href=`/employees?emp=${emp._id}`; onClose(); }} className="w-full text-left p-4 hover:bg-slate-50 rounded-2xl transition-all group flex items-center space-x-4">
+                                                <button key={emp._id} onClick={() => { window.location.href = `/employees?emp=${emp._id}`; onClose(); }} className="w-full text-left p-4 hover:bg-slate-50 rounded-2xl transition-all group flex items-center space-x-4">
                                                     <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold group-hover:bg-blue-600 group-hover:text-white transition-all">{emp.name?.charAt(0)}</div>
                                                     <div>
                                                         <p className="text-sm font-bold text-slate-800">{emp.name}</p>
@@ -161,8 +161,8 @@ const SearchModal = ({ isOpen, onClose }) => {
                                         <h4 className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Departments</h4>
                                         <div className="space-y-1">
                                             {departments.map(dept => (
-                                                <button key={dept._id} onClick={() => { window.location.href=`/departments?dept=${dept._id}`; onClose(); }} className="w-full text-left p-4 hover:bg-slate-50 rounded-2xl transition-all group flex items-center space-x-4">
-                                                    <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold group-hover:bg-emerald-600 group-hover:text-white transition-all"><Building2 className="w-5 h-5"/></div>
+                                                <button key={dept._id} onClick={() => { window.location.href = `/departments?dept=${dept._id}`; onClose(); }} className="w-full text-left p-4 hover:bg-slate-50 rounded-2xl transition-all group flex items-center space-x-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold group-hover:bg-emerald-600 group-hover:text-white transition-all"><Building2 className="w-5 h-5" /></div>
                                                     <div>
                                                         <p className="text-sm font-bold text-slate-800">{dept.name}</p>
                                                         <p className="text-xs text-slate-400">{dept.description?.substring(0, 50)}...</p>
@@ -202,7 +202,7 @@ const NotificationBell = ({ user }) => {
         try {
             const res = await getNotificationsApi();
             setNotifications(res.data || []);
-        } catch {}
+        } catch { }
         finally { setLoading(false); }
     }, []);
 
@@ -287,7 +287,7 @@ const NotificationBell = ({ user }) => {
 
             {/* Dropdown */}
             {open && createPortal(
-                <div 
+                <div
                     className="fixed w-96 bg-white rounded-3xl shadow-2xl shadow-indigo-200/40 border border-slate-200 overflow-hidden z-[1000] animate-fadeIn"
                     style={{ top: `${bellPos.top}px`, right: `${bellPos.right}px` }}
                 >
@@ -349,9 +349,8 @@ const NotificationBell = ({ user }) => {
                                         <div
                                             key={notif._id}
                                             onClick={() => !notif.isRead && handleMarkOne(notif._id)}
-                                            className={`group flex items-start space-x-3 px-5 py-4 cursor-pointer transition-all hover:bg-slate-50 ${
-                                                !notif.isRead ? 'bg-indigo-50/40' : ''
-                                            }`}
+                                            className={`group flex items-start space-x-3 px-5 py-4 cursor-pointer transition-all hover:bg-slate-50 ${!notif.isRead ? 'bg-indigo-50/40' : ''
+                                                }`}
                                         >
                                             {/* Unread dot */}
                                             <div className="flex-shrink-0 mt-1.5">
@@ -364,9 +363,8 @@ const NotificationBell = ({ user }) => {
 
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-start justify-between gap-2">
-                                                    <p className={`text-sm leading-tight ${
-                                                        notif.isRead ? 'font-medium text-slate-600' : 'font-black text-slate-900'
-                                                    }`}>
+                                                    <p className={`text-sm leading-tight ${notif.isRead ? 'font-medium text-slate-600' : 'font-black text-slate-900'
+                                                        }`}>
                                                         {notif.title}
                                                     </p>
                                                     <span className="text-[9px] text-slate-400 whitespace-nowrap flex-shrink-0 mt-0.5">
@@ -418,7 +416,7 @@ const NotificationBell = ({ user }) => {
                         </div>
                     )}
                 </div>
-            )}
+            , document.body)}
 
             {/* Send Notification Modal (superadmin) */}
             <NotificationModal
@@ -472,7 +470,7 @@ const Topbar = ({ setSidebarOpen, currentPage }) => {
                         >
                             <Menu className="w-5 h-5" />
                         </button>
-                        
+
                         <div>
                             <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center space-x-3">
                                 <span>{getPageTitle(currentPage)}</span>
@@ -486,7 +484,7 @@ const Topbar = ({ setSidebarOpen, currentPage }) => {
 
                     <div className="flex items-center space-x-4">
                         {/* Search Action */}
-                        <button 
+                        <button
                             onClick={() => setIsSearchModalOpen(true)}
                             className="hidden md:flex items-center space-x-4 px-6 py-3 bg-white border border-slate-200 rounded-2xl hover:border-indigo-200 transition-all group hover:shadow-lg shadow-indigo-100"
                         >
@@ -502,7 +500,7 @@ const Topbar = ({ setSidebarOpen, currentPage }) => {
                             <NotificationBell user={user} />
 
                             <div className="relative" ref={dropdownRef}>
-                                <button 
+                                <button
                                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                                     className="p-1 px-2 bg-white rounded-2xl border border-slate-200 hover:border-indigo-200 transition-all flex items-center space-x-3 shadow-sm"
                                 >
@@ -526,7 +524,7 @@ const Topbar = ({ setSidebarOpen, currentPage }) => {
                                             <UserCircle className="w-5 h-5 text-slate-400" />
                                             <span className="font-semibold">My Profile</span>
                                         </button>
-                                        
+
                                         {user?.role !== 'employee' && (
                                             <button onClick={() => { navigate('/settings/epf'); setIsProfileDropdownOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-2xl transition-all">
                                                 <Settings className="w-5 h-5 text-slate-400" />

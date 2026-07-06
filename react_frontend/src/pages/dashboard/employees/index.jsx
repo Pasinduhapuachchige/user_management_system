@@ -193,7 +193,7 @@ const EmployeesList = ({ currentPath }) => {
                     </div>
                 ) : error ? (
                     <ErrorState />
-                                ) : filteredEmployees.length === 0 ? (
+                ) : filteredEmployees.length === 0 ? (
                     <EmptyState />
                 ) : (
                     <div className="view-transition">
