@@ -52,7 +52,7 @@ const employeeSchema = new mongoose.Schema({
     },
     maritalStatus: {
         type: String,
-        enum: ['Unmarried', 'Married'],
+        enum: ['Unmarried', 'Married', 'Divorced'],
         default: 'Unmarried',
     },
     spouseName: {
@@ -70,11 +70,16 @@ const employeeSchema = new mongoose.Schema({
                 },
                 relationship: {
                     type: String,
-                    enum: ['Father-in-law', 'Mother-in-law', 'Guardian'],
+                    enum: ['Father', 'Mother'],
                     required: true
                 },
                 contactNumber: {
                     type: String,
+                },
+                status: {
+                    type: String,
+                    enum: ['Alive', 'Deceased'],
+                    default: 'Alive'
                 }
             }
         ],
@@ -96,6 +101,11 @@ const employeeSchema = new mongoose.Schema({
                 },
                 contactNumber: {
                     type: String,
+                },
+                status: {
+                    type: String,
+                    enum: ['Alive', 'Deceased'],
+                    default: 'Alive'
                 }
             }
         ]
@@ -110,6 +120,11 @@ const employeeSchema = new mongoose.Schema({
             },
             school: String,
             grade: String,
+            status: {
+                type: String,
+                enum: ['Alive', 'Deceased'],
+                default: 'Alive'
+            }
         }
     ],
     contactNumber: {

@@ -106,21 +106,21 @@ const AddDepartmentForm = ({ onBack }) => {
     return (
         <div className="">
             <div className="w-full mx-auto px-4">
-                {/* Notification */}
+                {/* Notification - Fixed position toast */}
                 {notification && (
-                    <div className={`mb-6 p-4 rounded-lg border flex items-center space-x-3 ${notification.type === 'success'
+                    <div className={`fixed top-6 right-6 z-[100] max-w-md p-4 rounded-lg border shadow-lg flex items-start space-x-3 animate-fadeIn ${notification.type === 'success'
                         ? 'bg-green-50 border-green-200 text-green-800'
                         : 'bg-red-50 border-red-200 text-red-800'
                         }`}>
                         {notification.type === 'success' ? (
-                            <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                            <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                         ) : (
-                            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                         )}
-                        <span className="flex-1">{notification.message}</span>
+                        <span className="flex-1 text-sm font-medium">{notification.message}</span>
                         <button
                             onClick={() => setNotification(null)}
-                            className="text-gray-400 hover:text-gray-600"
+                            className="text-gray-400 hover:text-gray-600 ml-2"
                         >
                             <X className="w-4 h-4" />
                         </button>

@@ -256,6 +256,7 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                         >
                             <option value="Unmarried">Unmarried</option>
                             <option value="Married">Married</option>
+                            <option value="Divorced">Divorced</option>
                         </select>
                     ) : (
                         <span className="px-4 py-1.5 bg-white rounded-lg border border-gray-200 text-sm font-medium text-blue-600">
@@ -276,6 +277,15 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                         </FormField>
                     </div>
                 )}
+                {!isEditing && data.spouseName && (
+                    <div className="mt-4 pt-4 border-t border-gray-200/60 flex items-center gap-2.5">
+                        <User className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-500 font-medium">Spouse Name</span>
+                        <span className="ml-auto px-4 py-1.5 bg-white rounded-lg border border-gray-200 text-sm font-medium text-gray-800">
+                            {data.spouseName}
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* Parents Section */}
@@ -285,7 +295,7 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                 items={data.parents || []}
                 itemLabel="Parent/Guardian"
                 isEditing={isEditing}
-                onAdd={() => onAddFamilyItem('parents', { name: '', relationship: '', contactNumber: '' })}
+                onAdd={() => onAddFamilyItem('parents', { name: '', relationship: 'Father', contactNumber: '', status: 'Alive' })}
                 onRemove={(index) => onRemoveFamilyItem('parents', index)}
                 onUpdate={(index, field, value) => onUpdateFamilyItem('parents', index, field, value)}
                 fields={[
@@ -296,59 +306,76 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                         options: ['Father', 'Mother', 'Guardian'], 
                         icon: UserCheck 
                     },
-                    { name: 'contactNumber', placeholder: 'Phone', type: 'phone', icon: Phone }
+                    { name: 'contactNumber', placeholder: 'Phone', type: 'phone', icon: Phone },
+                    {
+                        name: 'status',
+                        placeholder: 'Status',
+                        type: 'select',
+                        options: ['Alive', 'Deceased'],
+                        icon: Activity
+                    }
                 ]}
             />
 
             {/* Spouse Parents Section */}
-            {data.maritalStatus === 'Married' && (
-                <FamilyCollection 
-                    title="Spouse's Parents & Guardians" 
-                    icon={Users}
-                    items={data.spouseParents || []}
-                    itemLabel="Spouse Parent/Guardian"
-                    isEditing={isEditing}
-                    onAdd={() => onAddFamilyItem('spouseParents', { name: '', relationship: '', contactNumber: '' })}
-                    onRemove={(index) => onRemoveFamilyItem('spouseParents', index)}
-                    onUpdate={(index, field, value) => onUpdateFamilyItem('spouseParents', index, field, value)}
-                    fields={[
-                        { name: 'name', placeholder: 'Full Name', type: 'text', icon: User },
-                        { 
-                            name: 'relationship', 
-                            type: 'select', 
-                            options: ['Father-in-law', 'Mother-in-law', 'Guardian'], 
-                            icon: UserCheck 
-                        },
-                        { name: 'contactNumber', placeholder: 'Phone', type: 'phone', icon: Phone }
-                    ]}
-                />
-            )}
+            <FamilyCollection 
+                title="Spouse's Parents & Guardians" 
+                icon={Users}
+                items={data.spouseParents || []}
+                itemLabel="Spouse Parent/Guardian"
+                isEditing={isEditing}
+                onAdd={() => onAddFamilyItem('spouseParents', { name: '', relationship: 'Father', contactNumber: '', status: 'Alive' })}
+                onRemove={(index) => onRemoveFamilyItem('spouseParents', index)}
+                onUpdate={(index, field, value) => onUpdateFamilyItem('spouseParents', index, field, value)}
+                fields={[
+                    { name: 'name', placeholder: 'Full Name', type: 'text', icon: User },
+                    { 
+                        name: 'relationship', 
+                        type: 'select', 
+                        options: ['Father', 'Mother'], 
+                        icon: UserCheck 
+                    },
+                    { name: 'contactNumber', placeholder: 'Phone', type: 'phone', icon: Phone },
+                    {
+                        name: 'status',
+                        placeholder: 'Status',
+                        type: 'select',
+                        options: ['Alive', 'Deceased'],
+                        icon: Activity
+                    }
+                ]}
+            />
 
             {/* Children Section */}
-            {data.maritalStatus === 'Married' && (
-                <FamilyCollection 
-                    title="Children" 
-                    icon={Baby}
-                    items={data.children || []}
-                    itemLabel="Child"
-                    isEditing={isEditing}
-                    onAdd={() => onAddFamilyItem('children', { name: '', dateOfBirth: '', gender: '', school: '', grade: '' })}
-                    onRemove={(index) => onRemoveFamilyItem('children', index)}
-                    onUpdate={(index, field, value) => onUpdateFamilyItem('children', index, field, value)}
-                    fields={[
-                        { name: 'name', placeholder: 'Name', type: 'text', icon: User },
-                        { name: 'dateOfBirth', placeholder: 'DOB', type: 'date', icon: Calendar },
-                        { 
-                            name: 'gender', 
-                            type: 'select', 
-                            options: ['Male', 'Female', 'Other'], 
-                            icon: UserCheck 
-                        },
-                        { name: 'school', placeholder: 'School', type: 'text', icon: Building2 },
-                        { name: 'grade', placeholder: 'Grade', type: 'text', icon: Info }
-                    ]}
-                />
-            )}
+            <FamilyCollection 
+                title="Children" 
+                icon={Baby}
+                items={data.children || []}
+                itemLabel="Child"
+                isEditing={isEditing}
+                onAdd={() => onAddFamilyItem('children', { name: '', dateOfBirth: '', gender: '', school: '', grade: '', status: 'Alive' })}
+                onRemove={(index) => onRemoveFamilyItem('children', index)}
+                onUpdate={(index, field, value) => onUpdateFamilyItem('children', index, field, value)}
+                fields={[
+                    { name: 'name', placeholder: 'Name', type: 'text', icon: User },
+                    { name: 'dateOfBirth', placeholder: 'DOB', type: 'date', icon: Calendar },
+                    { 
+                        name: 'gender', 
+                        type: 'select', 
+                        options: ['Male', 'Female', 'Other'], 
+                        icon: UserCheck 
+                    },
+                    { name: 'school', placeholder: 'School', type: 'text', icon: Building2 },
+                    { name: 'grade', placeholder: 'Grade', type: 'text', icon: Info },
+                    {
+                        name: 'status',
+                        placeholder: 'Status',
+                        type: 'select',
+                        options: ['Alive', 'Deceased'],
+                        icon: Activity
+                    }
+                ]}
+            />
         </div>
     );
 };

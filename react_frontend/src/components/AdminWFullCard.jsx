@@ -20,7 +20,8 @@ import {
     PowerOff,
     LogOut,
     Key,
-    RefreshCw
+    RefreshCw,
+    AlertCircle
 } from 'lucide-react';
 import { deleteAccount, resetAdminPassword, tougleAccountStatus } from '../apis/admin.api';
 import { useUserStore } from '../tools/user.zustand';
@@ -58,8 +59,7 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) 
     const [showToggleModal, setShowToggleModal] = useState(false);
     const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
     const [showSelfDeactivationWarning, setShowSelfDeactivationWarning] = useState(false);
-    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-    const [successMessage, setSuccessMessage] = useState('');
+    const [notification, setNotification] = useState(null);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [editData, setEditData] = useState({
         email: '',
@@ -93,13 +93,20 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) 
         });
     };
 
-    // Show success message
-    const showSuccess = (message) => {
-        setSuccessMessage(message);
-        setShowSuccessMessage(true);
+    // Show system notification
+    const showNotification = (type, message) => {
+        setNotification({ type, message });
         setTimeout(() => {
-            setShowSuccessMessage(false);
-        }, 3000);
+            setNotification(null);
+        }, 5000);
+    };
+
+    const showSuccess = (message) => {
+        showNotification('success', message);
+    };
+
+    const showError = (message) => {
+        showNotification('error', message);
     };
 
 
@@ -166,7 +173,7 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) 
                     window.location.reload();
                 }, 1000);
             } else {
-                alert(res.message || 'Failed to toggle account status. Please check your permissions.');
+                showError(res.message || 'Failed to toggle account status. Please check your permissions.');
             }
         } catch (error) {
             console.error('Error toggling status:', error);
@@ -191,7 +198,7 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) 
                 setExpandedCard(null);
                 showSuccess(`${isGuardian ? 'Guardian' : 'Staff'} account deleted successfully!`);
             } else {
-                alert(res.message || 'Failed to delete account. Please check your permissions.');
+                showError(res.message || 'Failed to delete account. Please check your permissions.');
             }
         } catch (error) {
             console.error('Error deleting account:', error);
@@ -210,11 +217,11 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) 
     // Handle password reset
     const handleResetPassword = async () => {
         if (!newPassword) {
-            alert('Please enter a new password');
+            showError('Please enter a new password');
             return;
         }
         if (newPassword.length < 8) {
-            alert('Password must be at least 8 characters long');
+            showError('Password must be at least 8 characters long');
             return;
         }
         setIsLoading(true);
@@ -226,7 +233,7 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) 
             showSuccess('Password reset successfully!');
         } catch (error) {
             console.error('Error resetting password:', error);
-            alert(error?.response?.data?.message || 'Failed to reset password. Please try again.');
+            showError(error?.response?.data?.message || 'Failed to reset password. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -267,21 +274,34 @@ const AdminWFullCard = ({ adminRecords: initialAdminRecords, type = 'admins' }) 
     };
 
 
-    // Success notification
-    const SuccessNotification = () => {
-        if (!showSuccessMessage) return null;
+    // Notification toast
+    const ToastNotification = () => {
+        if (!notification) return null;
 
         return (
-            <div className="fixed top-4 right-4 z-60 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 transform transition-all duration-300">
-                <CheckCircle className="w-5 h-5" />
-                <span className="font-medium">{successMessage}</span>
+            <div className={`fixed top-6 right-6 z-[100] max-w-md p-4 rounded-lg border shadow-lg flex items-start space-x-3 animate-fadeIn ${notification.type === 'success'
+                ? 'bg-green-50 border-green-200 text-green-800'
+                : 'bg-red-50 border-red-200 text-red-800'
+                }`}>
+                {notification.type === 'success' ? (
+                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                ) : (
+                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                )}
+                <span className="flex-1 text-sm font-medium">{notification.message}</span>
+                <button
+                    onClick={() => setNotification(null)}
+                    className="text-gray-400 hover:text-gray-600 ml-2"
+                >
+                    <X className="w-4 h-4" />
+                </button>
             </div>
         );
     };
 
     return (
         <>
-            <SuccessNotification />
+            <ToastNotification />
 
             <div className="space-y-4">
                 {/* Search Bar */}

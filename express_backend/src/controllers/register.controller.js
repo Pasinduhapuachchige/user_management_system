@@ -28,13 +28,20 @@ export const registerController = async (req, res) => {
             epfNo
         });
 
+        // Try to sync the email to the employee record (non-critical)
+        let emailSyncWarning = null;
         if (savedAdmin.email !== email) {
-            savedAdmin.email = email;
-            await updateEmployee(savedAdmin._id, savedAdmin);
+            try {
+                savedAdmin.email = email;
+                await updateEmployee(savedAdmin._id, savedAdmin);
+            } catch (syncError) {
+                console.error('Failed to sync email to employee record:', syncError.message);
+                emailSyncWarning = 'HR Officer account created, but employee email could not be updated.';
+            }
         }
 
         res.status(201).json({
-            message: 'HR Officer account created successfully',
+            message: emailSyncWarning || 'HR Officer account created successfully',
             success: true,
             admin: {
                 id: admin._id,
@@ -47,7 +54,20 @@ export const registerController = async (req, res) => {
 
     } catch (error) {
         console.error(error.message);
-        res.status(400).json({ message: error.message });
+
+        // Handle MongoDB duplicate key errors with user-friendly messages
+        let userMessage = error.message;
+        if (error.message && error.message.includes('E11000')) {
+            if (error.message.includes('email')) {
+                userMessage = 'An account with this email already exists.';
+            } else if (error.message.includes('epfNo')) {
+                userMessage = 'An account with this EPF number already exists.';
+            } else {
+                userMessage = 'A duplicate record was found. Please check the details and try again.';
+            }
+        }
+
+        res.status(400).json({ message: userMessage });
     }
 };
 

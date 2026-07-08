@@ -6,8 +6,8 @@ import AddAdminForm from '../../../components/AddAdmin';
 const AddAdmin = ({ currentPath }) => (
     <Tab>
         <TabHeader
-            title="Add New Admin"
-            subtitle="Create a new administrator account"
+            title="Provision HR Officer"
+            subtitle="Elevate an employee to HR Officer role"
             currentPath={currentPath}
 
         />

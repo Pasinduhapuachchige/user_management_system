@@ -347,12 +347,25 @@ const AddAdminForm = ({ onBack }) => {
             setErrors({});
         } catch (error) {
             console.error('Error creating admin account:', error);
-            if (error.errors) {
-                setErrors(error.errors);
-            } else {
-                const errorMessage = error.message || 'Failed to create admin account. Please try again.';
-                showNotification('error', errorMessage);
+            console.error('Error type:', typeof error);
+            console.error('Error keys:', error ? Object.keys(error) : 'null');
+            
+            // Extract meaningful error message from various error formats
+            let errorMessage = 'Failed to create admin account. Please try again.';
+            
+            if (typeof error === 'string') {
+                errorMessage = error;
+            } else if (error?.message) {
+                errorMessage = error.message;
+            } else if (error?.error) {
+                errorMessage = error.error;
             }
+            
+            if (error?.errors) {
+                setErrors(error.errors);
+            }
+            
+            showNotification('error', errorMessage);
         } finally {
             setLoading(false);
         }
@@ -398,9 +411,9 @@ const AddAdminForm = ({ onBack }) => {
     return (
         <div className="">
             <div className="w-full mx-auto px-4">
-                {/* Notification */}
+                {/* Notification - Fixed position toast */}
                 {notification && (
-                    <div className={`mb-6 p-4 rounded-lg border flex items-start space-x-3 ${notification.type === 'success'
+                    <div className={`fixed top-6 right-6 z-[100] max-w-md p-4 rounded-lg border shadow-lg flex items-start space-x-3 animate-fadeIn ${notification.type === 'success'
                         ? 'bg-green-50 border-green-200 text-green-800'
                         : 'bg-red-50 border-red-200 text-red-800'
                         }`}>

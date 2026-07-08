@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, AlertTriangle, Save, RefreshCcw, Shield, Lock, Database, X, Plus, Trash2, Users, Building, Award, UserCheck, Edit3, ChevronDown, ChevronRight } from 'lucide-react';
+import { Settings, AlertTriangle, Save, RefreshCcw, Shield, Lock, Database, X, Plus, Trash2, Users, Building, Award, UserCheck, Edit3, ChevronDown, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
 import { updateMaxEpf, getMaxEpf } from '../apis/epf.api';
 
 const EPFConfigForm = () => {
@@ -256,16 +256,22 @@ const EPFConfigForm = () => {
         e.preventDefault();
 
         if (!formData.maxEpf.trim()) {
-            setErrors({ maxEpf: 'Maximum EPF value is required' });
+            const errMsg = 'Maximum EPF value is required';
+            setErrors({ maxEpf: errMsg });
+            showNotification('error', errMsg);
             return;
         }
 
         if (parseInt(formData.maxEpf) <= 0) {
-            setErrors({ maxEpf: 'Maximum EPF must be greater than 0' });
+            const errMsg = 'Maximum EPF must be greater than 0';
+            setErrors({ maxEpf: errMsg });
+            showNotification('error', errMsg);
             return;
         }
 
         if (errors.maxEpf || Object.keys(rangeErrors).length > 0) {
+            const firstError = errors.maxEpf || Object.values(rangeErrors)[0];
+            showNotification('error', `Validation Error: ${firstError}`);
             return;
         }
 
@@ -403,18 +409,18 @@ const EPFConfigForm = () => {
     return (
         <div className="">
             <div className="w-full mx-auto px-4">
-                {/* Notification */}
+                {/* Notification - Fixed position toast */}
                 {notification && (
-                    <div className={`mb-6 p-4 rounded-lg border flex items-start space-x-3 ${notification.type === 'success'
+                    <div className={`fixed top-6 right-6 z-[100] max-w-md p-4 rounded-lg border shadow-lg flex items-start space-x-3 animate-fadeIn ${notification.type === 'success'
                         ? 'bg-green-50 border-green-200 text-green-800'
                         : 'bg-red-50 border-red-200 text-red-800'
                         }`}>
                         {notification.type === 'success' ? (
-                            <Shield className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                         ) : (
-                            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                         )}
-                        <span className="flex-1">{notification.message}</span>
+                        <span className="flex-1 text-sm font-medium">{notification.message}</span>
                         <button
                             onClick={() => setNotification(null)}
                             className="text-gray-400 hover:text-gray-600 ml-2"
@@ -543,7 +549,7 @@ const EPFConfigForm = () => {
                                 <Users className="w-5 h-5 text-blue-600" />
                                 <div className="flex-1 text-left">
                                     <h3 className="text-lg font-semibold text-blue-900">Medical Range Management</h3>
-                                    <p className="text-sm text-blue-700">Configure EPF number ranges for different employee categories (Optional)</p>
+                                    <p className="text-sm text-blue-700">Configure Medical Fund ranges for different employee categories (Optional)</p>
                                 </div>
                                 <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">
                                     {epfRanges.filter(r => r.name.trim() && r.maxValue.trim()).length} active ranges
@@ -558,7 +564,7 @@ const EPFConfigForm = () => {
                                     <div className='w-full flex items-center justify-between'>
                                         <div className=''>
                                             <h4 className="text-lg font-semibold text-blue-900">Configure Medical Ranges</h4>
-                                            <p className="text-sm text-blue-700 mt-1">Define EPF number ranges for different employee levels or departments</p>
+                                            <p className="text-sm text-blue-700 mt-1">Define Medical Fund ranges for different employee levels</p>
                                         </div>
                                         {/* Custom Range Button */}
                                         <button
@@ -716,8 +722,8 @@ const EPFConfigForm = () => {
                                 <div className="text-sm text-red-800">
                                     <p className="font-medium mb-2">Impact of Changes:</p>
                                     <ul className="list-disc list-inside space-y-1 text-red-700">
-                                        <li>All new employee EPF numbers must be within the system limit</li>
-                                        <li>Existing employees with EPF numbers above this limit will be flagged</li>
+                                        <li>All new employee Medical must be within the system limit</li>
+                                        <li>Existing employees with Medical above this limit will be flagged</li>
                                         <li>System validations will use this value immediately</li>
                                         <li>This affects payroll processing and employee management</li>
                                         {epfRanges.filter(r => r.name.trim() && r.maxValue.trim()).length > 0 &&
@@ -884,9 +890,9 @@ const EPFConfigForm = () => {
                         <div className="text-sm text-blue-800">
                             <p className="font-medium mb-2">Best Practices:</p>
                             <ul className="list-disc list-inside space-y-1 text-blue-700">
-                                <li>Set the maximum Medical value higher than your current highest employee EPF number</li>
+                                <li>Set the maximum Medical value higher than your current highest employee Medical</li>
                                 <li>Consider future growth when setting this limit</li>
-                                <li>Use EPF ranges to organize employees by level, department, or joining date</li>
+                                <li>Use Medical ranges to organize employees by level, department, or joining date</li>
                                 <li>Ensure ranges don't overlap and are in ascending order</li>
                                 <li>Document this change for audit purposes</li>
                                 <li>Test the impact in a staging environment first if possible</li>

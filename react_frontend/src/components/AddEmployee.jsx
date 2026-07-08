@@ -72,7 +72,7 @@ const AddEmployeeForm = ({ onBack }) => {
         if (formData.parents.length === 0) {
             setFormData(prev => ({
                 ...prev,
-                parents: [{ name: '', relationship: '', contactNumber: '' }]
+                parents: [{ name: '', relationship: '', contactNumber: '', status: 'Alive' }]
             }));
         }
     }, []);
@@ -310,21 +310,14 @@ const AddEmployeeForm = ({ onBack }) => {
         setFormData(prev => ({
             ...prev,
             maritalStatus: status,
-            spouseName: status === 'Married' ? prev.spouseName : '',
-            spouseParents: status === 'Married' ? (prev.spouseParents.length === 0 ? [{ name: '', relationship: '', contactNumber: '' }] : prev.spouseParents) : [],
-            children: status === 'Married' ? prev.children : []
+            spouseName: status === 'Married' ? prev.spouseName : ''
         }));
 
         // Clear related errors
         setErrors(prev => {
             const newErrors = { ...prev };
-            if (status === 'Unmarried') {
+            if (status !== 'Married') {
                 delete newErrors.spouseName;
-                prev.spouseParents?.forEach((_, index) => {
-                    delete newErrors[`spouseParent_${index}_name`];
-                    delete newErrors[`spouseParent_${index}_relationship`];
-                    delete newErrors[`spouseParent_${index}_contactNumber`];
-                });
             }
             return newErrors;
         });
@@ -378,7 +371,7 @@ const AddEmployeeForm = ({ onBack }) => {
         const parentType = isSpouseParent ? 'spouseParents' : 'parents';
         setFormData(prev => ({
             ...prev,
-            [parentType]: [...prev[parentType], { name: '', relationship: '', contactNumber: '' }]
+            [parentType]: [...prev[parentType], { name: '', relationship: 'Father', contactNumber: '', status: 'Alive' }]
         }));
     };
 
@@ -414,7 +407,7 @@ const AddEmployeeForm = ({ onBack }) => {
     const addChild = () => {
         setFormData(prev => ({
             ...prev,
-            children: [...prev.children, { name: '', dateOfBirth: '', gender: '', school: '', grade: '' }]
+            children: [...prev.children, { name: '', dateOfBirth: '', gender: '', school: '', grade: '', status: 'Alive' }]
         }));
     };
 
@@ -511,26 +504,29 @@ const AddEmployeeForm = ({ onBack }) => {
                 newErrors.spouseName = 'Spouse name is required for married employees';
             }
 
-            // Spouse parents validation
+            // Spouse parents validation (required only for married)
             if (formData.spouseParents.length === 0) {
                 newErrors.spouseParents = 'At least one spouse parent/guardian is required';
-            } else {
-                formData.spouseParents.forEach((parent, index) => {
-                    if (!parent.name.trim()) {
-                        newErrors[`spouseParent_${index}_name`] = 'Spouse parent name is required';
-                    }
-                    if (!parent.relationship) {
-                        newErrors[`spouseParent_${index}_relationship`] = 'Relationship is required';
-                    }
-                    // Contact number is optional for spouse parents
-                    if (parent.contactNumber.trim()) {
-                        const phoneError = validateSriLankanNumber(parent.contactNumber);
-                        if (phoneError) {
-                            newErrors[`spouseParent_${index}_contactNumber`] = phoneError;
-                        }
-                    }
-                });
             }
+        }
+
+        // Validate spouse parents if they exist (regardless of marital status)
+        if (formData.spouseParents.length > 0) {
+            formData.spouseParents.forEach((parent, index) => {
+                if (!parent.name.trim()) {
+                    newErrors[`spouseParent_${index}_name`] = 'Spouse parent name is required';
+                }
+                if (!parent.relationship) {
+                    newErrors[`spouseParent_${index}_relationship`] = 'Relationship is required';
+                }
+                // Contact number is optional for spouse parents
+                if (parent.contactNumber.trim()) {
+                    const phoneError = validateSriLankanNumber(parent.contactNumber);
+                    if (phoneError) {
+                        newErrors[`spouseParent_${index}_contactNumber`] = phoneError;
+                    }
+                }
+            });
         }
 
         setErrors(newErrors);
@@ -601,7 +597,7 @@ const AddEmployeeForm = ({ onBack }) => {
             profilePicture: null,
             maritalStatus: 'Unmarried',
             spouseName: '',
-            parents: [{ name: '', relationship: '', contactNumber: '' }],
+            parents: [{ name: '', relationship: '', contactNumber: '', status: 'Alive' }],
             spouseParents: [],
             children: [],
             contactNumber: ''
@@ -911,7 +907,7 @@ const AddEmployeeForm = ({ onBack }) => {
                                         <option value="">Select Location</option>
                                         <option value="Head Office">Head Office</option>
                                         <option value="Rathmalana">Rathmalana</option>
-                                        <option value="Osusala">Osusala</option>
+                                        <option value="ROS">ROS</option>
                                     </select>
                                     {errors.mainLocation && (
                                         <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
@@ -1066,6 +1062,7 @@ const AddEmployeeForm = ({ onBack }) => {
                                 >
                                     <option value="Unmarried">Unmarried</option>
                                     <option value="Married">Married</option>
+                                    <option value="Divorced">Divorced</option>
                                 </select>
                             </div>
 
@@ -1130,7 +1127,7 @@ const AddEmployeeForm = ({ onBack }) => {
                                             )}
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                             <div>
                                                 <input
                                                     type="text"
@@ -1166,6 +1163,18 @@ const AddEmployeeForm = ({ onBack }) => {
                                                 {errors[`parent_${index}_relationship`] && (
                                                     <p className="mt-1 text-xs text-red-600">{errors[`parent_${index}_relationship`]}</p>
                                                 )}
+                                            </div>
+
+                                            <div>
+                                                <select
+                                                    value={parent.status || 'Alive'}
+                                                    onChange={(e) => handleParentChange(index, 'status', e.target.value, false)}
+                                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 focus:outline-none"
+                                                    disabled={loading}
+                                                >
+                                                    <option value="Alive">Alive</option>
+                                                    <option value="Deceased">Deceased</option>
+                                                </select>
                                             </div>
 
                                             <div>
@@ -1208,215 +1217,234 @@ const AddEmployeeForm = ({ onBack }) => {
                                 )}
                             </div>
 
-                            {/* Spouse Parents (only for married) */}
-                            {formData.maritalStatus === 'Married' && (
-                                <div className="mb-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            Spouse Parents/Guardians <span className="text-red-500">*</span>
-                                        </label>
-                                        <button
-                                            type="button"
-                                            onClick={() => addParent(true)}
-                                            className="flex items-center space-x-1 px-3 py-2 text-sm bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors duration-200"
-                                            disabled={loading}
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                            <span>Add Spouse Parent/Guardian</span>
-                                        </button>
-                                    </div>
-
-                                    {formData.spouseParents.map((parent, index) => (
-                                        <div key={index} className="mb-4 p-4 bg-purple-50 rounded-lg">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <h4 className="text-sm font-medium text-gray-700">Spouse Parent/Guardian {index + 1}</h4>
-                                                {formData.spouseParents.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeParent(index, true)}
-                                                        className="text-red-500 hover:text-red-700"
-                                                        disabled={loading}
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                )}
-                                            </div>
-
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                <div>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Name (letters only)"
-                                                        value={parent.name}
-                                                        onChange={(e) => handleParentChange(index, 'name', e.target.value, true)}
-                                                        className={`w-full px-3 py-2 rounded-lg border transition-colors duration-200 focus:outline-none focus:ring-2 ${errors[`spouseParent_${index}_name`]
-                                                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                                                            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                                                            }`}
-                                                        disabled={loading}
-                                                    />
-                                                    {errors[`spouseParent_${index}_name`] && (
-                                                        <p className="mt-1 text-xs text-red-600">{errors[`spouseParent_${index}_name`]}</p>
-                                                    )}
-                                                </div>
-
-                                                <div>
-                                                    <select
-                                                        value={parent.relationship}
-                                                        onChange={(e) => handleParentChange(index, 'relationship', e.target.value, true)}
-                                                        className={`w-full px-3 py-2 rounded-lg border transition-colors duration-200 focus:outline-none focus:ring-2 ${errors[`spouseParent_${index}_relationship`]
-                                                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                                                            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                                                            }`}
-                                                        disabled={loading}
-                                                    >
-                                                        <option value="">Select relationship</option>
-                                                        <option value="Father-in-law">Father-in-law</option>
-                                                        <option value="Mother-in-law">Mother-in-law</option>
-                                                        <option value="Guardian">Guardian</option>
-                                                    </select>
-                                                    {errors[`spouseParent_${index}_relationship`] && (
-                                                        <p className="mt-1 text-xs text-red-600">{errors[`spouseParent_${index}_relationship`]}</p>
-                                                    )}
-                                                </div>
-
-                                                <div>
-                                                    <div className={`relative rounded-lg border transition-colors duration-200 ${errors[`spouseParent_${index}_contactNumber`]
-                                                        ? 'border-red-300 focus-within:ring-red-500 focus-within:border-red-500'
-                                                        : 'border-gray-300 focus-within:ring-blue-500 focus-within:border-blue-500'
-                                                        } focus-within:ring-2`}>
-                                                        <PhoneInput
-                                                            country={'lk'}
-                                                            value={parent.contactNumber}
-                                                            onChange={(phone) => handleParentChange(index, 'contactNumber', phone, true)}
-                                                            inputProps={{
-                                                                name: `spouseParent_${index}_contactNumber`,
-                                                                required: true,
-                                                                disabled: loading,
-                                                                placeholder: 'Contact number',
-                                                                maxLength: 15
-                                                            }}
-                                                            onlyCountries={['lk']}
-                                                            containerClass="w-full"
-                                                            inputClass="w-full"
-                                                            buttonClass="border-0"
-                                                            dropdownClass="text-sm"
-                                                            enableSearch={false}
-                                                        />
-                                                    </div>
-                                                    {errors[`spouseParent_${index}_contactNumber`] && (
-                                                        <p className="mt-1 text-xs text-red-600">{errors[`spouseParent_${index}_contactNumber`]}</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-
-                                    {errors.spouseParents && (
-                                        <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
-                                            <AlertCircle className="w-4 h-4" />
-                                            <span>{errors.spouseParents}</span>
-                                        </p>
-                                    )}
+                            {/* Spouse Parents */}
+                            <div className="mb-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Spouse Parents/Guardians {formData.maritalStatus === 'Married' && <span className="text-red-500">*</span>}
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => addParent(true)}
+                                        className="flex items-center space-x-1 px-3 py-2 text-sm bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors duration-200"
+                                        disabled={loading}
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        <span>Add Spouse Parent/Guardian</span>
+                                    </button>
                                 </div>
-                            )}
 
-                            {/* Children (only for married) */}
-                            {formData.maritalStatus === 'Married' && (
-                                <div>
-                                    <div className="flex items-center justify-between mb-4">
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            Children (Optional)
-                                        </label>
-                                        <button
-                                            type="button"
-                                            onClick={addChild}
-                                            className="flex items-center space-x-1 px-3 py-2 text-sm bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors duration-200"
-                                            disabled={loading}
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                            <span>Add Child</span>
-                                        </button>
-                                    </div>
-
-                                    {formData.children.map((child, index) => (
-                                        <div key={index} className="mb-4 p-4 bg-green-50 rounded-lg">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <h4 className="text-sm font-medium text-gray-700">Child {index + 1}</h4>
+                                {formData.spouseParents.map((parent, index) => (
+                                    <div key={index} className="mb-4 p-4 bg-purple-50 rounded-lg">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h4 className="text-sm font-medium text-gray-700">Spouse Parent/Guardian {index + 1}</h4>
+                                            {formData.spouseParents.length > 0 && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => removeChild(index)}
+                                                    onClick={() => removeParent(index, true)}
                                                     className="text-red-500 hover:text-red-700"
                                                     disabled={loading}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                            <div>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Name (letters only)"
+                                                    value={parent.name}
+                                                    onChange={(e) => handleParentChange(index, 'name', e.target.value, true)}
+                                                    className={`w-full px-3 py-2 rounded-lg border transition-colors duration-200 focus:outline-none focus:ring-2 ${errors[`spouseParent_${index}_name`]
+                                                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                                                        }`}
+                                                    disabled={loading}
+                                                />
+                                                {errors[`spouseParent_${index}_name`] && (
+                                                    <p className="mt-1 text-xs text-red-600">{errors[`spouseParent_${index}_name`]}</p>
+                                                )}
                                             </div>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                                                <div>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Child's name (letters only)"
-                                                        value={child.name}
-                                                        onChange={(e) => handleChildChange(index, 'name', e.target.value)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 focus:outline-none"
-                                                        disabled={loading}
+                                            <div>
+                                                <select
+                                                    value={parent.relationship}
+                                                    onChange={(e) => handleParentChange(index, 'relationship', e.target.value, true)}
+                                                    className={`w-full px-3 py-2 rounded-lg border transition-colors duration-200 focus:outline-none focus:ring-2 ${errors[`spouseParent_${index}_relationship`]
+                                                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                                                        }`}
+                                                    disabled={loading}
+                                                >
+                                                    <option value="">Select relationship</option>
+                                                    <option value="Father">Father</option>
+                                                    <option value="Mother">Mother</option>
+                                                </select>
+                                                {errors[`spouseParent_${index}_relationship`] && (
+                                                    <p className="mt-1 text-xs text-red-600">{errors[`spouseParent_${index}_relationship`]}</p>
+                                                )}
+                                            </div>
+
+                                            <div>
+                                                <select
+                                                    value={parent.status || 'Alive'}
+                                                    onChange={(e) => handleParentChange(index, 'status', e.target.value, true)}
+                                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 focus:outline-none"
+                                                    disabled={loading}
+                                                >
+                                                    <option value="Alive">Alive</option>
+                                                    <option value="Deceased">Deceased</option>
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <div className={`relative rounded-lg border transition-colors duration-200 ${errors[`spouseParent_${index}_contactNumber`]
+                                                    ? 'border-red-300 focus-within:ring-red-500 focus-within:border-red-500'
+                                                    : 'border-gray-300 focus-within:ring-blue-500 focus-within:border-blue-500'
+                                                    } focus-within:ring-2`}>
+                                                    <PhoneInput
+                                                        country={'lk'}
+                                                        value={parent.contactNumber}
+                                                        onChange={(phone) => handleParentChange(index, 'contactNumber', phone, true)}
+                                                        inputProps={{
+                                                            name: `spouseParent_${index}_contactNumber`,
+                                                            required: true,
+                                                            disabled: loading,
+                                                            placeholder: 'Contact number',
+                                                            maxLength: 15
+                                                        }}
+                                                        onlyCountries={['lk']}
+                                                        containerClass="w-full"
+                                                        inputClass="w-full"
+                                                        buttonClass="border-0"
+                                                        dropdownClass="text-sm"
+                                                        enableSearch={false}
                                                     />
                                                 </div>
-
-                                                <div>
-                                                    <input
-                                                        type="date"
-                                                        placeholder="Date of birth"
-                                                        value={child.dateOfBirth}
-                                                        onChange={(e) => handleChildChange(index, 'dateOfBirth', e.target.value)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 focus:outline-none"
-                                                        disabled={loading}
-                                                        max={new Date().toISOString().split('T')[0]}
-                                                    />
-                                                </div>
-
-                                                <div>
-                                                    <select
-                                                        value={child.gender}
-                                                        onChange={(e) => handleChildChange(index, 'gender', e.target.value)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 focus:outline-none"
-                                                        disabled={loading}
-                                                    >
-                                                        <option value="">Select gender</option>
-                                                        <option value="Male">Male</option>
-                                                        <option value="Female">Female</option>
-                                                        <option value="Other">Other</option>
-                                                    </select>
-                                                </div>
-
-                                                <div>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="School"
-                                                        value={child.school}
-                                                        onChange={(e) => handleChildChange(index, 'school', e.target.value)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 focus:outline-none"
-                                                        disabled={loading}
-                                                    />
-                                                </div>
-
-                                                <div>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Grade"
-                                                        value={child.grade}
-                                                        onChange={(e) => handleChildChange(index, 'grade', e.target.value)}
-                                                        className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 focus:outline-none"
-                                                        disabled={loading}
-                                                    />
-                                                </div>
+                                                {errors[`spouseParent_${index}_contactNumber`] && (
+                                                    <p className="mt-1 text-xs text-red-600">{errors[`spouseParent_${index}_contactNumber`]}</p>
+                                                )}
                                             </div>
                                         </div>
-                                    ))}
+                                    </div>
+                                ))}
+
+                                {errors.spouseParents && (
+                                    <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
+                                        <AlertCircle className="w-4 h-4" />
+                                        <span>{errors.spouseParents}</span>
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Children */}
+                            <div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Children (Optional)
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={addChild}
+                                        className="flex items-center space-x-1 px-3 py-2 text-sm bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors duration-200"
+                                        disabled={loading}
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        <span>Add Child</span>
+                                    </button>
                                 </div>
-                            )}
+
+                                {formData.children.map((child, index) => (
+                                    <div key={index} className="mb-4 p-4 bg-green-50 rounded-lg">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h4 className="text-sm font-medium text-gray-700">Child {index + 1}</h4>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeChild(index)}
+                                                className="text-red-500 hover:text-red-700"
+                                                disabled={loading}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                                            <div>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Child's name (letters only)"
+                                                    value={child.name}
+                                                    onChange={(e) => handleChildChange(index, 'name', e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 focus:outline-none"
+                                                    disabled={loading}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <input
+                                                    type="date"
+                                                    placeholder="Date of birth"
+                                                    value={child.dateOfBirth}
+                                                    onChange={(e) => handleChildChange(index, 'dateOfBirth', e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 focus:outline-none"
+                                                    disabled={loading}
+                                                    max={new Date().toISOString().split('T')[0]}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <select
+                                                    value={child.gender}
+                                                    onChange={(e) => handleChildChange(index, 'gender', e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 focus:outline-none"
+                                                    disabled={loading}
+                                                >
+                                                    <option value="">Select gender</option>
+                                                    <option value="Male">Male</option>
+                                                    <option value="Female">Female</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <input
+                                                    type="text"
+                                                    placeholder="School"
+                                                    value={child.school}
+                                                    onChange={(e) => handleChildChange(index, 'school', e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 focus:outline-none"
+                                                    disabled={loading}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Grade"
+                                                    value={child.grade}
+                                                    onChange={(e) => handleChildChange(index, 'grade', e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 focus:outline-none"
+                                                    disabled={loading}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <select
+                                                    value={child.status || 'Alive'}
+                                                    onChange={(e) => handleChildChange(index, 'status', e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 focus:outline-none"
+                                                    disabled={loading}
+                                                >
+                                                    <option value="Alive">Alive</option>
+                                                    <option value="Deceased">Deceased</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Profile Picture */}

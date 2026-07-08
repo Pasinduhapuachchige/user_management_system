@@ -5,13 +5,13 @@ import TabHeader from '../../../components/TabHeader';
 const EPFSettings = ({ currentPath }) => (
     <Tab>
         <TabHeader
-            title="EPF Configuration"
-            subtitle="Configure EPF settings and maximum values"
+            title="Medical Contribution Settings"
+            subtitle="Configure Medical Settings"
             currentPath={currentPath}
 
         />
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <p className="text-gray-600">EPF configuration settings will be implemented here...</p>
+            <p className="text-gray-600">Medical settings will be implemented here...</p>
         </div>
     </Tab>
 );

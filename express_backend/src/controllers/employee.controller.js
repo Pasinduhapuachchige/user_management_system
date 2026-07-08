@@ -67,6 +67,10 @@ export const updateEmployeeController = async (req, res) => {
             updatedData.children = JSON.parse(updatedData.children);
         }
 
+        if (updatedData.spouseParents) {
+            updatedData.spouseParents = JSON.parse(updatedData.spouseParents);
+        }
+
         if (req.file) {
             // Delete old picture
             const old = await getEmployeesByQuery({ _id: id });

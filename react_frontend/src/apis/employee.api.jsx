@@ -55,7 +55,7 @@ export const updateEmployeeApi = async (id, data = {}) => {
                     const fileName = data[key].split('/').pop();
                     formData.append('profilePicture', fileName);
                 }
-            } else if (key === 'parents' || key === 'children') {
+            } else if (key === 'parents' || key === 'children' || key === 'spouseParents') {
                 formData.append(key, JSON.stringify(data[key]));
             } else if (key === 'department') {
                 const departmentId = typeof data[key] === 'object' ? data[key]._id : data[key];

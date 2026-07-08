@@ -392,28 +392,27 @@ const AddEpfForm = ({ onBack }) => {
         setTimeout(() => setNotification(null), 5000);
     };
 
-    // Popup modal for notifications (centered)
+    // Toast notification (fixed on top right)
     const NotificationPopup = ({ notification, onClose }) => {
         if (!notification) return null;
         const isSuccess = notification.type === 'success';
         return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
-                <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-                <div className={`relative max-w-md w-full p-6 rounded-lg shadow-2xl border ${isSuccess ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`} role="alert">
-                    <div className="flex items-start space-x-3">
-                        {isSuccess ? (
-                            <CheckCircle className="w-6 h-6 flex-shrink-0" />
-                        ) : (
-                            <AlertCircle className="w-6 h-6 flex-shrink-0" />
-                        )}
-                        <div className="flex-1">
-                            <p className="font-medium">{notification.message}</p>
-                        </div>
-                        <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-1">
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
-                </div>
+            <div className={`fixed top-6 right-6 z-[100] max-w-md p-4 rounded-lg border shadow-lg flex items-start space-x-3 animate-fadeIn ${isSuccess
+                ? 'bg-green-50 border-green-200 text-green-800'
+                : 'bg-red-50 border-red-200 text-red-800'
+                }`}>
+                {isSuccess ? (
+                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                ) : (
+                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                )}
+                <span className="flex-1 text-sm font-medium">{notification.message}</span>
+                <button
+                    onClick={onClose}
+                    className="text-gray-400 hover:text-gray-600 ml-2"
+                >
+                    <X className="w-4 h-4" />
+                </button>
             </div>
         );
     };
@@ -549,26 +548,6 @@ const AddEpfForm = ({ onBack }) => {
                 {/* Notification popup */}
                 {notification && (
                     <NotificationPopup notification={notification} onClose={() => setNotification(null)} />
-                )}
-                {/* Inline Notification (kept for compatibility) */}
-                {notification && (
-                    <div className={`mb-6 p-4 rounded-lg border flex items-center space-x-3 ${notification.type === 'success'
-                        ? 'bg-green-50 border-green-200 text-green-800'
-                        : 'bg-red-50 border-red-200 text-red-800'
-                        }`}>
-                        {notification.type === 'success' ? (
-                            <CheckCircle className="w-5 h-5 flex-shrink-0" />
-                        ) : (
-                            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                        )}
-                        <span className="flex-1">{notification.message}</span>
-                        <button
-                            onClick={() => setNotification(null)}
-                            className="text-gray-400 hover:text-gray-600"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    </div>
                 )}
 
                 {/* Form */}
