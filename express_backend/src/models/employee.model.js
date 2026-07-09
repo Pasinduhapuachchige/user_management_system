@@ -134,6 +134,10 @@ const employeeSchema = new mongoose.Schema({
     medicalRecords: {
         type: String,
         default: "",
+    },
+    isActive: {
+        type: Boolean,
+        default: true
     }
 }, { timestamps: true });
 

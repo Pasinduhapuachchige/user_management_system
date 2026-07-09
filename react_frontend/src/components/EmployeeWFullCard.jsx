@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import {
     User, Edit3, Trash2, X, Save, AlertTriangle, Calendar, Mail, Phone,
     Building2, CreditCard, Heart, CheckCircle, Briefcase, ChevronRight,
-    Camera, Info, Users, Baby
+    Camera, Info, Users, Baby, UserX, UserCheck
 } from 'lucide-react';
-import { deleteEmployeeApi, updateEmployeeApi } from '../apis/employee.api';
+import { toggleEmployeeStatusApi, updateEmployeeApi } from '../apis/employee.api';
 import { fetchDepartmentsApi } from '../apis/department.api';
 import { getMaxEpf, getEmpEpf } from '../apis/epf.api';
 import { createPortal } from 'react-dom';
@@ -15,10 +15,9 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
     // --- STATE ---
     const [employee, setEmployee] = useState(initialEmployee);
     const [showDetailModal, setShowDetailModal] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showStatusModal, setShowStatusModal] = useState(false);
     const [notification, setNotification] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [isDeleted, setIsDeleted] = useState(false);
     const [activeTab, setActiveTab] = useState('general');
     const [isEditing, setIsEditing] = useState(false);
     const [editedEmployee, setEditedEmployee] = useState(null);
@@ -171,17 +170,18 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
         }
     };
 
-    const handleDelete = async () => {
+    const handleToggleStatus = async () => {
         setIsLoading(true);
         try {
-            const res = await deleteEmployeeApi(employee._id);
+            const res = await toggleEmployeeStatusApi(employee._id);
             if (res?.success) {
-                setIsDeleted(true);
-                setShowDeleteModal(false);
-                showNotice('success', 'Employee deleted');
+                const updatedEmployee = { ...employee, isActive: res.data.isActive };
+                setEmployee(updatedEmployee);
+                setShowStatusModal(false);
+                showNotice('success', `Employee ${updatedEmployee.isActive !== false ? 'enabled' : 'disabled'} successfully`);
             }
         } catch (error) {
-            showNotice('error', error.message || 'Error deleting');
+            showNotice('error', error.message || 'Error toggling employee status');
         } finally {
             setIsLoading(false);
         }
@@ -223,28 +223,19 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
         }
     };
 
-    if (isDeleted) {
-        return (
-            <div className="bg-red-50/50 border border-red-100 rounded-2xl p-8 text-center animate-in">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Trash2 className="w-8 h-8 text-red-600" />
-                </div>
-                <h3 className="text-lg font-bold text-red-900 mb-2">Employee Removed</h3>
-                <p className="text-red-600 text-sm">This record has been successfully deleted from the system.</p>
-            </div>
-        );
-    }
+
 
     return (
         <>
             {/* Notifications */}
-            {notification && (
+            {notification && createPortal(
                 <div className={`fixed top-6 right-6 z-[10000] px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in ${
                     notification.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
                 }`}>
                     {notification.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
                     <span className="font-semibold text-sm">{notification.message}</span>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* List Summary Card */}
@@ -262,7 +253,7 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
                                     <User className="w-7 h-7 text-white" />
                                 )}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
+                            <div className={`absolute -bottom-1 -right-1 w-5 h-5 border-2 border-white rounded-full ${employee.isActive !== false ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                         </div>
                         <div>
                             <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
@@ -329,9 +320,15 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
                                         <span className="px-3 py-1 bg-white/20 rounded-full text-white text-xs font-bold backdrop-blur-md border border-white/10">
                                             {employee.epfNumber}
                                         </span>
-                                        <span className="px-3 py-1 bg-green-400 text-white text-xs font-bold rounded-full shadow-lg shadow-green-900/20">
-                                            ACTIVE
-                                        </span>
+                                        {employee.isActive !== false ? (
+                                            <span className="px-3 py-1 bg-green-400 text-white text-xs font-bold rounded-full shadow-lg shadow-green-900/20">
+                                                ACTIVE
+                                            </span>
+                                        ) : (
+                                            <span className="px-3 py-1 bg-gray-400 text-white text-xs font-bold rounded-full shadow-lg shadow-gray-900/20">
+                                                DISABLED
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -370,10 +367,22 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
                         {/* Modal Footer */}
                         <div className="p-6 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
                             <button
-                                onClick={() => setShowDeleteModal(true)}
-                                className="flex items-center gap-2 px-5 py-2.5 text-red-600 font-bold hover:bg-red-50 rounded-2xl transition-all"
+                                onClick={() => setShowStatusModal(true)}
+                                className={`flex items-center gap-2 px-5 py-2.5 font-bold rounded-2xl transition-all ${
+                                    employee.isActive !== false 
+                                        ? 'text-amber-600 hover:bg-amber-50' 
+                                        : 'text-green-600 hover:bg-green-50'
+                                }`}
                             >
-                                <Trash2 className="w-4 h-4" /> Delete Employee
+                                {employee.isActive !== false ? (
+                                    <>
+                                        <UserX className="w-4 h-4" /> Disable Employee
+                                    </>
+                                ) : (
+                                    <>
+                                        <UserCheck className="w-4 h-4" /> Enable Employee
+                                    </>
+                                )}
                             </button>
                             
                             <div className="flex items-center gap-3">
@@ -414,33 +423,45 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
                 document.body
             )}
 
-            {/* Delete Confirmation Modal */}
-            {showDeleteModal && (
+            {/* Status Confirmation Modal */}
+            {showStatusModal && createPortal(
                 <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in">
                     <div className="bg-white rounded-[2rem] p-8 max-w-sm w-full text-center shadow-2xl">
-                        <div className="w-20 h-20 bg-red-100 rounded-3xl flex items-center justify-center mx-auto mb-6 text-red-600">
-                            <AlertTriangle className="w-10 h-10" />
+                        <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 ${
+                            employee.isActive !== false ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'
+                        }`}>
+                            {employee.isActive !== false ? <UserX className="w-10 h-10" /> : <UserCheck className="w-10 h-10" />}
                         </div>
-                        <h3 className="text-2xl font-black text-gray-900 mb-2">Are you sure?</h3>
+                        <h3 className="text-2xl font-black text-gray-900 mb-2">
+                            {employee.isActive !== false ? 'Disable Employee?' : 'Enable Employee?'}
+                        </h3>
                         <p className="text-gray-500 mb-8 text-sm leading-relaxed">
-                            This will permanently remove <span className="font-bold text-gray-900">{employee.name}</span>'s record from the database. This action cannot be undone.
+                            {employee.isActive !== false
+                                ? `Are you sure you want to disable ${employee.name}? They will no longer be active in the system and their matching admin account will be deactivated.`
+                                : `Are you sure you want to enable ${employee.name}? Their status will be set to active.`
+                            }
                         </p>
                         <div className="flex gap-3">
                             <button
-                                onClick={() => setShowDeleteModal(false)}
+                                onClick={() => setShowStatusModal(false)}
                                 className="flex-1 px-6 py-3 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-all"
                             >
-                                Go Back
+                                Cancel
                             </button>
                             <button
-                                onClick={handleDelete}
-                                className="flex-1 px-6 py-3 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 shadow-lg shadow-red-200 transition-all"
+                                onClick={handleToggleStatus}
+                                className={`flex-1 px-6 py-3 text-white font-bold rounded-2xl shadow-lg transition-all ${
+                                    employee.isActive !== false
+                                        ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-200'
+                                        : 'bg-green-600 hover:bg-green-700 shadow-green-200'
+                                }`}
                             >
-                                Delete
+                                {employee.isActive !== false ? 'Disable' : 'Enable'}
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );

@@ -82,19 +82,15 @@ export const updateEmployeeApi = async (id, data = {}) => {
 };
 
 
-/**
- * Delete an employee by ID
- * @param {string} id - Employee ID
- */
-export const deleteEmployeeApi = async (id) => {
+export const toggleEmployeeStatusApi = async (id) => {
     try {
-        const res = await axios.delete(`${API}/${id}`, {
+        const res = await axios.patch(`${API}/${id}/status`, {}, {
             withCredentials: true
         });
 
         return res.data;
     } catch (err) {
-        console.error('Delete Employee Error:', err);
+        console.error('Toggle Employee Status Error:', err);
         throw err.response?.data || { message: err.message };
     }
 };

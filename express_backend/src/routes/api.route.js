@@ -15,7 +15,7 @@ import { createDepartment, getAllDepartments, getDepartmentById, updateDepartmen
 
 const router = express.Router();
 import { upload } from '../middleware/multer.middleware.js'
-import { createEmployeeController, deleteEmployeeController, getEmployeesController, updateEmployeeController } from '../controllers/employee.controller.js';
+import { createEmployeeController, toggleEmployeeStatusController, getEmployeesController, updateEmployeeController } from '../controllers/employee.controller.js';
 import { createOrUpdateEmployeeEpfController, deleteEmployeeEpfExpenseController, getEmployeeEpfsController, getMaxEpfController, updateMaxEpfController } from '../controllers/epf.controller.js';
 import { getEmployeesByQuery } from '../services/employee.service.js';
 import { departmentStats, epfMonthlyContribution, statsController, getSystemHealth, getRecentActivity } from '../controllers/stats.controller.js';
@@ -40,7 +40,7 @@ router.get('/logout', logoutController);
 
 router.post('/emp/', verifyAuth, upload.single('profilePicture'), createEmployeeController);
 router.put('/emp/:id', verifyAuth, upload.single('profilePicture'), updateEmployeeController);
-router.delete('/emp/:id', verifyAuth, deleteEmployeeController);
+router.patch('/emp/:id/status', verifyAuth, toggleEmployeeStatusController);
 router.get('/emp/', verifyAuth, getEmployeesController);
 
 router.post('/department', verifyAuth, createDepartment);

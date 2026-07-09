@@ -3,7 +3,7 @@ import path from 'path';
 import {
     createEmployee,
     updateEmployee,
-    deleteEmployee,
+    toggleEmployeeStatus,
     getEmployeesByQuery
 } from '../services/employee.service.js';
 
@@ -92,12 +92,12 @@ export const updateEmployeeController = async (req, res) => {
 };
 
 
-export const deleteEmployeeController = async (req, res) => {
+export const toggleEmployeeStatusController = async (req, res) => {
     const { id } = req.params;
 
     try {
-        await deleteEmployee(id);
-        res.status(200).json({ success: true, message: 'Employee deleted' });
+        const employee = await toggleEmployeeStatus(id);
+        res.status(200).json({ success: true, message: 'Employee status updated', data: employee });
     } catch (err) {
         if (err.message.includes('not found')) {
             res.status(404).json({ success: false, message: err.message });

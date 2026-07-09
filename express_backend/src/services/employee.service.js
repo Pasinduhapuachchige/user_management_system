@@ -118,32 +118,43 @@ export const updateEmployee = async (id, data) => {
 };
 
 
-export const deleteEmployee = async (id) => {
+export const toggleEmployeeStatus = async (id) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
         throw new Error('Invalid employee ID');
     }
 
     try {
-        const deleted = await Employee.findByIdAndDelete(id);
-        if (!deleted) {
-            throw new Error('Employee not found for deletion');
+        const employee = await Employee.findById(id);
+        if (!employee) {
+            throw new Error('Employee not found');
         }
 
-        // Auto-delete matching Admin account
+        const newStatus = employee.isActive === false ? true : false;
+        
+        // Update Employee status using findByIdAndUpdate to bypass validation of other fields
+        const updatedEmployee = await Employee.findByIdAndUpdate(
+            id,
+            { isActive: newStatus },
+            { new: true, runValidators: false }
+        );
+
+        // Auto-toggle matching Admin account status
         try {
-            const admin = await Admin.findOne({ epfNo: deleted.epfNumber });
+            const admin = await Admin.findOne({ epfNo: employee.epfNumber });
             if (admin) {
-                await deleteAccount(admin._id);
+                await Admin.findByIdAndUpdate(
+                    admin._id,
+                    { isActive: newStatus },
+                    { runValidators: false }
+                );
             }
         } catch (adminErr) {
-            console.error('Failed to delete admin account for employee:', adminErr.message);
+            console.error('Failed to update admin account status for employee:', adminErr.message);
         }
 
-        const deletedEpfRecords = await EmployeeEpf.deleteMany({ user: id });
-
-        return deleted;
+        return updatedEmployee;
     } catch (err) {
-        throw new Error(`Failed to delete employee: ${err.message}`);
+        throw new Error(`Failed to toggle employee status: ${err.message}`);
     }
 };
 
