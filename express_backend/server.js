@@ -14,8 +14,21 @@ dotenv.config();
 const app = express();
 
 // Middleware
+const clientUrl = process.env.CLIENT_URL;
+const allowedOrigins = clientUrl 
+    ? clientUrl.split(',').map(url => url.trim()) 
+    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
+
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        const isAllowed = allowedOrigins.includes(origin) || origin.startsWith('http://localhost:');
+        if (isAllowed) {
+            callback(null, true);
+        } else {
+            callback(null, false);
+        }
+    },
     credentials: true
 }));
 app.use(cookieParser());
