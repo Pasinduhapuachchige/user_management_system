@@ -332,7 +332,7 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                     { 
                         name: 'relationship', 
                         type: 'select', 
-                        options: ['Father', 'Mother'], 
+                        options: ['Father', 'Mother', 'Father-in-law', 'Mother-in-law', 'Guardian'], 
                         icon: UserCheck 
                     },
                     { name: 'contactNumber', placeholder: 'Phone', type: 'phone', icon: Phone },

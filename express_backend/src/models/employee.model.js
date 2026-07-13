@@ -70,7 +70,7 @@ const employeeSchema = new mongoose.Schema({
                 },
                 relationship: {
                     type: String,
-                    enum: ['Father', 'Mother'],
+                    enum: ['Father', 'Mother', 'Father-in-law', 'Mother-in-law', 'Guardian'],
                     required: true
                 },
                 contactNumber: {

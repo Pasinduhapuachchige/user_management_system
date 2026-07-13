@@ -1281,6 +1281,9 @@ const AddEmployeeForm = ({ onBack }) => {
                                                     <option value="">Select relationship</option>
                                                     <option value="Father">Father</option>
                                                     <option value="Mother">Mother</option>
+                                                    <option value="Father-in-law">Father-in-law</option>
+                                                    <option value="Mother-in-law">Mother-in-law</option>
+                                                    <option value="Guardian">Guardian</option>
                                                 </select>
                                                 {errors[`spouseParent_${index}_relationship`] && (
                                                     <p className="mt-1 text-xs text-red-600">{errors[`spouseParent_${index}_relationship`]}</p>
