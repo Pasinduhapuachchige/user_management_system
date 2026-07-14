@@ -9,7 +9,8 @@ import {
     BarChart3,
     X,
     ChevronDown,
-    LayoutDashboard
+    LayoutDashboard,
+    Heart
 } from 'lucide-react';
 import { useUserStore } from '../tools/user.zustand';
 import spcLogo from '../assets/spc-logo.png';
@@ -25,17 +26,17 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
         ...(!isEmployee ? [
             {
                 id: 'employees',
-                label: 'Teams',
+                label: 'Staff Directory',
                 icon: Users,
                 path: 'employees',
                 subItems: [
                     { id: 'employees-list', label: 'Directory', path: 'employees' },
-                    { id: 'employees-add', label: 'Onboard New', path: 'employees/add' }
+                    { id: 'employees-add', label: 'Add Employee', path: 'employees/add' }
                 ]
             },
             {
                 id: 'departments',
-                label: 'Structure',
+                label: 'Organization',
                 icon: Building2,
                 path: 'departments',
                 subItems: [
@@ -45,11 +46,11 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
             },
             {
                 id: 'epf',
-                label: 'Healthcare',
-                icon: Shield,
+                label: 'Benefits',
+                icon: Heart,
                 path: 'epf',
                 subItems: [
-                    { id: 'epf-list', label: 'Medical Logs', path: 'epf' },
+                    { id: 'epf-list', label: 'Claim History', path: 'epf' },
                     { id: 'epf-add', label: 'New Entry', path: 'epf/add' }
                 ]
             },
@@ -65,11 +66,11 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
             }] : []),
             {
                 id: 'settings',
-                label: 'Preferences',
+                label: 'Configuration',
                 icon: Settings,
                 path: 'settings',
                 subItems: [
-                    { id: 'settings-epf', label: 'Config Panel', path: 'settings/epf' }
+                    { id: 'settings-epf', label: 'Limit Enhancement', path: 'settings/epf' }
                 ]
             },
             { id: 'reports', label: 'Analytics', icon: BarChart3, path: 'reports' }
@@ -121,7 +122,7 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
                         </div>
                         <div>
                             <h1 className="text-xl font-extrabold tracking-tight text-slate-900 leading-none">
-                                SPC <span className="text-indigo-600">HR</span>
+                                SPC <span className="text-indigo-600">Welfare</span>
                             </h1>
                             <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1">Management System</p>
                         </div>

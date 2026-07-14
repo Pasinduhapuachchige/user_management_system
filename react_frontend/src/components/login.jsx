@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Lock, Mail, ArrowRight, CheckCircle, AlertCircle, Shield, Users, BarChart3, Zap } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { loginApi } from '../apis/login.api';
 import spcLogo from '../assets/spc-logo.png';
@@ -14,7 +14,24 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
     const [shake, setShake] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [loginSuccess, setLoginSuccess] = useState(false);
+    const [backendStatus, setBackendStatus] = useState('checking'); // 'checking' | 'online' | 'offline'
     const navigate = useNavigate();
+
+    // ── Real backend health check ──
+    useEffect(() => {
+        const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+        const check = async () => {
+            try {
+                const res = await fetch(`${BACKEND}/api/v1/health`, { method: 'GET', signal: AbortSignal.timeout(3000) });
+                setBackendStatus(res.ok ? 'online' : 'offline');
+            } catch {
+                setBackendStatus('offline');
+            }
+        };
+        check();
+        const id = setInterval(check, 5000);
+        return () => clearInterval(id);
+    }, []);
 
     const calcStrength = (pwd) => {
         let score = 0;
@@ -57,12 +74,16 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
     const strengthColors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
     const strengthLabels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
 
-    const features = [
-        { icon: Users, label: 'Employee Management', desc: 'Centralized HR records' },
-        { icon: BarChart3, label: 'EPF & Analytics', desc: 'Real-time insights' },
-        { icon: Shield, label: 'Role-Based Access', desc: 'Secure & controlled' },
-        { icon: Zap, label: 'Instant Operations', desc: 'Fast & reliable' },
-    ];
+    // Derived colours for the arch diagram
+    const beOnline = backendStatus === 'online';
+    const beChecking = backendStatus === 'checking';
+    const beColor   = beOnline ? '#4ade80' : beChecking ? '#facc15' : '#f87171';
+    const beGlow    = beOnline ? '0 0 8px #4ade80' : beChecking ? '0 0 8px #facc15' : '0 0 8px #f87171';
+    const lineColor = beOnline
+        ? 'linear-gradient(90deg,rgba(99,102,241,.5),rgba(139,92,246,.5))'
+        : 'linear-gradient(90deg,rgba(239,68,68,.3),rgba(239,68,68,.15))';
+    const dbColor  = beOnline ? '#4ade80' : '#475569';
+    const dbGlow   = beOnline ? '0 0 8px #4ade80' : 'none';
 
     return (
         <>
@@ -75,25 +96,29 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                     font-family: 'Inter', sans-serif;
                     min-height: 100vh;
                     display: flex;
+                    align-items: center;
+                    justify-content: center;
                     background: #080812;
                     overflow: hidden;
+                    padding: 40px 20px;
+                    gap: 48px;
                 }
 
                 /* ══════════ LEFT PANEL ══════════ */
                 .login-left {
                     flex: 1;
+                    max-width: 500px;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
-                    padding: 60px 56px;
+                    padding: 0;
                     position: relative;
                     overflow: hidden;
-                    background: #080812;
                 }
 
                 /* ─── Perspective grid ─── */
                 .grid-floor {
-                    position: absolute;
+                    position: fixed;
                     inset: 0;
                     background-image:
                         linear-gradient(rgba(99,102,241,.13) 1px, transparent 1px),
@@ -101,37 +126,11 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                     background-size: 48px 48px;
                     mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
                     animation: gridDrift 12s linear infinite;
+                    pointer-events: none;
                 }
                 @keyframes gridDrift {
                     0%   { background-position: 0 0; }
                     100% { background-position: 48px 48px; }
-                }
-
-                /* ─── Pulsing concentric rings ─── */
-                .rings-wrap {
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    pointer-events: none;
-                }
-                .ring {
-                    position: absolute;
-                    border-radius: 50%;
-                    border: 1px solid rgba(99,102,241,.25);
-                    top: 50%; left: 50%;
-                    transform: translate(-50%, -50%) scale(0);
-                    animation: ringPulse 5s ease-out infinite;
-                }
-                .ring:nth-child(1) { width: 160px; height: 160px; animation-delay: 0s; }
-                .ring:nth-child(2) { width: 280px; height: 280px; animation-delay: 1s; }
-                .ring:nth-child(3) { width: 420px; height: 420px; animation-delay: 2s; border-color: rgba(139,92,246,.15); }
-                .ring:nth-child(4) { width: 560px; height: 560px; animation-delay: 3s; border-color: rgba(99,102,241,.08); }
-                .ring:nth-child(5) { width: 700px; height: 700px; animation-delay: 4s; border-color: rgba(99,102,241,.04); }
-                @keyframes ringPulse {
-                    0%   { transform: translate(-50%,-50%) scale(0); opacity: .9; }
-                    80%  { opacity: .1; }
-                    100% { transform: translate(-50%,-50%) scale(1); opacity: 0; }
                 }
 
                 /* ─── Center glowing orb ─── */
@@ -150,53 +149,9 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                     50%     { transform: translate(-50%,-50%) scale(1.5);  opacity: 1; }
                 }
 
-                /* ─── Orbiting dots ─── */
-                .orbit {
-                    position: absolute;
-                    top: 50%; left: 50%;
-                    transform-origin: 0 0;
-                    pointer-events: none;
-                }
-                .orbit-ring {
-                    position: absolute;
-                    top: 50%; left: 50%;
-                    border-radius: 50%;
-                    border: 1px dashed rgba(99,102,241,.2);
-                    transform: translate(-50%, -50%);
-                }
-                .orbit-dot {
-                    position: absolute;
-                    border-radius: 50%;
-                    background: #818cf8;
-                    box-shadow: 0 0 8px #818cf8, 0 0 20px rgba(129,140,248,.4);
-                    top: 50%; left: 50%;
-                }
-                /* Orbit 1 */
-                .orb1-ring  { width: 180px; height: 180px; }
-                .orb1-dot   { width: 7px; height: 7px; margin: -3.5px; animation: orbit1 6s linear infinite; }
-                /* Orbit 2 */
-                .orb2-ring  { width: 280px; height: 280px; border-color: rgba(139,92,246,.18); }
-                .orb2-dot   { width: 5px; height: 5px; margin: -2.5px; background: #c084fc; box-shadow: 0 0 6px #c084fc; animation: orbit2 10s linear infinite reverse; }
-                /* Orbit 3 */
-                .orb3-ring  { width: 370px; height: 370px; border-color: rgba(99,102,241,.12); }
-                .orb3-dot   { width: 4px; height: 4px; margin: -2px; background: #60a5fa; box-shadow: 0 0 6px #60a5fa; animation: orbit3 15s linear infinite; }
-
-                @keyframes orbit1 {
-                    from { transform: translate(calc(-50% + 90px), -50%) rotate(0deg)   translateX(-90px); }
-                    to   { transform: translate(calc(-50% + 90px), -50%) rotate(360deg) translateX(-90px); }
-                }
-                @keyframes orbit2 {
-                    from { transform: translate(calc(-50% + 140px), -50%) rotate(0deg)   translateX(-140px); }
-                    to   { transform: translate(calc(-50% + 140px), -50%) rotate(360deg) translateX(-140px); }
-                }
-                @keyframes orbit3 {
-                    from { transform: translate(calc(-50% + 185px), -50%) rotate(120deg)   translateX(-185px); }
-                    to   { transform: translate(calc(-50% + 185px), -50%) rotate(480deg) translateX(-185px); }
-                }
-
                 /* ─── Floating hexagons ─── */
                 .hex-wrap {
-                    position: absolute;
+                    position: fixed;
                     inset: 0;
                     pointer-events: none;
                     overflow: hidden;
@@ -216,7 +171,7 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
 
                 /* big background glow blobs */
                 .bg-blob {
-                    position: absolute;
+                    position: fixed;
                     border-radius: 50%;
                     filter: blur(100px);
                     pointer-events: none;
@@ -252,12 +207,15 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
 
                 /* ══════════ RIGHT PANEL ══════════ */
                 .login-right {
-                    width: 480px; flex-shrink: 0;
+                    width: 460px; flex-shrink: 0;
                     display: flex; align-items: center; justify-content: center;
                     padding: 48px 40px;
-                    background: #0d0d1e;
-                    border-left: 1px solid rgba(255,255,255,.05);
+                    background: rgba(13,13,30,0.85);
+                    border: 1px solid rgba(255,255,255,.07);
+                    border-radius: 28px;
                     position: relative;
+                    backdrop-filter: blur(20px);
+                    box-shadow: 0 32px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(99,102,241,.08);
                 }
 
                 .login-card {
@@ -395,80 +353,162 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                 }
                 .forgot-link:hover { color: #a5b4fc; }
 
+                /* ── Backend Connection Diagram ── */
+                .arch-diagram {
+                    position: relative;
+                    background: rgba(255,255,255,.025);
+                    border: 1px solid rgba(99,102,241,.18);
+                    border-radius: 20px;
+                    padding: 20px 18px 16px;
+                    margin-top: 26px;
+                    overflow: hidden;
+                }
+                .arch-diagram::before {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(135deg, rgba(99,102,241,.05) 0%, transparent 60%);
+                    border-radius: inherit;
+                    pointer-events: none;
+                }
+                .arch-section-label {
+                    font-size: 9px; font-weight: 800; letter-spacing: .18em;
+                    text-transform: uppercase; color: rgba(129,140,248,.5);
+                    text-align: center; margin-bottom: 16px;
+                    display: flex; align-items: center; justify-content: center; gap: 6px;
+                }
+                .arch-section-label::before,
+                .arch-section-label::after {
+                    content: '';
+                    flex: 1; height: 1px;
+                    background: linear-gradient(90deg, transparent, rgba(99,102,241,.25), transparent);
+                }
+                .arch-nodes {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 4px;
+                }
+                .arch-node {
+                    display: flex; flex-direction: column; align-items: center; gap: 8px;
+                    flex: 1;
+                }
+                .arch-node-box {
+                    width: 54px; height: 54px; border-radius: 15px;
+                    display: flex; align-items: center; justify-content: center;
+                    position: relative;
+                    transition: transform .3s ease;
+                }
+                .arch-node-box:hover { transform: translateY(-3px); }
+                .arch-node-label {
+                    font-size: 9px; font-weight: 800; letter-spacing: .06em;
+                    text-transform: uppercase; color: rgba(148,163,184,.6);
+                    text-align: center; line-height: 1.4;
+                }
+                .arch-conn {
+                    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+                    position: relative; min-width: 40px;
+                }
+                .arch-line {
+                    width: 100%; height: 1.5px;
+                    background: linear-gradient(90deg, rgba(99,102,241,.4), rgba(139,92,246,.4));
+                    position: relative;
+                    overflow: visible;
+                }
+                .arch-pulse {
+                    position: absolute;
+                    top: 50%; left: 0;
+                    transform: translateY(-50%);
+                    width: 7px; height: 7px; border-radius: 50%;
+                    background: #818cf8;
+                    box-shadow: 0 0 10px #818cf8, 0 0 20px rgba(129,140,248,.5);
+                    animation: pulseTravelFwd 2.4s ease-in-out infinite;
+                }
+                .arch-pulse.rev {
+                    background: #c084fc;
+                    box-shadow: 0 0 10px #c084fc, 0 0 20px rgba(192,132,252,.5);
+                    animation: pulseTravelRev 2.4s ease-in-out infinite 1s;
+                }
+                .arch-pulse.p2 { animation-delay: .5s; }
+                .arch-pulse.p2.rev { animation-delay: 1.5s; }
+                @keyframes pulseTravelFwd {
+                    0%   { left: 0%;   opacity: 0; }
+                    8%   { opacity: 1; }
+                    92%  { opacity: 1; }
+                    100% { left: 100%; opacity: 0; }
+                }
+                @keyframes pulseTravelRev {
+                    0%   { left: 100%; opacity: 0; }
+                    8%   { opacity: 1; }
+                    92%  { opacity: 1; }
+                    100% { left: 0%;   opacity: 0; }
+                }
+                .arch-conn-label {
+                    font-size: 8px; font-weight: 700; color: rgba(129,140,248,.45);
+                    letter-spacing: .05em; text-transform: uppercase; white-space: nowrap;
+                }
+                .status-dot {
+                    position: absolute; bottom: -3px; right: -3px;
+                    width: 11px; height: 11px; border-radius: 50%;
+                    background: #22c55e;
+                    box-shadow: 0 0 8px #22c55e;
+                    border: 2px solid #080812;
+                    animation: statusPulse 2s ease-in-out infinite;
+                }
+                @keyframes statusPulse {
+                    0%,100% { opacity: 1; transform: scale(1); }
+                    50%     { opacity: .6; transform: scale(1.25); }
+                }
+
                 @media (max-width: 900px) {
                     .login-left  { display: none; }
-                    .login-right { width: 100%; }
+                    .login-right { width: 100%; max-width: 440px; }
+                    .login-root  { padding: 20px; gap: 0; }
                 }
             `}</style>
 
             <div className="login-root">
+                {/* Global bg elements */}
+                <div className="bg-blob bg-blob-1" />
+                <div className="bg-blob bg-blob-2" />
+                <div className="grid-floor" />
+                <div className="hex-wrap">
+                    {[
+                        { size: 28, left: '8%', top: '70%', dur: '9s', delay: '0s' },
+                        { size: 18, left: '18%', top: '55%', dur: '12s', delay: '2s' },
+                        { size: 22, left: '72%', top: '75%', dur: '10s', delay: '1.5s' },
+                        { size: 14, left: '82%', top: '60%', dur: '14s', delay: '3.5s' },
+                        { size: 20, left: '55%', top: '80%', dur: '11s', delay: '0.8s' },
+                        { size: 12, left: '40%', top: '65%', dur: '8s', delay: '4s' },
+                        { size: 25, left: '25%', top: '82%', dur: '13s', delay: '2.8s' },
+                        { size: 16, left: '90%', top: '50%', dur: '10s', delay: '1s' },
+                    ].map((h, i) => (
+                        <div key={i} className="hex" style={{
+                            left: h.left, top: h.top,
+                            animationDuration: h.dur,
+                            animationDelay: h.delay,
+                        }}>
+                            <svg width={h.size} height={h.size} viewBox="0 0 24 24">
+                                <polygon
+                                    points="12,2 22,7 22,17 12,22 2,17 2,7"
+                                    fill="none"
+                                    stroke="rgba(129,140,248,0.45)"
+                                    strokeWidth="1.5"
+                                />
+                            </svg>
+                        </div>
+                    ))}
+                </div>
+
                 {/* ═══════ LEFT PANEL ═══════ */}
                 <div className="login-left">
-                    {/* background elements */}
-                    <div className="bg-blob bg-blob-1" />
-                    <div className="bg-blob bg-blob-2" />
-                    <div className="grid-floor" />
-
-                    {/* concentric pulsing rings + orbiting dots */}
-                    <div className="rings-wrap">
-                        <div className="ring" />
-                        <div className="ring" />
-                        <div className="ring" />
-                        <div className="ring" />
-                        <div className="ring" />
-
-                        {/* orbiting dot 1 */}
-                        <div className="orbit-ring orb1-ring" />
-                        <div className="orbit-dot orb1-dot" />
-
-                        {/* orbiting dot 2 */}
-                        <div className="orbit-ring orb2-ring" />
-                        <div className="orbit-dot orb2-dot" />
-
-                        {/* orbiting dot 3 */}
-                        <div className="orbit-ring orb3-ring" />
-                        <div className="orbit-dot orb3-dot" />
-
-                        {/* center glow */}
-                        <div className="center-orb" />
-                    </div>
-
-                    {/* floating hexagons */}
-                    <div className="hex-wrap">
-                        {[
-                            { size: 28, left: '8%',  top: '70%', dur: '9s',  delay: '0s'   },
-                            { size: 18, left: '18%', top: '55%', dur: '12s', delay: '2s'   },
-                            { size: 22, left: '72%', top: '75%', dur: '10s', delay: '1.5s' },
-                            { size: 14, left: '82%', top: '60%', dur: '14s', delay: '3.5s' },
-                            { size: 20, left: '55%', top: '80%', dur: '11s', delay: '0.8s' },
-                            { size: 12, left: '40%', top: '65%', dur: '8s',  delay: '4s'   },
-                            { size: 25, left: '25%', top: '82%', dur: '13s', delay: '2.8s' },
-                            { size: 16, left: '90%', top: '50%', dur: '10s', delay: '1s'   },
-                        ].map((h, i) => (
-                            <div key={i} className="hex" style={{
-                                left: h.left, top: h.top,
-                                animationDuration: h.dur,
-                                animationDelay: h.delay,
-                            }}>
-                                <svg width={h.size} height={h.size} viewBox="0 0 24 24">
-                                    <polygon
-                                        points="12,2 22,7 22,17 12,22 2,17 2,7"
-                                        fill="none"
-                                        stroke="rgba(129,140,248,0.45)"
-                                        strokeWidth="1.5"
-                                    />
-                                </svg>
-                            </div>
-                        ))}
-                    </div>
-
                     {/* Content */}
-                    <div style={{ position: 'relative', zIndex: 10, marginBottom: 40 }}>
+                    <div style={{ position: 'relative', zIndex: 10, marginBottom: 28 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28 }}>
                             <img src={spcLogo} alt="SPC Logo" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 0 12px rgba(129,140,248,.5))' }} />
                             <div>
-                                <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                                    SPC <span style={{ color: '#818cf8' }}>HR</span>
+                                <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                                    SPC <span style={{ color: '#818cf8' }}>Welfare</span>
                                 </div>
                                 <div style={{ fontSize: 11, color: 'rgba(148,163,184,.5)', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                                     Management System
@@ -476,38 +516,125 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                             </div>
                         </div>
 
-                        <h1 style={{ fontSize: 36, fontWeight: 900, color: '#fff', lineHeight: 1.18, letterSpacing: '-0.03em', margin: '0 0 14px' }}>
-                            Smarter HR,<br />
+                        <h1 style={{ fontSize: 34, fontWeight: 900, color: '#fff', lineHeight: 1.18, letterSpacing: '-0.03em', margin: '0 0 14px' }}>
+                            Smarter Welfare,<br />
                             <span style={{ background: 'linear-gradient(90deg,#818cf8 0%,#c084fc 60%,#60a5fa 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                                 better outcomes
                             </span>
                         </h1>
                         <p style={{ fontSize: 14, color: 'rgba(148,163,184,.6)', lineHeight: 1.75, maxWidth: 340, margin: 0 }}>
-                            Manage employees, EPF, departments, and access — all from a single secure platform built for modern HR teams.
+                            Manage welfare benefits, departments, and access — all from a single secure platform built for modern HR teams.
                         </p>
                     </div>
 
-                    {/* Feature list */}
-                    <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        {features.map(({ icon: Icon, label, desc }, i) => (
-                            <div key={i} className="feature-card">
-                                <div className="feature-icon">
-                                    <Icon size={17} color="#fff" />
+
+
+                    {/* ── Backend Connection Diagram ── */}
+                    <div style={{ position: 'relative', zIndex: 10 }}>
+                        <div className="arch-diagram">
+                            <div className="arch-section-label">System Architecture · Live Connection</div>
+                            <div className="arch-nodes">
+
+                                {/* Browser / Frontend Node — always online */}
+                                <div className="arch-node">
+                                    <div className="arch-node-box" style={{
+                                        background: 'linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.14))',
+                                        border: '1px solid rgba(99,102,241,.35)',
+                                        boxShadow: '0 4px 24px rgba(99,102,241,.15)'
+                                    }}>
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="2" y="3" width="20" height="14" rx="2" />
+                                            <path d="M8 21h8M12 17v4" />
+                                        </svg>
+                                        {/* Frontend is always up */}
+                                        <div className="status-dot" style={{ background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
+                                    </div>
+                                    <div className="arch-node-label">React<br />Frontend</div>
                                 </div>
-                                <div>
-                                    <div style={{ fontSize: 13, fontWeight: 700, color: '#e2e8f0' }}>{label}</div>
-                                    <div style={{ fontSize: 11, color: 'rgba(148,163,184,.5)', marginTop: 1 }}>{desc}</div>
+
+                                {/* Connection: Frontend ↔ API — colour reflects backend status */}
+                                <div className="arch-conn">
+                                    <div className="arch-line" style={{ background: lineColor }}>
+                                        {beOnline && <><div className="arch-pulse" /><div className="arch-pulse rev" /></>}
+                                    </div>
+                                    <div className="arch-conn-label">REST/HTTPS</div>
+                                </div>
+
+                                {/* Express API Node — status-aware */}
+                                <div className="arch-node">
+                                    <div className="arch-node-box" style={{
+                                        background: beOnline
+                                            ? 'linear-gradient(135deg,rgba(139,92,246,.2),rgba(192,132,252,.14))'
+                                            : 'linear-gradient(135deg,rgba(239,68,68,.1),rgba(239,68,68,.05))',
+                                        border: beOnline ? '1px solid rgba(139,92,246,.35)' : '1px solid rgba(239,68,68,.3)',
+                                        boxShadow: beOnline ? '0 4px 24px rgba(139,92,246,.15)' : '0 4px 24px rgba(239,68,68,.08)',
+                                        transition: 'all .5s ease'
+                                    }}>
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={beOnline ? '#c084fc' : '#f87171'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke .5s' }}>
+                                            <rect x="2" y="2" width="20" height="8" rx="2" />
+                                            <rect x="2" y="14" width="20" height="8" rx="2" />
+                                            <line x1="6" y1="6" x2="6.01" y2="6" />
+                                            <line x1="6" y1="18" x2="6.01" y2="18" />
+                                        </svg>
+                                        <div className="status-dot" style={{ background: beColor, boxShadow: beGlow, transition: 'background .5s, box-shadow .5s' }} />
+                                    </div>
+                                    <div className="arch-node-label" style={{ color: beOnline ? 'rgba(148,163,184,.6)' : 'rgba(239,68,68,.55)', transition: 'color .5s' }}>Express<br />Backend</div>
+                                </div>
+
+                                {/* Connection: API ↔ DB */}
+                                <div className="arch-conn">
+                                    <div className="arch-line" style={{ background: beOnline ? 'linear-gradient(90deg,rgba(34,197,94,.5),rgba(16,185,129,.5))' : lineColor }}>
+                                        {beOnline && <><div className="arch-pulse p2" /><div className="arch-pulse p2 rev" /></>}
+                                    </div>
+                                    <div className="arch-conn-label">MongoDB</div>
+                                </div>
+
+                                {/* Database Node — dims when backend is offline */}
+                                <div className="arch-node">
+                                    <div className="arch-node-box" style={{
+                                        background: beOnline
+                                            ? 'linear-gradient(135deg,rgba(34,197,94,.15),rgba(16,185,129,.10))'
+                                            : 'linear-gradient(135deg,rgba(71,85,105,.12),rgba(71,85,105,.07))',
+                                        border: beOnline ? '1px solid rgba(34,197,94,.3)' : '1px solid rgba(71,85,105,.3)',
+                                        boxShadow: beOnline ? '0 4px 24px rgba(34,197,94,.12)' : 'none',
+                                        transition: 'all .5s ease'
+                                    }}>
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={dbColor} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke .5s' }}>
+                                            <ellipse cx="12" cy="5" rx="9" ry="3" />
+                                            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                                        </svg>
+                                        <div className="status-dot" style={{ background: dbColor, boxShadow: dbGlow, transition: 'background .5s, box-shadow .5s' }} />
+                                    </div>
+                                    <div className="arch-node-label" style={{ color: beOnline ? 'rgba(148,163,184,.6)' : 'rgba(71,85,105,.5)', transition: 'color .5s' }}>Database<br />Layer</div>
                                 </div>
                             </div>
-                        ))}
+                        </div>
                     </div>
 
-                    {/* Status badge */}
-                    <div style={{ position: 'relative', zIndex: 10, marginTop: 'auto', paddingTop: 36 }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 999, background: 'rgba(34,197,94,.08)', border: '1px solid rgba(34,197,94,.18)' }}>
-                            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e', display: 'inline-block', animation: 'orbBreath 2s ease-in-out infinite' }} />
-                            <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(134,239,172,.7)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                                System Online · Secure Connection
+                    {/* Status badge — live */}
+                    <div style={{ position: 'relative', zIndex: 10, marginTop: 18 }}>
+                        <div style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 8,
+                            padding: '8px 16px', borderRadius: 999,
+                            background: beOnline ? 'rgba(34,197,94,.08)' : beChecking ? 'rgba(250,204,21,.06)' : 'rgba(239,68,68,.08)',
+                            border: beOnline ? '1px solid rgba(34,197,94,.18)' : beChecking ? '1px solid rgba(250,204,21,.2)' : '1px solid rgba(239,68,68,.2)',
+                            transition: 'background .5s, border-color .5s'
+                        }}>
+                            <span style={{
+                                width: 7, height: 7, borderRadius: '50%',
+                                background: beColor, boxShadow: beGlow,
+                                display: 'inline-block',
+                                animation: 'orbBreath 2s ease-in-out infinite',
+                                transition: 'background .5s, box-shadow .5s'
+                            }} />
+                            <span style={{
+                                fontSize: 11, fontWeight: 700,
+                                color: beOnline ? 'rgba(134,239,172,.7)' : beChecking ? 'rgba(253,224,71,.6)' : 'rgba(252,165,165,.7)',
+                                letterSpacing: '0.1em', textTransform: 'uppercase',
+                                transition: 'color .5s'
+                            }}>
+                                {beOnline ? 'Backend Online · Secure Connection' : beChecking ? 'Checking Connection…' : 'Backend Offline · Check Server'}
                             </span>
                         </div>
                     </div>
@@ -530,11 +657,15 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                         )}
 
                         {/* Heading */}
-                        <div style={{ marginBottom: 30 }}>
+                        <div style={{ marginBottom: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                                <img src={spcLogo} alt="SPC Logo" style={{ width: 32, height: 32, objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(129,140,248,.5))' }} />
+                                <div style={{ fontSize: 12, fontWeight: 800, color: 'rgba(148,163,184,.55)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>SPC Welfare Management System</div>
+                            </div>
                             <div style={{ fontSize: 26, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', marginBottom: 6 }}>
                                 Welcome back 👋
                             </div>
-                            <div style={{ fontSize: 14, color: 'rgba(148,163,184,.5)', fontWeight: 500 }}>
+                            <div style={{ fontSize: 14, color: 'rgba(148,163,184,.5)', fontWeight: 500, marginBottom: 26 }}>
                                 Sign in to your account to continue
                             </div>
                         </div>
@@ -625,7 +756,7 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                         </form>
 
                         <div style={{ marginTop: 28, textAlign: 'center', fontSize: 11, color: 'rgba(100,116,139,.4)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                            © 2026 SPC HR Management · Enterprise Edition
+                            © 2026 SPC Welfare Management · Enterprise Edition
                         </div>
                     </div>
                 </div>

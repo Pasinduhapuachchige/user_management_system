@@ -94,16 +94,16 @@ const SuperAdminDashboard = ({ currentPath }) => {
                 {/* 1. Hero Hub (Main Stats) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Admin Count */}
-                    <div className="glass-card group bg-indigo-600 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden transition-all duration-500">
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-white opacity-10 rounded-full blur-3xl -mr-24 -mt-24 group-hover:scale-110 duration-1000"></div>
+                    <div className="glass-card group rounded-[2.5rem] p-8 bg-slate-900/40 backdrop-blur-3xl border border-white/5 relative overflow-hidden transition-all duration-500 hover:-translate-y-1">
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500 opacity-5 rounded-full blur-3xl -mr-24 -mt-24 group-hover:scale-110 duration-1000"></div>
                         <div className="relative z-10">
-                            <div className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-6 border border-white/30 shadow-xl">
-                                <ShieldCheck className="w-8 h-8" />
+                            <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-6 border border-amber-500/20 text-amber-400">
+                                <Shield className="w-8 h-8 text-amber-400" />
                             </div>
-                            <p className="text-indigo-100/60 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Guardians</p>
-                            <h2 className="text-5xl font-black tracking-tighter font-outfit mb-4">{loading ? '...' : stats.adminUsersCount}</h2>
-                            <div className="inline-flex items-center space-x-2 bg-black/20 px-3 py-1 rounded-full backdrop-blur-md border border-white/10">
-                                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Guardians</p>
+                            <h2 className="text-5xl font-black text-white tracking-tighter font-outfit mb-4">{loading ? '...' : stats.adminUsersCount}</h2>
+                            <div className="inline-flex items-center space-x-2 bg-amber-500/10 px-3 py-1 rounded-full backdrop-blur-md border border-amber-500/20 text-amber-400">
+                                <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"></span>
                                 <span className="text-[10px] font-black uppercase tracking-widest">Auth Active</span>
                             </div>
                         </div>
@@ -111,7 +111,7 @@ const SuperAdminDashboard = ({ currentPath }) => {
 
                     {/* Employee Count */}
                     <div className="glass-card group rounded-[2.5rem] p-8 bg-slate-900/40 backdrop-blur-3xl border border-white/5 relative overflow-hidden transition-all duration-500 hover:-translate-y-1">
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500 opacity-5 rounded-full blur-3xl -mr-24 -mt-24"></div>
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500 opacity-5 rounded-full blur-3xl -mr-24 -mt-24 group-hover:scale-110 duration-1000"></div>
                         <div className="relative z-10">
                             <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-6 border border-emerald-500/20 text-emerald-400">
                                 <Users className="w-8 h-8" />
@@ -127,31 +127,37 @@ const SuperAdminDashboard = ({ currentPath }) => {
 
                     {/* Spending Summary */}
                     <div className="glass-card group rounded-[2.5rem] p-8 bg-slate-900/40 backdrop-blur-3xl border border-white/5 relative overflow-hidden transition-all duration-500 hover:-translate-y-1">
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500 opacity-5 rounded-full blur-3xl -mr-24 -mt-24 group-hover:scale-110 duration-1000"></div>
                         <div className="relative z-10">
-                            <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-6 border border-amber-500/20 text-amber-500">
+                            <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center mb-6 border border-indigo-500/20 text-indigo-400">
                                 <Activity className="w-8 h-8" />
                             </div>
                             <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Yearly Spending</p>
                             <h2 className="text-5xl font-black text-white tracking-tighter font-outfit mb-4">
                                 {loading ? '...' : (stats.epfThisYear?.totalEpfThisYear / 1000).toFixed(0)}K
                             </h2>
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Medical Claims</span>
+                            <div className="flex items-center text-[10px] font-black text-indigo-400 uppercase tracking-widest">
+                                <TrendingUp className="w-4 h-4 mr-1.5" />
+                                <span>Total Medical Claims</span>
+                            </div>
                         </div>
                     </div>
 
                     {/* Health Status Dashboard */}
-                    <div className="glass-card group bg-slate-950 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden transition-all duration-500 border border-white/5">
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500 opacity-10 rounded-full blur-3xl -mr-24 -mt-24"></div>
+                    <div className="glass-card group rounded-[2.5rem] p-8 bg-slate-900/40 backdrop-blur-3xl border border-white/5 relative overflow-hidden transition-all duration-500 hover:-translate-y-1">
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500 opacity-5 rounded-full blur-3xl -mr-24 -mt-24 group-hover:scale-110 duration-1000"></div>
                         <div className="relative z-10">
-                            <div className="w-14 h-14 bg-emerald-500/20 rounded-2xl flex items-center justify-center mb-6 border border-emerald-500/30">
-                                <Zap className="w-8 h-8 text-emerald-400" />
+                            <div className="w-14 h-14 bg-cyan-500/10 rounded-2xl flex items-center justify-center mb-6 border border-cyan-500/20 text-cyan-400">
+                                <Zap className="w-8 h-8 text-cyan-400" />
                             </div>
                             <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Cluster Integrity</p>
-                            <h2 className="text-3xl font-black text-emerald-400 tracking-tight uppercase mb-4">
+                            <h2 className={`text-3xl font-black tracking-tight uppercase mb-4 ${
+                                loading ? 'text-slate-400' : (health?.database === 'connected' ? 'text-cyan-400' : 'text-rose-400')
+                            }`}>
                                 {loading ? 'Checking...' : (health?.database === 'connected' ? 'Optimal' : 'Degraded')}
                             </h2>
-                            <div className="flex items-center space-x-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                <Globe className="w-3 h-3 text-indigo-400" />
+                            <div className="flex items-center space-x-2 text-[10px] font-black text-cyan-400 uppercase tracking-widest">
+                                <Globe className="w-3 h-3 text-cyan-400" />
                                 <span>DB Node: {health?.database || 'Pending'}</span>
                             </div>
                         </div>

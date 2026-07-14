@@ -148,6 +148,25 @@ class DepartmentService {
   }
 
   /**
+   * Toggle department active/disabled status
+   */
+  async toggleDepartmentStatus(id) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ValidationError('Invalid department ID');
+    }
+
+    const department = await Department.findById(id);
+    if (!department) {
+      throw new NotFoundError('Department not found');
+    }
+
+    department.isActive = !department.isActive;
+    await department.save();
+
+    return this.formatDepartmentResponse(department, department.isActive ? 'enabled' : 'disabled');
+  }
+
+  /**
    * Standardize response format
    */
   formatDepartmentResponse(department, action) {
@@ -157,6 +176,7 @@ class DepartmentService {
         _id: department._id,
         name: department.name,
         description: department.description,
+        isActive: department.isActive,
         createdAt: department.createdAt.toISOString(),
         updatedAt: department.updatedAt.toISOString()
       }

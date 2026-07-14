@@ -439,15 +439,15 @@ const Topbar = ({ setSidebarOpen, currentPage }) => {
     const getPageTitle = (path) => {
         const titles = {
             'dashboard': 'Control Center',
-            'employees': 'Team Directory',
-            'employees/add': 'Onboarding',
-            'departments': 'Org Structure',
+            'employees': 'Staff Directory',
+            'employees/add': 'Add Employee',
+            'departments': 'Organization',
             'departments/add': 'New Department',
-            'epf': 'Healthcare Logs',
+            'epf': 'Claim History',
             'epf/add': 'New Medical Entry',
             'admins': 'Access Control',
             'admins/add': 'New Admin',
-            'settings/epf': 'System Config',
+            'settings/epf': 'Limit Enhancement',
             'reports': 'Performance Hub',
             'profile': 'My Workspace'
         };

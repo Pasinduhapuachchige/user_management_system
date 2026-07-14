@@ -72,6 +72,20 @@ export const deleteDepartment = async (req, res, next) => {
 };
 
 /**
+ * @desc    Toggle department active / disabled status
+ * @route   PATCH /departments/:id/status
+ * @access  Private/Admin
+ */
+export const toggleDepartmentStatus = async (req, res, next) => {
+  try {
+    const result = await departmentService.toggleDepartmentStatus(req.params.id);
+    res.status(200).json(result);
+  } catch (error) {
+    handleErrorResponse(res, error);
+  }
+};
+
+/**
  * Unified error handler
  */
 function handleErrorResponse(res, error) {

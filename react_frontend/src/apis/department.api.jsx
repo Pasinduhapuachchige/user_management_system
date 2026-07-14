@@ -52,3 +52,15 @@ export const createDepartment = async (formData = {}) => {
         return e.message;
     }
 }
+
+export const toggleDepartmentStatus = async (_id) => {
+    try {
+        const res = await axios.patch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/department/${_id}/status`, {}, {
+            withCredentials: true
+        });
+        return res.data;
+    } catch (e) {
+        console.log(e);
+        return e.message;
+    }
+}

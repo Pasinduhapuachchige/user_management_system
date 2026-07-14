@@ -10,7 +10,7 @@ import {
 } from '../controllers/register.controller.js';
 import { logoutController } from '../controllers/logout.controller.js';
 import { verifyAuth, verifySuperAdmin } from '../middleware/checkauth.middleware.js';
-import { createDepartment, getAllDepartments, getDepartmentById, updateDepartment, deleteDepartment }
+import { createDepartment, getAllDepartments, getDepartmentById, updateDepartment, deleteDepartment, toggleDepartmentStatus }
     from '../controllers/department.controller.js';
 
 const router = express.Router();
@@ -33,7 +33,12 @@ import {
     deleteNotificationController,
 } from '../controllers/notification.controller.js';
 
+
+// Public health-check (no auth required) — used by the login page connection indicator
+router.get('/health', (req, res) => res.status(200).json({ success: true, status: 'ok' }));
+
 router.post('/login', loginController);
+
 router.post('/register', verifySuperAdmin, registerController);
 router.post('/init-superadmin', initSuperAdminController);
 router.get('/logout', logoutController);
@@ -48,6 +53,7 @@ router.get('/department', verifyAuth, getAllDepartments);
 router.get('/department/:id', verifyAuth, getDepartmentById);
 router.put('/department/:id', verifyAuth, updateDepartment);
 router.delete('/department/:id', verifyAuth, deleteDepartment);
+router.patch('/department/:id/status', verifyAuth, toggleDepartmentStatus);
 
 router.post('/epf/max', verifyAuth, updateMaxEpfController);
 router.get('/epf/max', verifyAuth, getMaxEpfController);

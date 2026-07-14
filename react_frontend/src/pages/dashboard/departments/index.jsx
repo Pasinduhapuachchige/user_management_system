@@ -1,66 +1,64 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import Tab from '../../../layout/Tab';
-import TabHeader from '../../../components/TabHeader';
 import DepartmentWFullCard from '../../../components/DepartmentWFullCard';
 import { fetchDepartmentsApi } from '../../../apis/department.api';
 import { getDepartmentStatsApi } from '../../../apis/stats.api';
 import { useSearchParams } from 'react-router-dom';
+import {
+    Building2,
+    Search,
+    X,
+    Filter,
+    Users,
+    TrendingUp,
+    RefreshCw
+} from 'lucide-react';
 
-// Skeleton component for department card
-const DepartmentSkeleton = () => {
-    return (
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden animate-pulse">
-            {/* Skeleton Header */}
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                        {/* Icon skeleton */}
-                        <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
-                        <div>
-                            {/* Title skeleton */}
-                            <div className="h-6 bg-gray-200 rounded w-48 mb-2"></div>
-                            {/* Date skeleton */}
-                            <div className="h-4 bg-gray-200 rounded w-32"></div>
-                        </div>
-                    </div>
-                    {/* Action buttons skeleton */}
-                    <div className="flex items-center space-x-2">
-                        <div className="w-9 h-9 bg-gray-200 rounded-lg"></div>
-                        <div className="w-9 h-9 bg-gray-200 rounded-lg"></div>
+// ─── Skeleton ────────────────────────────────────────────────────────────────
+const DepartmentSkeleton = () => (
+    <div className="bg-white rounded-2xl shadow border border-gray-100 overflow-hidden animate-pulse">
+        <div className="bg-gradient-to-r from-gray-100 to-gray-50 px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gray-200 rounded-xl" />
+                    <div>
+                        <div className="h-5 bg-gray-200 rounded-lg w-40 mb-2" />
+                        <div className="h-3 bg-gray-200 rounded w-28" />
                     </div>
                 </div>
-            </div>
-
-            {/* Skeleton Body */}
-            <div className="px-6 py-5">
-                <div className="space-y-4">
-                    {/* Description skeleton */}
-                    <div className="flex items-start space-x-3">
-                        <div className="w-8 h-8 bg-gray-200 rounded-lg flex-shrink-0 mt-0.5"></div>
-                        <div className="flex-1 min-w-0">
-                            <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
-                            <div className="space-y-2">
-                                <div className="h-4 bg-gray-200 rounded w-full"></div>
-                                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Stats skeleton */}
-                    <div className="flex items-center space-x-6 pt-2 border-t border-gray-100">
-                        <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 bg-gray-200 rounded"></div>
-                            <div className="h-4 bg-gray-200 rounded w-20"></div>
-                        </div>
-                        <div className="h-4 bg-gray-200 rounded w-32"></div>
-                    </div>
+                <div className="flex space-x-2">
+                    <div className="w-24 h-8 bg-gray-200 rounded-full" />
+                    <div className="w-9 h-9 bg-gray-200 rounded-lg" />
+                    <div className="w-9 h-9 bg-gray-200 rounded-lg" />
                 </div>
             </div>
         </div>
-    );
-};
+        <div className="px-6 py-4 space-y-3">
+            <div className="h-4 bg-gray-100 rounded w-full" />
+            <div className="h-4 bg-gray-100 rounded w-4/5" />
+            <div className="h-4 bg-gray-100 rounded w-3/5" />
+            <div className="flex justify-between pt-2 border-t border-gray-100">
+                <div className="h-3 bg-gray-100 rounded w-32" />
+                <div className="h-3 bg-gray-100 rounded w-28" />
+            </div>
+        </div>
+    </div>
+);
 
+// ─── Stat Card ────────────────────────────────────────────────────────────────
+const StatCard = ({ icon: Icon, label, value }) => (
+    <div className="flex items-center space-x-3 bg-white/10 rounded-xl px-4 py-3 border border-white/20">
+        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Icon className="w-5 h-5 text-white" />
+        </div>
+        <div>
+            <p className="text-white/70 text-[11px] font-medium uppercase tracking-wide">{label}</p>
+            <p className="text-white text-xl font-bold leading-tight">{value}</p>
+        </div>
+    </div>
+);
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 const DepartmentsList = ({ currentPath }) => {
     const [departments, setDepartments] = useState([]);
     const [departmentStats, setDepartmentStats] = useState([]);
@@ -69,195 +67,191 @@ const DepartmentsList = ({ currentPath }) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const deptId = searchParams.get('dept');
 
-    useEffect(() => {
-        (async () => {
-            try {
-                setIsLoading(true);
-
-                // Fetch departments
-                const query = deptId ? { _id: deptId } : {};
-                const departmentsRes = await fetchDepartmentsApi(query);
-                setDepartments(departmentsRes.data);
-
-                // Fetch department stats
-                const statsRes = await getDepartmentStatsApi();
-                setDepartmentStats(statsRes.data || []);
-            } catch (error) {
-                console.error('Error fetching departments:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        })();
-    }, [deptId]);
-
-    // Filter departments based on search term
-    const filteredDepartments = useMemo(() => {
-        if (!searchTerm.trim()) {
-            return departments;
+    const loadData = async () => {
+        try {
+            setIsLoading(true);
+            const query = deptId ? { _id: deptId } : {};
+            const [departmentsRes, statsRes] = await Promise.all([
+                fetchDepartmentsApi(query),
+                getDepartmentStatsApi()
+            ]);
+            setDepartments(departmentsRes.data);
+            setDepartmentStats(statsRes.data || []);
+        } catch (error) {
+            console.error('Error fetching departments:', error);
+        } finally {
+            setIsLoading(false);
         }
+    };
 
-        return departments.filter(department =>
-            department.name?.toLowerCase().includes(searchTerm.toLowerCase().trim())
+    useEffect(() => { loadData(); }, [deptId]);
+
+    const filteredDepartments = useMemo(() => {
+        if (!searchTerm.trim()) return departments;
+        return departments.filter(d =>
+            d.name?.toLowerCase().includes(searchTerm.toLowerCase().trim())
         );
     }, [departments, searchTerm]);
 
-    // Enhanced departments with employee count
-    const departmentsWithStats = useMemo(() => {
-        return filteredDepartments.map(department => {
-            const stats = departmentStats.find(stat => stat.name === department.name);
-            return {
-                ...department,
-                employeeCount: stats?.value || 0
-            };
-        });
-    }, [filteredDepartments, departmentStats]);
+    const departmentsWithStats = useMemo(() =>
+        filteredDepartments.map(department => {
+            const stats = departmentStats.find(s => s.name === department.name);
+            return { ...department, employeeCount: stats?.value || 0 };
+        }),
+        [filteredDepartments, departmentStats]
+    );
 
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-    };
-
-    const clearSearch = () => {
-        setSearchTerm('');
-    };
-
-    const clearUrlFilter = () => {
-        setSearchParams({});
-    };
+    const totalEmployees = useMemo(() =>
+        departmentStats.reduce((sum, s) => sum + (s.value || 0), 0),
+        [departmentStats]
+    );
 
     return (
         <Tab>
-            <TabHeader
-                title="Department Management"
-                subtitle="Manage company departments and organizational structure"
-                currentPath={currentPath}
-            />
+            {/* ── Hero Header ───────────────────────────────────────── */}
+            <div className="relative bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 rounded-2xl overflow-hidden mb-6 shadow-xl">
+                <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/5 rounded-full" />
+                <div className="absolute -bottom-8 -left-8 w-36 h-36 bg-white/5 rounded-full" />
+                <div className="absolute top-1/2 right-1/3 w-24 h-24 bg-white/5 rounded-full" />
 
-            {/* Search Bar or Clear Filter */}
-            <div className="mb-6">
-                {deptId ? (
-                    // Clear URL filter when filtered by ID
-                    <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="flex-shrink-0">
-                                <svg className="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
-                                </svg>
+                <div className="relative px-6 pt-6 pb-5">
+                    <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center space-x-4">
+                            <div className="bg-white/15 border border-white/25 shadow-lg rounded-xl p-3">
+                                <Building2 className="w-7 h-7 text-white" />
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-blue-800">
-                                    Filtered by Department ID: {deptId}
-                                </p>
-                                <p className="text-sm text-blue-600">
-                                    Showing results for specific department
-                                </p>
+                                <h1 className="text-2xl font-bold text-white tracking-tight">Department Management</h1>
+                                <p className="text-blue-100 text-sm mt-0.5">Manage your organizational structure and teams</p>
                             </div>
                         </div>
                         <button
-                            onClick={clearUrlFilter}
-                            className="inline-flex items-center px-3 py-2 border border-blue-300 shadow-sm text-sm leading-4 font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            onClick={loadData}
+                            disabled={isLoading}
+                            className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200"
                         >
-                            <svg className="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            Clear Filter
+                            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                        <StatCard icon={Building2} label="Total Departments" value={isLoading ? '—' : departments.length} />
+                        <StatCard icon={Users} label="Total Employees" value={isLoading ? '—' : totalEmployees} />
+                        <StatCard icon={TrendingUp} label="Showing" value={isLoading ? '—' : departmentsWithStats.length} />
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Search / Filter bar ───────────────────────────────── */}
+            <div className="mb-4">
+                {deptId ? (
+                    <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-2xl px-5 py-3">
+                        <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <Filter className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold text-blue-800">Filtered by Department ID</p>
+                                <p className="text-xs text-blue-500 font-mono mt-0.5">{deptId}</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setSearchParams({})}
+                            className="flex items-center space-x-1.5 bg-white border border-blue-300 text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-200"
+                        >
+                            <X className="w-3.5 h-3.5" />
+                            <span>Clear Filter</span>
                         </button>
                     </div>
                 ) : (
-                    // Search bar when not filtered by ID
-                    <div className="relative w-full">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg
-                                className="h-5 w-5 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                />
-                            </svg>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <Search className="w-5 h-5 text-gray-400" />
                         </div>
                         <input
                             type="text"
-                            placeholder="Search departments by name..."
+                            placeholder="Search departments by name…"
                             value={searchTerm}
-                            onChange={handleSearchChange}
-                            className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                            onChange={e => setSearchTerm(e.target.value)}
+                            className="w-full pl-11 pr-10 py-3 bg-white border border-gray-200 rounded-2xl shadow-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
                         />
                         {searchTerm && (
                             <button
-                                onClick={clearSearch}
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                onClick={() => setSearchTerm('')}
+                                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
                             >
-                                <svg
-                                    className="h-5 w-5 text-gray-400 hover:text-gray-600"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
+                                <X className="w-4 h-4" />
                             </button>
                         )}
                     </div>
                 )}
             </div>
 
+            {/* ── Results label ─────────────────────────────────────── */}
+            {!isLoading && (
+                <div className="mb-3 px-1">
+                    <p className="text-sm text-gray-500">
+                        {searchTerm ? (
+                            <><strong className="text-gray-700">{departmentsWithStats.length}</strong> result{departmentsWithStats.length !== 1 ? 's' : ''} for "<span className="text-blue-600 font-medium">{searchTerm}</span>"</>
+                        ) : (
+                            <><strong className="text-gray-700">{departmentsWithStats.length}</strong> department{departmentsWithStats.length !== 1 ? 's' : ''} found</>
+                        )}
+                    </p>
+                </div>
+            )}
+
+            {/* ── Department List ───────────────────────────────────── */}
             {isLoading ? (
-                [...Array(3)].map((_, index) => (
-                    <div className="mb-4" key={`skeleton-${index}`}>
-                        <DepartmentSkeleton />
-                    </div>
-                ))
-            ) : departmentsWithStats && departmentsWithStats.length > 0 ? (
-                <div className="view-transition">
+                <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => <DepartmentSkeleton key={i} />)}
+                </div>
+            ) : departmentsWithStats.length > 0 ? (
+                <div className="space-y-4">
                     {departmentsWithStats.map((department, index) => (
-                        <div 
-                            className="mb-4 premium-list-item" 
+                        <div
                             key={department._id}
-                            style={{ animationDelay: `${index * 50}ms` }}
+                            style={{ animation: 'fadeSlideIn 0.35s ease both', animationDelay: `${index * 60}ms` }}
                         >
                             <DepartmentWFullCard
                                 initialDepartment={department}
                                 employeeCount={department.employeeCount}
+                                index={index}
                             />
                         </div>
                     ))}
                 </div>
             ) : (
-                <div className="bg-white rounded-xl shadow-md border border-gray-200 p-8 text-center">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
+                <div className="flex flex-col items-center justify-center bg-white border border-gray-100 rounded-2xl shadow-sm py-16 px-8 text-center">
+                    <div className="w-20 h-20 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl flex items-center justify-center mb-5 shadow-inner">
+                        <Building2 className="w-10 h-10 text-indigo-400" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        {searchTerm ? 'No Matching Departments Found' : 'No Departments Found'}
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">
+                        {searchTerm ? 'No Matching Departments' : 'No Departments Yet'}
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-500 text-sm max-w-xs mb-5">
                         {searchTerm
-                            ? `No departments match your search "${searchTerm}". Try adjusting your search terms.`
-                            : 'There are currently no departments in the system.'
-                        }
+                            ? `No departments match "${searchTerm}". Try a different search term.`
+                            : 'There are no departments in the system at the moment.'}
                     </p>
                     {searchTerm && (
                         <button
-                            onClick={clearSearch}
-                            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            onClick={() => setSearchTerm('')}
+                            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 shadow-md"
                         >
-                            Clear Search
+                            <X className="w-4 h-4" />
+                            <span>Clear Search</span>
                         </button>
                     )}
                 </div>
             )}
+
+            <style>{`
+                @keyframes fadeSlideIn {
+                    from { opacity: 0; transform: translateY(16px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                }
+            `}</style>
         </Tab>
     );
 };

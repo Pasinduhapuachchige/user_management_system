@@ -195,7 +195,7 @@ const DashboardView = () => {
                 <QuickActionItem icon={Layers} label="New Intel" color="from-blue-500 to-indigo-600" link="/epf/add" desc="Medical Record" />
                 <QuickActionItem icon={UserPlus} label="Draft Entry" color="from-emerald-500 to-teal-600" link="/employees/add" desc="New Employee" />
                 <QuickActionItem icon={Building2} label="Node Add" color="from-purple-500 to-indigo-600" link="/departments/add" desc="Department" />
-                <QuickActionItem icon={Settings} label="System Config" color="from-orange-500 to-amber-600" link="/settings/epf" desc="Medical Rules" />
+                <QuickActionItem icon={Settings} label="Limit Enhancement" color="from-orange-500 to-amber-600" link="/settings/epf" desc="Medical Rules" />
                 <QuickActionItem icon={ShieldCheck} label="Vault Sync" color="from-rose-500 to-pink-600" link="/settings/backup" desc="System Backup" />
             </div>
 
