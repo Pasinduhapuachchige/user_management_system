@@ -38,8 +38,9 @@ export const GeneralTab = ({ data, isEditing, onUpdate, errors }) => {
                 <InfoCard label="Email Address" value={data.email || 'N/A'} icon={Mail} />
                 <InfoCard label="Contact Number" value={data.contactNumber} icon={Phone} />
                 <InfoCard label="NIC Number" value={data.nicNumber || 'N/A'} icon={CreditCard} />
-                <InfoCard label="Date of Birth" value={new Date(data.dateOfBirth).toLocaleDateString()} icon={Calendar} />
-                <InfoCard label="Gender" value={data.gender} icon={UserCheck} />
+                <InfoCard label="Date of Birth" value={data.dateOfBirth ? new Date(data.dateOfBirth).toLocaleDateString() : 'N/A'} icon={Calendar} />
+                <InfoCard label="Gender" value={data.gender || 'N/A'} icon={UserCheck} />
+                <InfoCard label="Marital Status" value={data.maritalStatus || 'N/A'} icon={Heart} />
                 <div className="md:col-span-2">
                     <InfoCard label="Address" value={data.address || 'N/A'} icon={MapPin} />
                 </div>
@@ -239,6 +240,111 @@ export const EmploymentTab = ({ data, isEditing, onUpdate, departments, errors, 
 
 // --- TAB: FAMILY ---
 export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, onRemoveFamilyItem, onUpdateFamilyItem }) => {
+
+    // ── Read-only view ────────────────────────────────────────────────────────
+    if (!isEditing) {
+        return (
+            <div className="space-y-8 animate-in">
+
+                {/* Marital Status Card */}
+                <div className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100">
+                    <div className="flex items-center gap-2.5 mb-4">
+                        <Heart className="w-5 h-5 text-red-500" />
+                        <h3 className="font-bold text-gray-900">Marital Information</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Status</span>
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                data.maritalStatus === 'Married' ? 'bg-pink-100 text-pink-700'
+                                : data.maritalStatus === 'Divorced' ? 'bg-orange-100 text-orange-700'
+                                : 'bg-blue-100 text-blue-700'
+                            }`}>{data.maritalStatus || 'N/A'}</span>
+                        </div>
+                        {data.spouseName && (
+                            <div className="flex items-center gap-2">
+                                <User className="w-4 h-4 text-gray-400" />
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Spouse</span>
+                                <span className="text-sm font-semibold text-gray-800">{data.spouseName}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Parents Section */}
+                <FamilyReadOnlySection
+                    title="Parents & Guardians"
+                    icon={Users}
+                    items={data.parents || []}
+                    renderItem={(item) => (
+                        <>
+                            <p className="font-bold text-gray-900 text-sm">{item.name || 'N/A'}</p>
+                            <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                {item.relationship && <Chip color="blue">{item.relationship}</Chip>}
+                                {item.status && <Chip color={item.status === 'Deceased' ? 'red' : 'green'}>{item.status}</Chip>}
+                                {item.contactNumber && (
+                                    <span className="flex items-center gap-1 text-xs text-gray-500">
+                                        <Phone className="w-3 h-3" />{item.contactNumber}
+                                    </span>
+                                )}
+                            </div>
+                        </>
+                    )}
+                />
+
+                {/* Spouse's Parents Section */}
+                {(data.spouseParents?.length > 0) && (
+                    <FamilyReadOnlySection
+                        title="Spouse's Parents & Guardians"
+                        icon={Users}
+                        items={data.spouseParents || []}
+                        renderItem={(item) => (
+                            <>
+                                <p className="font-bold text-gray-900 text-sm">{item.name || 'N/A'}</p>
+                                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                    {item.relationship && <Chip color="violet">{item.relationship}</Chip>}
+                                    {item.status && <Chip color={item.status === 'Deceased' ? 'red' : 'green'}>{item.status}</Chip>}
+                                    {item.contactNumber && (
+                                        <span className="flex items-center gap-1 text-xs text-gray-500">
+                                            <Phone className="w-3 h-3" />{item.contactNumber}
+                                        </span>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    />
+                )}
+
+                {/* Children Section */}
+                <FamilyReadOnlySection
+                    title="Children"
+                    icon={Baby}
+                    items={data.children || []}
+                    renderItem={(item) => (
+                        <>
+                            <p className="font-bold text-gray-900 text-sm">{item.name || 'N/A'}</p>
+                            <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                {item.gender && <Chip color="blue">{item.gender}</Chip>}
+                                {item.status && <Chip color={item.status === 'Deceased' ? 'red' : 'green'}>{item.status}</Chip>}
+                                {item.dateOfBirth && (
+                                    <span className="flex items-center gap-1 text-xs text-gray-500">
+                                        <Calendar className="w-3 h-3" />{new Date(item.dateOfBirth).toLocaleDateString()}
+                                    </span>
+                                )}
+                                {item.school && (
+                                    <span className="flex items-center gap-1 text-xs text-gray-500">
+                                        <Building2 className="w-3 h-3" />{item.school}{item.grade ? ` (Grade ${item.grade})` : ''}
+                                    </span>
+                                )}
+                            </div>
+                        </>
+                    )}
+                />
+            </div>
+        );
+    }
+
+    // ── Edit mode ─────────────────────────────────────────────────────────────
     return (
         <div className="space-y-8 animate-in">
             {/* Marital Status Wrapper */}
@@ -248,23 +354,17 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                         <Heart className="w-5 h-5 text-red-500" />
                         <span className="font-semibold text-gray-800">Marital Status</span>
                     </div>
-                    {isEditing ? (
-                        <select
-                            value={data.maritalStatus || 'Unmarried'}
-                            onChange={(e) => onUpdate('maritalStatus', e.target.value)}
-                            className="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white"
-                        >
-                            <option value="Unmarried">Unmarried</option>
-                            <option value="Married">Married</option>
-                            <option value="Divorced">Divorced</option>
-                        </select>
-                    ) : (
-                        <span className="px-4 py-1.5 bg-white rounded-lg border border-gray-200 text-sm font-medium text-blue-600">
-                            {data.maritalStatus}
-                        </span>
-                    )}
+                    <select
+                        value={data.maritalStatus || 'Unmarried'}
+                        onChange={(e) => onUpdate('maritalStatus', e.target.value)}
+                        className="px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white"
+                    >
+                        <option value="Unmarried">Unmarried</option>
+                        <option value="Married">Married</option>
+                        <option value="Divorced">Divorced</option>
+                    </select>
                 </div>
-                {isEditing && data.maritalStatus === 'Married' && (
+                {data.maritalStatus === 'Married' && (
                     <div className="mt-4 pt-4 border-t border-gray-200/60 animate-in">
                         <FormField label="Spouse Name" icon={User} error={errors.spouseName} required>
                             <input
@@ -275,15 +375,6 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                                 placeholder="Enter spouse full name"
                             />
                         </FormField>
-                    </div>
-                )}
-                {!isEditing && data.spouseName && (
-                    <div className="mt-4 pt-4 border-t border-gray-200/60 flex items-center gap-2.5">
-                        <User className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-500 font-medium">Spouse Name</span>
-                        <span className="ml-auto px-4 py-1.5 bg-white rounded-lg border border-gray-200 text-sm font-medium text-gray-800">
-                            {data.spouseName}
-                        </span>
                     </div>
                 )}
             </div>
@@ -379,6 +470,7 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
         </div>
     );
 };
+
 
 // --- HELPER COMPONENTS ---
 
@@ -479,5 +571,47 @@ const FamilyCollection = ({ title, icon: Icon, items, itemLabel, isEditing, onAd
                 ))
             )}
         </div>
+    </div>
+);
+
+const CHIP_COLORS = {
+    blue:   'bg-blue-100 text-blue-700',
+    green:  'bg-green-100 text-green-700',
+    red:    'bg-red-100 text-red-600',
+    violet: 'bg-violet-100 text-violet-700',
+    gray:   'bg-gray-100 text-gray-600',
+};
+
+const Chip = ({ color = 'gray', children }) => (
+    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${CHIP_COLORS[color] || CHIP_COLORS.gray}`}>
+        {children}
+    </span>
+);
+
+const FamilyReadOnlySection = ({ title, icon: Icon, items, renderItem }) => (
+    <div className="space-y-4">
+        <div className="flex items-center gap-2.5 px-1">
+            <Icon className="w-5 h-5 text-blue-600" />
+            <h3 className="font-bold text-gray-900">{title}</h3>
+            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">
+                {items.length}
+            </span>
+        </div>
+        {items.length === 0 ? (
+            <div className="text-center py-6 px-4 border-2 border-dashed border-gray-100 rounded-2xl text-gray-400 text-sm italic">
+                No {title.toLowerCase()} recorded.
+            </div>
+        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {items.map((item, index) => (
+                    <div
+                        key={index}
+                        className="p-4 rounded-2xl bg-white border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all"
+                    >
+                        {renderItem(item)}
+                    </div>
+                ))}
+            </div>
+        )}
     </div>
 );

@@ -84,7 +84,18 @@ export const updateEmployeeController = async (req, res) => {
         }
 
         const updated = await updateEmployee(id, updatedData);
-        res.status(200).json({ success: true, message: 'Employee updated', data: updated });
+
+        // Populate department so response shape matches GET /emp
+        await updated.populate('department');
+
+        // Build the full profile picture URL if present
+        const baseUrl = process.env.EXPRESS_URL || 'http://localhost:5000';
+        const updatedObj = updated.toObject();
+        if (updatedObj.profilePicture) {
+            updatedObj.profilePicture = `${baseUrl}/prop/${updatedObj.profilePicture}`;
+        }
+
+        res.status(200).json({ success: true, message: 'Employee updated', data: updatedObj });
     } catch (err) {
         console.error('Update Employee Error:', err);
         res.status(500).json({ success: false, message: err.message });
