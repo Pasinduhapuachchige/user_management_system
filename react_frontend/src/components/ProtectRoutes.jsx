@@ -4,6 +4,9 @@ import { Navigate } from 'react-router-dom';
 import LoadingScreen from './LoadingScreen';
 import AuthErrorModal from './AuthErrorModel';
 import { useUserStore } from '../tools/user.zustand';
+import { logoutApi } from '../apis/logout.api';
+
+const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 function ProtectRoutes({ children }) {
     const [isAuthenticated, setIsAuthenticated] = React.useState(false);
@@ -51,6 +54,7 @@ function ProtectRoutes({ children }) {
         // The Navigate component will handle the redirect
     };
 
+    // ── Auth check on mount ──
     React.useEffect(() => {
         (async () => {
             try {
@@ -80,6 +84,41 @@ function ProtectRoutes({ children }) {
             }
         })();
     }, [setUser]);
+
+    // ── Inactivity auto-logout (5 minutes) ──
+    React.useEffect(() => {
+        if (!isAuthenticated) return;
+
+        let timeoutId;
+
+        const handleAutoLogout = async () => {
+            console.log('User inactive for 5 minutes — logging out automatically.');
+            try {
+                await logoutApi();
+            } catch (err) {
+                console.error('Auto-logout error:', err);
+                window.location.href = '/login';
+            }
+        };
+
+        const resetTimer = () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(handleAutoLogout, INACTIVITY_TIMEOUT_MS);
+        };
+
+        // Start the timer immediately
+        resetTimer();
+
+        // Reset on any user activity
+        const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'click'];
+        ACTIVITY_EVENTS.forEach(evt => window.addEventListener(evt, resetTimer));
+
+        // Cleanup on unmount or when auth state changes
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            ACTIVITY_EVENTS.forEach(evt => window.removeEventListener(evt, resetTimer));
+        };
+    }, [isAuthenticated]);
 
     // Show loading screen during initial authentication check
     if (isLoading && !showErrorModal) {
