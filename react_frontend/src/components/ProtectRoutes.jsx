@@ -6,7 +6,7 @@ import AuthErrorModal from './AuthErrorModel';
 import { useUserStore } from '../tools/user.zustand';
 import { logoutApi } from '../apis/logout.api';
 
-const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const INACTIVITY_TIMEOUT_MS = 3 * 60 * 1000; // 3 minutes
 
 function ProtectRoutes({ children }) {
     const [isAuthenticated, setIsAuthenticated] = React.useState(false);
