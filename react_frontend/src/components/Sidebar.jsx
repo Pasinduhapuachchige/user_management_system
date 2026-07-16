@@ -70,7 +70,8 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
                 icon: Settings,
                 path: 'settings',
                 subItems: [
-                    { id: 'settings-epf', label: 'Limit Enhancement', path: 'settings/epf' }
+                    { id: 'settings-epf', label: 'Limit Enhancement', path: 'settings/epf' },
+                    ...(user?.role === 'superadmin' ? [{ id: 'settings-maintenance', label: 'Maintenance Mode', path: 'settings/maintenance' }] : [])
                 ]
             },
             { id: 'reports', label: 'Analytics', icon: BarChart3, path: 'reports' }

@@ -23,6 +23,10 @@ export const loginController = async (req, res) => {
             return res.status(401).json({ message: 'Account disabled.' })
         }
 
+        if (global.maintenanceModeActive && admin.role !== 'superadmin') {
+            return res.status(403).json({ message: 'Login is suspended as the system is in Maintenance Mode.' })
+        }
+
         // Set expiry based on rememberMe
         const expiresIn = rememberMe ? '7d' : '1d';
         const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000; // ms

@@ -73,6 +73,13 @@ const AuthErrorModal = ({
                     reason: 'This can happen due to browser issues, network problems, or security token corruption.',
                     action: 'You will be redirected to login with a fresh session.'
                 };
+            case 'Unauthorized 1.4':
+                return {
+                    title: '🔧 Maintenance Mode Active',
+                    description: 'The system has entered scheduled maintenance.',
+                    reason: 'Admin access is restricted to Super Administrators only during this time.',
+                    action: 'You will be redirected to the login screen.'
+                };
             default:
                 return {
                     title: '🔐 Authentication Error',

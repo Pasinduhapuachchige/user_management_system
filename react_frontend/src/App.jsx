@@ -13,6 +13,7 @@ import AddEPF from './pages/dashboard/epf/add';
 import AdminsList from './pages/dashboard/admins';
 import AddAdmin from './pages/dashboard/admins/add';
 import EPFSettings from './pages/dashboard/settings/epf';
+import MaintenanceSettings from './pages/dashboard/settings/maintenance';
 import Reports from './pages/dashboard/reports';
 import Login from './pages/auth';
 import ProtectRoutes from './components/ProtectRoutes';
@@ -244,6 +245,14 @@ function App() {
           <ProtectRoutes>
             <DashboardWrapper>
               <EPFSettings currentPath="settings/epf" />
+            </DashboardWrapper>
+          </ProtectRoutes>
+        } />
+
+        <Route path="/settings/maintenance" element={
+          <ProtectRoutes>
+            <DashboardWrapper>
+              <MaintenanceSettings currentPath="settings/maintenance" />
             </DashboardWrapper>
           </ProtectRoutes>
         } />

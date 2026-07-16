@@ -32,10 +32,18 @@ import {
     markAllReadController,
     deleteNotificationController,
 } from '../controllers/notification.controller.js';
+import { getMaintenanceSettingsController, updateMaintenanceSettingsController } from '../controllers/settings.controller.js';
 
 
 // Public health-check (no auth required) — used by the login page connection indicator
-router.get('/health', (req, res) => res.status(200).json({ success: true, status: 'ok' }));
+router.get('/health', (req, res) => {
+    res.status(200).json({
+        success: true,
+        status: 'ok',
+        maintenance: !!global.maintenanceModeActive,
+        message: global.maintenanceMessage || ''
+    });
+});
 
 router.post('/login', loginController);
 
@@ -79,6 +87,9 @@ router.post('/recovery/validate-otp', validateOtpController);
 router.post('/recovery/update-pwd', recoveryUpdatePassword);
 
 router.put('/update-pwd', verifyAuth, updatePasswordController);
+
+router.get('/settings/maintenance', verifyAuth, getMaintenanceSettingsController);
+router.post('/settings/maintenance', verifySuperAdmin, updateMaintenanceSettingsController);
 
 router.get('/backup', handleBackupDownload);
 //router.post('/restore', handleRestore);

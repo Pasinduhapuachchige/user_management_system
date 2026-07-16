@@ -39,6 +39,14 @@ export const verifyAuth = async (req, res, next) => {
             });
         }
 
+        if (global.maintenanceModeActive && admin.role !== 'superadmin') {
+            return res.status(401).json({
+                success: false,
+                error: 'Unauthorized 1.4',
+                message: 'System is currently undergoing scheduled maintenance. Access is suspended.'
+            });
+        }
+
         next();
     } catch (err) {
         return res.status(401).json({

@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Lock, Mail, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, ArrowRight, CheckCircle, AlertCircle, Wrench, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { loginApi } from '../apis/login.api';
 import spcLogo from '../assets/spc-logo.png';
+
+// ── Maintenance Mode ──────────────────────────────────────────────────────────
+const DEFAULT_MAINTENANCE_MESSAGE = 'The system is currently undergoing scheduled maintenance. Some features may be temporarily unavailable. We apologise for the inconvenience.';
+// ─────────────────────────────────────────────────────────────────────────────
 
 const LoginUI = ({ forgotClicked = () => { } }) => {
     const [showPassword, setShowPassword] = useState(false);
@@ -15,6 +19,8 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [loginSuccess, setLoginSuccess] = useState(false);
     const [backendStatus, setBackendStatus] = useState('checking'); // 'checking' | 'online' | 'offline'
+    const [showMaintenance, setShowMaintenance] = useState(false);
+    const [maintenanceMessage, setMaintenanceMessage] = useState(DEFAULT_MAINTENANCE_MESSAGE);
     const navigate = useNavigate();
 
     // ── Real backend health check ──
@@ -23,7 +29,16 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
         const check = async () => {
             try {
                 const res = await fetch(`${BACKEND}/api/v1/health`, { method: 'GET', signal: AbortSignal.timeout(3000) });
-                setBackendStatus(res.ok ? 'online' : 'offline');
+                if (res.ok) {
+                    setBackendStatus('online');
+                    const data = await res.json();
+                    setShowMaintenance(!!data.maintenance);
+                    if (data.message) {
+                        setMaintenanceMessage(data.message);
+                    }
+                } else {
+                    setBackendStatus('offline');
+                }
             } catch {
                 setBackendStatus('offline');
             }
@@ -77,13 +92,13 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
     // Derived colours for the arch diagram
     const beOnline = backendStatus === 'online';
     const beChecking = backendStatus === 'checking';
-    const beColor   = beOnline ? '#4ade80' : beChecking ? '#facc15' : '#f87171';
-    const beGlow    = beOnline ? '0 0 8px #4ade80' : beChecking ? '0 0 8px #facc15' : '0 0 8px #f87171';
+    const beColor = beOnline ? '#4ade80' : beChecking ? '#facc15' : '#f87171';
+    const beGlow = beOnline ? '0 0 8px #4ade80' : beChecking ? '0 0 8px #facc15' : '0 0 8px #f87171';
     const lineColor = beOnline
         ? 'linear-gradient(90deg,rgba(99,102,241,.5),rgba(139,92,246,.5))'
         : 'linear-gradient(90deg,rgba(239,68,68,.3),rgba(239,68,68,.15))';
-    const dbColor  = beOnline ? '#4ade80' : '#475569';
-    const dbGlow   = beOnline ? '0 0 8px #4ade80' : 'none';
+    const dbColor = beOnline ? '#4ade80' : '#475569';
+    const dbGlow = beOnline ? '0 0 8px #4ade80' : 'none';
 
     return (
         <>
@@ -467,7 +482,101 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                 }
             `}</style>
 
-            <div className="login-root">
+            <div className="login-root" style={{ flexDirection: 'column', paddingTop: 0 }}>
+
+                {/* ── Maintenance Mode Banner ── */}
+                {showMaintenance && (
+                    <div style={{
+                        width: '100%',
+                        background: 'linear-gradient(90deg, #92400e, #b45309, #92400e)',
+                        backgroundSize: '200% 100%',
+                        animation: 'bannerShift 4s linear infinite',
+                        borderBottom: '1px solid rgba(251,191,36,.35)',
+                        padding: '12px 24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 16,
+                        zIndex: 9999,
+                        position: 'relative',
+                        flexShrink: 0,
+                    }}>
+                        <style>{`
+                            @keyframes bannerShift {
+                                0%   { background-position: 0% 50%; }
+                                50%  { background-position: 100% 50%; }
+                                100% { background-position: 0% 50%; }
+                            }
+                            @keyframes wrenchSpin {
+                                0%,100% { transform: rotate(-15deg); }
+                                50%     { transform: rotate(15deg); }
+                            }
+                        `}</style>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
+                            <div style={{
+                                background: 'rgba(251,191,36,.18)',
+                                border: '1px solid rgba(251,191,36,.4)',
+                                borderRadius: 10,
+                                padding: '6px 8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                            }}>
+                                <Wrench
+                                    size={16}
+                                    color="#fbbf24"
+                                    style={{ animation: 'wrenchSpin 2s ease-in-out infinite' }}
+                                />
+                            </div>
+                            <div>
+                                <div style={{
+                                    fontSize: 10,
+                                    fontWeight: 800,
+                                    color: '#fbbf24',
+                                    letterSpacing: '0.18em',
+                                    textTransform: 'uppercase',
+                                    marginBottom: 2,
+                                }}>
+                                    🔧 Scheduled Maintenance
+                                </div>
+                                <div style={{
+                                    fontSize: 12,
+                                    color: 'rgba(253,230,138,.85)',
+                                    fontWeight: 500,
+                                    lineHeight: 1.5,
+                                    maxWidth: 680,
+                                }}>
+                                    {maintenanceMessage}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setShowMaintenance(false)}
+                            style={{
+                                background: 'rgba(251,191,36,.12)',
+                                border: '1px solid rgba(251,191,36,.3)',
+                                borderRadius: 8,
+                                padding: '4px 6px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                transition: 'background .2s',
+                            }}
+                            title="Dismiss"
+                        >
+                            <X size={14} color="#fbbf24" />
+                        </button>
+                    </div>
+                )}
+
+                {/* ── Panels Wrapper ── */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 48, padding: '40px 20px', width: '100%' }}>
+
                 {/* Global bg elements */}
                 <div className="bg-blob bg-blob-1" />
                 <div className="bg-blob bg-blob-2" />
@@ -663,7 +772,7 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                                 <div style={{ fontSize: 12, fontWeight: 800, color: 'rgba(148,163,184,.55)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>SPC Welfare Management System</div>
                             </div>
                             <div style={{ fontSize: 26, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', marginBottom: 6 }}>
-                                Welcome back 👋
+                                Welcome WMS 👋
                             </div>
                             <div style={{ fontSize: 14, color: 'rgba(148,163,184,.5)', fontWeight: 500, marginBottom: 26 }}>
                                 Sign in to your account to continue
@@ -760,6 +869,7 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                         </div>
                     </div>
                 </div>
+                </div>{/* end panels wrapper */}
             </div>
         </>
     );

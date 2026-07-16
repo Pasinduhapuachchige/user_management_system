@@ -57,8 +57,25 @@ cron.schedule('0 3 */7 * *', async () => {
 });
 
 await mongoose.connect(process.env.MONGO_URI)
-    .then(() => {
+    .then(async () => {
         console.log(`MongoDB Connected.`)
+        
+        // Initialize global maintenance state
+        try {
+            const Settings = (await import('./src/models/settings.model.js')).default;
+            const maintenanceSetting = await Settings.findOne({ key: 'maintenanceMode' });
+            global.maintenanceModeActive = maintenanceSetting ? maintenanceSetting.value === true : false;
+            
+            const messageSetting = await Settings.findOne({ key: 'maintenanceMessage' });
+            global.maintenanceMessage = messageSetting ? messageSetting.value : 'The system is currently undergoing scheduled maintenance. Some features may be temporarily unavailable. We apologise for the inconvenience.';
+            
+            console.log(`✅ Maintenance Mode status loaded: ${global.maintenanceModeActive}`);
+        } catch (err) {
+            console.error('Failed to load Maintenance Mode status:', err);
+            global.maintenanceModeActive = false;
+            global.maintenanceMessage = 'The system is currently undergoing scheduled maintenance. Some features may be temporarily unavailable. We apologise for the inconvenience.';
+        }
+
         const PORT = process.env.PORT || 5000;
         app.listen(PORT, () => {
             console.log(`✅ Server is running at http://localhost:${PORT}`);
