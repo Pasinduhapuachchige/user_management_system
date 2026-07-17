@@ -31,6 +31,7 @@ import TabHeader from '../components/TabHeader';
 import ForgotPassword from '../components/forgot_password';
 import { updatePassword } from '../apis/recovery.api';
 import { getMaxEpf, getEmpEpf } from '../apis/epf.api';
+import { Navigate } from 'react-router-dom';
 
 
 // Component 1: Profile Header
@@ -849,6 +850,11 @@ const FamilyInfoCard = ({ adminData }) => {
 // Component 6: Main Profile Page
 const AdminProfilePage = ({ currentPath }) => {
     const { user, setUser } = useUserStore();
+
+    if (user?.role === 'superadmin') {
+        return <Navigate to="/dashboard" replace />;
+    }
+
     const [adminData, setAdminData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);

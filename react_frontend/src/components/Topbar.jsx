@@ -520,10 +520,12 @@ const Topbar = ({ setSidebarOpen, currentPage }) => {
                                             <p className="text-sm font-bold text-slate-900">{user?.name}</p>
                                             <p className="text-xs text-slate-400">{user?.email}</p>
                                         </div>
-                                        <button onClick={() => { navigate('/profile'); setIsProfileDropdownOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-2xl transition-all">
-                                            <UserCircle className="w-5 h-5 text-slate-400" />
-                                            <span className="font-semibold">My Profile</span>
-                                        </button>
+                                        {user?.role !== 'superadmin' && (
+                                            <button onClick={() => { navigate('/profile'); setIsProfileDropdownOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-2xl transition-all">
+                                                <UserCircle className="w-5 h-5 text-slate-400" />
+                                                <span className="font-semibold">My Profile</span>
+                                            </button>
+                                        )}
 
                                         {user?.role !== 'employee' && (
                                             <button onClick={() => { navigate('/settings/epf'); setIsProfileDropdownOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-2xl transition-all">
