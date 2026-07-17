@@ -577,298 +577,298 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                 {/* ── Panels Wrapper ── */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 48, padding: '40px 20px', width: '100%' }}>
 
-                {/* Global bg elements */}
-                <div className="bg-blob bg-blob-1" />
-                <div className="bg-blob bg-blob-2" />
-                <div className="grid-floor" />
-                <div className="hex-wrap">
-                    {[
-                        { size: 28, left: '8%', top: '70%', dur: '9s', delay: '0s' },
-                        { size: 18, left: '18%', top: '55%', dur: '12s', delay: '2s' },
-                        { size: 22, left: '72%', top: '75%', dur: '10s', delay: '1.5s' },
-                        { size: 14, left: '82%', top: '60%', dur: '14s', delay: '3.5s' },
-                        { size: 20, left: '55%', top: '80%', dur: '11s', delay: '0.8s' },
-                        { size: 12, left: '40%', top: '65%', dur: '8s', delay: '4s' },
-                        { size: 25, left: '25%', top: '82%', dur: '13s', delay: '2.8s' },
-                        { size: 16, left: '90%', top: '50%', dur: '10s', delay: '1s' },
-                    ].map((h, i) => (
-                        <div key={i} className="hex" style={{
-                            left: h.left, top: h.top,
-                            animationDuration: h.dur,
-                            animationDelay: h.delay,
-                        }}>
-                            <svg width={h.size} height={h.size} viewBox="0 0 24 24">
-                                <polygon
-                                    points="12,2 22,7 22,17 12,22 2,17 2,7"
-                                    fill="none"
-                                    stroke="rgba(129,140,248,0.45)"
-                                    strokeWidth="1.5"
-                                />
-                            </svg>
-                        </div>
-                    ))}
-                </div>
-
-                {/* ═══════ LEFT PANEL ═══════ */}
-                <div className="login-left">
-                    {/* Content */}
-                    <div style={{ position: 'relative', zIndex: 10, marginBottom: 28 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28 }}>
-                            <img src={spcLogo} alt="SPC Logo" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 0 12px rgba(129,140,248,.5))' }} />
-                            <div>
-                                <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                                    SPC <span style={{ color: '#818cf8' }}>Welfare</span>
-                                </div>
-                                <div style={{ fontSize: 11, color: 'rgba(148,163,184,.5)', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-                                    Management System
-                                </div>
-                            </div>
-                        </div>
-
-                        <h1 style={{ fontSize: 34, fontWeight: 900, color: '#fff', lineHeight: 1.18, letterSpacing: '-0.03em', margin: '0 0 14px' }}>
-                            Smarter Welfare,<br />
-                            <span style={{ background: 'linear-gradient(90deg,#818cf8 0%,#c084fc 60%,#60a5fa 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                                better outcomes
-                            </span>
-                        </h1>
-                        <p style={{ fontSize: 14, color: 'rgba(148,163,184,.6)', lineHeight: 1.75, maxWidth: 340, margin: 0 }}>
-                            Manage welfare benefits, departments, and access — all from a single secure platform built for modern HR teams.
-                        </p>
-                    </div>
-
-
-
-                    {/* ── Backend Connection Diagram ── */}
-                    <div style={{ position: 'relative', zIndex: 10 }}>
-                        <div className="arch-diagram">
-                            <div className="arch-section-label">System Architecture · Live Connection</div>
-                            <div className="arch-nodes">
-
-                                {/* Browser / Frontend Node — always online */}
-                                <div className="arch-node">
-                                    <div className="arch-node-box" style={{
-                                        background: 'linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.14))',
-                                        border: '1px solid rgba(99,102,241,.35)',
-                                        boxShadow: '0 4px 24px rgba(99,102,241,.15)'
-                                    }}>
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                                            <rect x="2" y="3" width="20" height="14" rx="2" />
-                                            <path d="M8 21h8M12 17v4" />
-                                        </svg>
-                                        {/* Frontend is always up */}
-                                        <div className="status-dot" style={{ background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
-                                    </div>
-                                    <div className="arch-node-label">React<br />Frontend</div>
-                                </div>
-
-                                {/* Connection: Frontend ↔ API — colour reflects backend status */}
-                                <div className="arch-conn">
-                                    <div className="arch-line" style={{ background: lineColor }}>
-                                        {beOnline && <><div className="arch-pulse" /><div className="arch-pulse rev" /></>}
-                                    </div>
-                                    <div className="arch-conn-label">REST/HTTPS</div>
-                                </div>
-
-                                {/* Express API Node — status-aware */}
-                                <div className="arch-node">
-                                    <div className="arch-node-box" style={{
-                                        background: beOnline
-                                            ? 'linear-gradient(135deg,rgba(139,92,246,.2),rgba(192,132,252,.14))'
-                                            : 'linear-gradient(135deg,rgba(239,68,68,.1),rgba(239,68,68,.05))',
-                                        border: beOnline ? '1px solid rgba(139,92,246,.35)' : '1px solid rgba(239,68,68,.3)',
-                                        boxShadow: beOnline ? '0 4px 24px rgba(139,92,246,.15)' : '0 4px 24px rgba(239,68,68,.08)',
-                                        transition: 'all .5s ease'
-                                    }}>
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={beOnline ? '#c084fc' : '#f87171'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke .5s' }}>
-                                            <rect x="2" y="2" width="20" height="8" rx="2" />
-                                            <rect x="2" y="14" width="20" height="8" rx="2" />
-                                            <line x1="6" y1="6" x2="6.01" y2="6" />
-                                            <line x1="6" y1="18" x2="6.01" y2="18" />
-                                        </svg>
-                                        <div className="status-dot" style={{ background: beColor, boxShadow: beGlow, transition: 'background .5s, box-shadow .5s' }} />
-                                    </div>
-                                    <div className="arch-node-label" style={{ color: beOnline ? 'rgba(148,163,184,.6)' : 'rgba(239,68,68,.55)', transition: 'color .5s' }}>Express<br />Backend</div>
-                                </div>
-
-                                {/* Connection: API ↔ DB */}
-                                <div className="arch-conn">
-                                    <div className="arch-line" style={{ background: beOnline ? 'linear-gradient(90deg,rgba(34,197,94,.5),rgba(16,185,129,.5))' : lineColor }}>
-                                        {beOnline && <><div className="arch-pulse p2" /><div className="arch-pulse p2 rev" /></>}
-                                    </div>
-                                    <div className="arch-conn-label">MongoDB</div>
-                                </div>
-
-                                {/* Database Node — dims when backend is offline */}
-                                <div className="arch-node">
-                                    <div className="arch-node-box" style={{
-                                        background: beOnline
-                                            ? 'linear-gradient(135deg,rgba(34,197,94,.15),rgba(16,185,129,.10))'
-                                            : 'linear-gradient(135deg,rgba(71,85,105,.12),rgba(71,85,105,.07))',
-                                        border: beOnline ? '1px solid rgba(34,197,94,.3)' : '1px solid rgba(71,85,105,.3)',
-                                        boxShadow: beOnline ? '0 4px 24px rgba(34,197,94,.12)' : 'none',
-                                        transition: 'all .5s ease'
-                                    }}>
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={dbColor} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke .5s' }}>
-                                            <ellipse cx="12" cy="5" rx="9" ry="3" />
-                                            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-                                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-                                        </svg>
-                                        <div className="status-dot" style={{ background: dbColor, boxShadow: dbGlow, transition: 'background .5s, box-shadow .5s' }} />
-                                    </div>
-                                    <div className="arch-node-label" style={{ color: beOnline ? 'rgba(148,163,184,.6)' : 'rgba(71,85,105,.5)', transition: 'color .5s' }}>Database<br />Layer</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Status badge — live */}
-                    <div style={{ position: 'relative', zIndex: 10, marginTop: 18 }}>
-                        <div style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 8,
-                            padding: '8px 16px', borderRadius: 999,
-                            background: beOnline ? 'rgba(34,197,94,.08)' : beChecking ? 'rgba(250,204,21,.06)' : 'rgba(239,68,68,.08)',
-                            border: beOnline ? '1px solid rgba(34,197,94,.18)' : beChecking ? '1px solid rgba(250,204,21,.2)' : '1px solid rgba(239,68,68,.2)',
-                            transition: 'background .5s, border-color .5s'
-                        }}>
-                            <span style={{
-                                width: 7, height: 7, borderRadius: '50%',
-                                background: beColor, boxShadow: beGlow,
-                                display: 'inline-block',
-                                animation: 'orbBreath 2s ease-in-out infinite',
-                                transition: 'background .5s, box-shadow .5s'
-                            }} />
-                            <span style={{
-                                fontSize: 11, fontWeight: 700,
-                                color: beOnline ? 'rgba(134,239,172,.7)' : beChecking ? 'rgba(253,224,71,.6)' : 'rgba(252,165,165,.7)',
-                                letterSpacing: '0.1em', textTransform: 'uppercase',
-                                transition: 'color .5s'
+                    {/* Global bg elements */}
+                    <div className="bg-blob bg-blob-1" />
+                    <div className="bg-blob bg-blob-2" />
+                    <div className="grid-floor" />
+                    <div className="hex-wrap">
+                        {[
+                            { size: 28, left: '8%', top: '70%', dur: '9s', delay: '0s' },
+                            { size: 18, left: '18%', top: '55%', dur: '12s', delay: '2s' },
+                            { size: 22, left: '72%', top: '75%', dur: '10s', delay: '1.5s' },
+                            { size: 14, left: '82%', top: '60%', dur: '14s', delay: '3.5s' },
+                            { size: 20, left: '55%', top: '80%', dur: '11s', delay: '0.8s' },
+                            { size: 12, left: '40%', top: '65%', dur: '8s', delay: '4s' },
+                            { size: 25, left: '25%', top: '82%', dur: '13s', delay: '2.8s' },
+                            { size: 16, left: '90%', top: '50%', dur: '10s', delay: '1s' },
+                        ].map((h, i) => (
+                            <div key={i} className="hex" style={{
+                                left: h.left, top: h.top,
+                                animationDuration: h.dur,
+                                animationDelay: h.delay,
                             }}>
-                                {beOnline ? 'Backend Online · Secure Connection' : beChecking ? 'Checking Connection…' : 'Backend Offline · Check Server'}
-                            </span>
+                                <svg width={h.size} height={h.size} viewBox="0 0 24 24">
+                                    <polygon
+                                        points="12,2 22,7 22,17 12,22 2,17 2,7"
+                                        fill="none"
+                                        stroke="rgba(129,140,248,0.45)"
+                                        strokeWidth="1.5"
+                                    />
+                                </svg>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* ═══════ LEFT PANEL ═══════ */}
+                    <div className="login-left">
+                        {/* Content */}
+                        <div style={{ position: 'relative', zIndex: 10, marginBottom: 28 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28 }}>
+                                <img src={spcLogo} alt="SPC Logo" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 0 12px rgba(129,140,248,.5))' }} />
+                                <div>
+                                    <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                                        SPC <span style={{ color: '#818cf8' }}>WMS</span>
+                                    </div>
+                                    <div style={{ fontSize: 11, color: 'rgba(148,163,184,.5)', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                                        Welfare Management System
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h1 style={{ fontSize: 34, fontWeight: 900, color: '#fff', lineHeight: 1.18, letterSpacing: '-0.03em', margin: '0 0 14px' }}>
+                                Smarter Welfare,<br />
+                                <span style={{ background: 'linear-gradient(90deg,#818cf8 0%,#c084fc 60%,#60a5fa 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                    better outcomes
+                                </span>
+                            </h1>
+                            <p style={{ fontSize: 14, color: 'rgba(148,163,184,.6)', lineHeight: 1.75, maxWidth: 340, margin: 0 }}>
+                                Manage welfare benefits, departments, and access — all from a single secure platform built for modern HR teams.
+                            </p>
+                        </div>
+
+
+
+                        {/* ── Backend Connection Diagram ── */}
+                        <div style={{ position: 'relative', zIndex: 10 }}>
+                            <div className="arch-diagram">
+                                <div className="arch-section-label">System Architecture · Live Connection</div>
+                                <div className="arch-nodes">
+
+                                    {/* Browser / Frontend Node — always online */}
+                                    <div className="arch-node">
+                                        <div className="arch-node-box" style={{
+                                            background: 'linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.14))',
+                                            border: '1px solid rgba(99,102,241,.35)',
+                                            boxShadow: '0 4px 24px rgba(99,102,241,.15)'
+                                        }}>
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                                                <rect x="2" y="3" width="20" height="14" rx="2" />
+                                                <path d="M8 21h8M12 17v4" />
+                                            </svg>
+                                            {/* Frontend is always up */}
+                                            <div className="status-dot" style={{ background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
+                                        </div>
+                                        <div className="arch-node-label">React<br />Frontend</div>
+                                    </div>
+
+                                    {/* Connection: Frontend ↔ API — colour reflects backend status */}
+                                    <div className="arch-conn">
+                                        <div className="arch-line" style={{ background: lineColor }}>
+                                            {beOnline && <><div className="arch-pulse" /><div className="arch-pulse rev" /></>}
+                                        </div>
+                                        <div className="arch-conn-label">REST/HTTPS</div>
+                                    </div>
+
+                                    {/* Express API Node — status-aware */}
+                                    <div className="arch-node">
+                                        <div className="arch-node-box" style={{
+                                            background: beOnline
+                                                ? 'linear-gradient(135deg,rgba(139,92,246,.2),rgba(192,132,252,.14))'
+                                                : 'linear-gradient(135deg,rgba(239,68,68,.1),rgba(239,68,68,.05))',
+                                            border: beOnline ? '1px solid rgba(139,92,246,.35)' : '1px solid rgba(239,68,68,.3)',
+                                            boxShadow: beOnline ? '0 4px 24px rgba(139,92,246,.15)' : '0 4px 24px rgba(239,68,68,.08)',
+                                            transition: 'all .5s ease'
+                                        }}>
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={beOnline ? '#c084fc' : '#f87171'} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke .5s' }}>
+                                                <rect x="2" y="2" width="20" height="8" rx="2" />
+                                                <rect x="2" y="14" width="20" height="8" rx="2" />
+                                                <line x1="6" y1="6" x2="6.01" y2="6" />
+                                                <line x1="6" y1="18" x2="6.01" y2="18" />
+                                            </svg>
+                                            <div className="status-dot" style={{ background: beColor, boxShadow: beGlow, transition: 'background .5s, box-shadow .5s' }} />
+                                        </div>
+                                        <div className="arch-node-label" style={{ color: beOnline ? 'rgba(148,163,184,.6)' : 'rgba(239,68,68,.55)', transition: 'color .5s' }}>Express<br />Backend</div>
+                                    </div>
+
+                                    {/* Connection: API ↔ DB */}
+                                    <div className="arch-conn">
+                                        <div className="arch-line" style={{ background: beOnline ? 'linear-gradient(90deg,rgba(34,197,94,.5),rgba(16,185,129,.5))' : lineColor }}>
+                                            {beOnline && <><div className="arch-pulse p2" /><div className="arch-pulse p2 rev" /></>}
+                                        </div>
+                                        <div className="arch-conn-label">MongoDB</div>
+                                    </div>
+
+                                    {/* Database Node — dims when backend is offline */}
+                                    <div className="arch-node">
+                                        <div className="arch-node-box" style={{
+                                            background: beOnline
+                                                ? 'linear-gradient(135deg,rgba(34,197,94,.15),rgba(16,185,129,.10))'
+                                                : 'linear-gradient(135deg,rgba(71,85,105,.12),rgba(71,85,105,.07))',
+                                            border: beOnline ? '1px solid rgba(34,197,94,.3)' : '1px solid rgba(71,85,105,.3)',
+                                            boxShadow: beOnline ? '0 4px 24px rgba(34,197,94,.12)' : 'none',
+                                            transition: 'all .5s ease'
+                                        }}>
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={dbColor} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke .5s' }}>
+                                                <ellipse cx="12" cy="5" rx="9" ry="3" />
+                                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                                            </svg>
+                                            <div className="status-dot" style={{ background: dbColor, boxShadow: dbGlow, transition: 'background .5s, box-shadow .5s' }} />
+                                        </div>
+                                        <div className="arch-node-label" style={{ color: beOnline ? 'rgba(148,163,184,.6)' : 'rgba(71,85,105,.5)', transition: 'color .5s' }}>Database<br />Layer</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Status badge — live */}
+                        <div style={{ position: 'relative', zIndex: 10, marginTop: 18 }}>
+                            <div style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 8,
+                                padding: '8px 16px', borderRadius: 999,
+                                background: beOnline ? 'rgba(34,197,94,.08)' : beChecking ? 'rgba(250,204,21,.06)' : 'rgba(239,68,68,.08)',
+                                border: beOnline ? '1px solid rgba(34,197,94,.18)' : beChecking ? '1px solid rgba(250,204,21,.2)' : '1px solid rgba(239,68,68,.2)',
+                                transition: 'background .5s, border-color .5s'
+                            }}>
+                                <span style={{
+                                    width: 7, height: 7, borderRadius: '50%',
+                                    background: beColor, boxShadow: beGlow,
+                                    display: 'inline-block',
+                                    animation: 'orbBreath 2s ease-in-out infinite',
+                                    transition: 'background .5s, box-shadow .5s'
+                                }} />
+                                <span style={{
+                                    fontSize: 11, fontWeight: 700,
+                                    color: beOnline ? 'rgba(134,239,172,.7)' : beChecking ? 'rgba(253,224,71,.6)' : 'rgba(252,165,165,.7)',
+                                    letterSpacing: '0.1em', textTransform: 'uppercase',
+                                    transition: 'color .5s'
+                                }}>
+                                    {beOnline ? 'Backend Online · Secure Connection' : beChecking ? 'Checking Connection…' : 'Backend Offline · Check Server'}
+                                </span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* ═══════ RIGHT PANEL ═══════ */}
-                <div className="login-right">
-                    <div className="login-card">
-                        {/* Success overlay */}
-                        {loginSuccess && (
-                            <div className="success-overlay">
-                                <div className="success-ring">
-                                    <CheckCircle size={32} color="#22c55e" />
-                                </div>
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', marginBottom: 6 }}>Access Granted!</div>
-                                    <div style={{ fontSize: 13, color: 'rgba(148,163,184,.55)' }}>Redirecting to dashboard…</div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Heading */}
-                        <div style={{ marginBottom: 8 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                                <img src={spcLogo} alt="SPC Logo" style={{ width: 32, height: 32, objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(129,140,248,.5))' }} />
-                                <div style={{ fontSize: 12, fontWeight: 800, color: 'rgba(148,163,184,.55)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>SPC Welfare Management System</div>
-                            </div>
-                            <div style={{ fontSize: 26, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', marginBottom: 6 }}>
-                                Welcome WMS 👋
-                            </div>
-                            <div style={{ fontSize: 14, color: 'rgba(148,163,184,.5)', fontWeight: 500, marginBottom: 26 }}>
-                                Sign in to your account to continue
-                            </div>
-                        </div>
-
-                        {/* Alert */}
-                        {message && !loginSuccess && (
-                            <div className={`alert ${messageType === 'success' ? 'alert-success' : 'alert-error'}`}>
-                                {messageType === 'success'
-                                    ? <CheckCircle size={16} />
-                                    : <AlertCircle size={16} />}
-                                <span>{message}</span>
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} className={shake ? 'shake' : ''}>
-                            {/* Email */}
-                            <div className="field-wrap">
-                                <Mail size={18} className={`field-icon ${focusedField === 'email' ? 'focused' : ''}`} />
-                                <label className={`field-label ${focusedField === 'email' || formData.email ? 'active' : ''}`}>
-                                    Email or EPF Number
-                                </label>
-                                <input
-                                    type="text"
-                                    name="email"
-                                    required
-                                    autoComplete="username"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    onFocus={() => setFocusedField('email')}
-                                    onBlur={() => setFocusedField(null)}
-                                    className="field-input"
-                                    placeholder="Email or EPF Number"
-                                />
-                            </div>
-
-                            {/* Password */}
-                            <div className="field-wrap" style={{ marginBottom: formData.password ? 4 : 20 }}>
-                                <Lock size={18} className={`field-icon ${focusedField === 'password' ? 'focused' : ''}`} />
-                                <label className={`field-label ${focusedField === 'password' || formData.password ? 'active' : ''}`}>
-                                    Password
-                                </label>
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    name="password"
-                                    required
-                                    autoComplete="current-password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    onFocus={() => setFocusedField('password')}
-                                    onBlur={() => setFocusedField(null)}
-                                    className="field-input"
-                                    style={{ paddingRight: 52 }}
-                                    placeholder="Password"
-                                />
-                                <button type="button" className="field-eye" onClick={() => setShowPassword(s => !s)} tabIndex={-1}>
-                                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                                </button>
-                            </div>
-
-                            {/* Strength bar */}
-                            {formData.password && (
-                                <div style={{ marginBottom: 16, paddingLeft: 4 }}>
-                                    <div className="str-track">
-                                        <div className="str-fill" style={{ width: `${(passwordStrength / 4) * 100}%`, background: strengthColors[passwordStrength] }} />
+                    {/* ═══════ RIGHT PANEL ═══════ */}
+                    <div className="login-right">
+                        <div className="login-card">
+                            {/* Success overlay */}
+                            {loginSuccess && (
+                                <div className="success-overlay">
+                                    <div className="success-ring">
+                                        <CheckCircle size={32} color="#22c55e" />
                                     </div>
-                                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', marginTop: 4, color: strengthColors[passwordStrength] }}>
-                                        {strengthLabels[passwordStrength]} password
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', marginBottom: 6 }}>Access Granted!</div>
+                                        <div style={{ fontSize: 13, color: 'rgba(148,163,184,.55)' }}>Redirecting to dashboard…</div>
                                     </div>
                                 </div>
                             )}
 
-                            {/* Forgot */}
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 24 }}>
-                                <button type="button" className="forgot-link" onClick={forgotClicked}>
-                                    Forgot password?
-                                </button>
+                            {/* Heading */}
+                            <div style={{ marginBottom: 8 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                                    <img src={spcLogo} alt="SPC Logo" style={{ width: 32, height: 32, objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(129,140,248,.5))' }} />
+                                    <div style={{ fontSize: 12, fontWeight: 800, color: 'rgba(148,163,184,.55)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>SPC Welfare Management System</div>
+                                </div>
+                                <div style={{ fontSize: 26, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', marginBottom: 6 }}>
+                                    Welcome WMS 👋
+                                </div>
+                                <div style={{ fontSize: 14, color: 'rgba(148,163,184,.5)', fontWeight: 500, marginBottom: 26 }}>
+                                    Sign in to your account to continue
+                                </div>
                             </div>
 
-                            {/* Submit */}
-                            <button type="submit" disabled={isLoading || loginSuccess} className="submit-btn">
-                                {isLoading ? <div className="spinner" /> : (
-                                    <>
-                                        <span>Sign In</span>
-                                        <ArrowRight size={18} />
-                                    </>
-                                )}
-                            </button>
-                        </form>
+                            {/* Alert */}
+                            {message && !loginSuccess && (
+                                <div className={`alert ${messageType === 'success' ? 'alert-success' : 'alert-error'}`}>
+                                    {messageType === 'success'
+                                        ? <CheckCircle size={16} />
+                                        : <AlertCircle size={16} />}
+                                    <span>{message}</span>
+                                </div>
+                            )}
 
-                        <div style={{ marginTop: 28, textAlign: 'center', fontSize: 11, color: 'rgba(100,116,139,.4)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                            © 2026 SPC Welfare Management · Enterprise Edition
+                            <form onSubmit={handleSubmit} className={shake ? 'shake' : ''}>
+                                {/* Email */}
+                                <div className="field-wrap">
+                                    <Mail size={18} className={`field-icon ${focusedField === 'email' ? 'focused' : ''}`} />
+                                    <label className={`field-label ${focusedField === 'email' || formData.email ? 'active' : ''}`}>
+                                        Email or EPF Number
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="email"
+                                        required
+                                        autoComplete="username"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        onFocus={() => setFocusedField('email')}
+                                        onBlur={() => setFocusedField(null)}
+                                        className="field-input"
+                                        placeholder="Email or EPF Number"
+                                    />
+                                </div>
+
+                                {/* Password */}
+                                <div className="field-wrap" style={{ marginBottom: formData.password ? 4 : 20 }}>
+                                    <Lock size={18} className={`field-icon ${focusedField === 'password' ? 'focused' : ''}`} />
+                                    <label className={`field-label ${focusedField === 'password' || formData.password ? 'active' : ''}`}>
+                                        Password
+                                    </label>
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        name="password"
+                                        required
+                                        autoComplete="current-password"
+                                        value={formData.password}
+                                        onChange={handleInputChange}
+                                        onFocus={() => setFocusedField('password')}
+                                        onBlur={() => setFocusedField(null)}
+                                        className="field-input"
+                                        style={{ paddingRight: 52 }}
+                                        placeholder="Password"
+                                    />
+                                    <button type="button" className="field-eye" onClick={() => setShowPassword(s => !s)} tabIndex={-1}>
+                                        {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                                    </button>
+                                </div>
+
+                                {/* Strength bar */}
+                                {formData.password && (
+                                    <div style={{ marginBottom: 16, paddingLeft: 4 }}>
+                                        <div className="str-track">
+                                            <div className="str-fill" style={{ width: `${(passwordStrength / 4) * 100}%`, background: strengthColors[passwordStrength] }} />
+                                        </div>
+                                        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', marginTop: 4, color: strengthColors[passwordStrength] }}>
+                                            {strengthLabels[passwordStrength]} password
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Forgot */}
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 24 }}>
+                                    <button type="button" className="forgot-link" onClick={forgotClicked}>
+                                        Forgot password?
+                                    </button>
+                                </div>
+
+                                {/* Submit */}
+                                <button type="submit" disabled={isLoading || loginSuccess} className="submit-btn">
+                                    {isLoading ? <div className="spinner" /> : (
+                                        <>
+                                            <span>Sign In</span>
+                                            <ArrowRight size={18} />
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+
+                            <div style={{ marginTop: 28, textAlign: 'center', fontSize: 11, color: 'rgba(100,116,139,.4)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                                © 2026 SPC Welfare Management · Enterprise Edition
+                            </div>
                         </div>
                     </div>
-                </div>
                 </div>{/* end panels wrapper */}
             </div>
         </>

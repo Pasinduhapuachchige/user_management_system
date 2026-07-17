@@ -205,7 +205,7 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
                             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/20 rounded-full blur-2xl group-hover:bg-indigo-500/40 transition-all"></div>
                             <h3 className="text-white font-bold text-sm mb-1 relative z-10">Need Assistance?</h3>
                             <p className="text-slate-400 text-xs mb-4 relative z-10 leading-relaxed">Access our documentation or contact the technical team.</p>
-                            <button 
+                            <button
                                 onClick={() => setIsSupportOpen(true)}
                                 className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all relative z-10 border border-white/10"
                             >
@@ -228,10 +228,10 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
                     </div>
                 </div>
             </div>
-            <SupportModal 
-                isOpen={isSupportOpen} 
-                onClose={() => setIsSupportOpen(false)} 
-                user={user} 
+            <SupportModal
+                isOpen={isSupportOpen}
+                onClose={() => setIsSupportOpen(false)}
+                user={user}
             />
         </>
     );
