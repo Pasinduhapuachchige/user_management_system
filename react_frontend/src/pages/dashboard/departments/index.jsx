@@ -11,7 +11,9 @@ import {
     Filter,
     Users,
     TrendingUp,
-    RefreshCw
+    RefreshCw,
+    SortAsc,
+    SortDesc
 } from 'lucide-react';
 
 // ─── Skeleton ────────────────────────────────────────────────────────────────
@@ -65,6 +67,8 @@ const DepartmentsList = ({ currentPath }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchParams, setSearchParams] = useSearchParams();
+    const [sortBy, setSortBy] = useState('name');
+    const [sortOrder, setSortOrder] = useState('asc');
     const deptId = searchParams.get('dept');
 
     const loadData = async () => {
@@ -100,6 +104,29 @@ const DepartmentsList = ({ currentPath }) => {
         }),
         [filteredDepartments, departmentStats]
     );
+
+    const sortedDepartments = useMemo(() => {
+        const list = [...departmentsWithStats];
+        return list.sort((a, b) => {
+            let aValue, bValue;
+            if (sortBy === 'name') {
+                aValue = a.name?.toLowerCase() || '';
+                bValue = b.name?.toLowerCase() || '';
+                return sortOrder === 'asc' 
+                    ? aValue.localeCompare(bValue) 
+                    : bValue.localeCompare(aValue);
+            } else if (sortBy === 'employeeCount') {
+                aValue = a.employeeCount || 0;
+                bValue = b.employeeCount || 0;
+                return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+            } else if (sortBy === 'createdAt') {
+                aValue = new Date(a.createdAt || 0);
+                bValue = new Date(b.createdAt || 0);
+                return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+            }
+            return 0;
+        });
+    }, [departmentsWithStats, sortBy, sortOrder]);
 
     const totalEmployees = useMemo(() =>
         departmentStats.reduce((sum, s) => sum + (s.value || 0), 0),
@@ -165,25 +192,52 @@ const DepartmentsList = ({ currentPath }) => {
                         </button>
                     </div>
                 ) : (
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <Search className="w-5 h-5 text-gray-400" />
+                    <div className="flex flex-col md:flex-row gap-3">
+                        <div className="relative flex-1">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Search className="w-5 h-5 text-gray-400" />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search departments by name…"
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                                className="w-full pl-11 pr-10 py-3 bg-white border border-gray-200 rounded-2xl shadow-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
+                            />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
-                        <input
-                            type="text"
-                            placeholder="Search departments by name…"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                            className="w-full pl-11 pr-10 py-3 bg-white border border-gray-200 rounded-2xl shadow-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
-                        />
-                        {searchTerm && (
-                            <button
-                                onClick={() => setSearchTerm('')}
-                                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+
+                        {/* Sort Controls */}
+                        <div className="flex items-center space-x-2">
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className="text-sm border border-gray-200 bg-white rounded-2xl px-4 py-3 shadow-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 cursor-pointer"
                             >
-                                <X className="w-4 h-4" />
+                                <option value="name">Sort by Name</option>
+                                <option value="employeeCount">Sort by Employee Count</option>
+                                <option value="createdAt">Sort by Date Created</option>
+                            </select>
+
+                            <button
+                                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                                className="p-3 bg-white border border-gray-200 rounded-2xl shadow-sm hover:bg-gray-50 transition-colors duration-200 text-gray-600 flex items-center justify-center cursor-pointer"
+                                title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+                            >
+                                {sortOrder === 'asc' ? (
+                                    <SortAsc className="w-5 h-5" />
+                                ) : (
+                                    <SortDesc className="w-5 h-5" />
+                                )}
                             </button>
-                        )}
+                        </div>
                     </div>
                 )}
             </div>
@@ -206,9 +260,9 @@ const DepartmentsList = ({ currentPath }) => {
                 <div className="space-y-4">
                     {[...Array(3)].map((_, i) => <DepartmentSkeleton key={i} />)}
                 </div>
-            ) : departmentsWithStats.length > 0 ? (
+            ) : sortedDepartments.length > 0 ? (
                 <div className="space-y-4">
-                    {departmentsWithStats.map((department, index) => (
+                    {sortedDepartments.map((department, index) => (
                         <div
                             key={department._id}
                             style={{ animation: 'fadeSlideIn 0.35s ease both', animationDelay: `${index * 60}ms` }}
