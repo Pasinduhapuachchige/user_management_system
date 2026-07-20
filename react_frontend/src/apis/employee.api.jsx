@@ -11,6 +11,9 @@ export const createEmployeeApi = async (data = {}) => {
         const formData = new FormData();
 
         for (const key in data) {
+            // Skip null/undefined values — FormData converts them to the string "null"/"undefined"
+            if (data[key] === null || data[key] === undefined) continue;
+
             if (key === 'profilePicture' && data[key] instanceof File) {
                 formData.append('profilePicture', data[key]);
             } else if (

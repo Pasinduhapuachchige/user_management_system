@@ -31,6 +31,13 @@ export const createEmployee = async (data) => {
 
     const sanitizedData = sanitize(data);
 
+    // If the employee is not Married, remove spouse-related fields entirely
+    // so Mongoose's `required: function()` validators don't trip on empty/null values.
+    if (sanitizedData.maritalStatus !== 'Married') {
+        delete sanitizedData.spouseName;
+        delete sanitizedData.spouseParents;
+    }
+
     try {
         const employee = await Employee.create(sanitizedData);
 
