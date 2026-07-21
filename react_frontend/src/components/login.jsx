@@ -864,8 +864,9 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                                 </button>
                             </form>
 
-                            <div style={{ marginTop: 28, textAlign: 'center', fontSize: 11, color: 'rgba(100,116,139,.4)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                                © 2026 SPC Welfare Management · Enterprise Edition
+                            <div style={{ marginTop: 24, textAlign: 'center', fontSize: 11, color: 'rgba(148,163,184,.45)', fontWeight: 500, lineHeight: 1.6 }}>
+                                <div>© 2026 SPC Welfare Management · Enterprise Edition</div>
+                                <div style={{ fontSize: 10, color: 'rgba(148,163,184,.35)', marginTop: 2 }}>Developed by Pasindu Hapuarachchige · All rights reserved</div>
                             </div>
                         </div>
                     </div>
