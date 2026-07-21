@@ -146,5 +146,13 @@ const employeeSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+// Schema indexes for high-speed searching & filtering
+employeeSchema.index({ name: 1 });
+employeeSchema.index({ nicNumber: 1 });
+employeeSchema.index({ email: 1 });
+employeeSchema.index({ department: 1 });
+employeeSchema.index({ isActive: 1 });
+employeeSchema.index({ joinedDate: -1 });
+
 const Employee = mongoose.model('Employee', employeeSchema);
 export default Employee;

@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { validateUser } from '../services/auth.service.js';
+import { logActivity } from '../services/auditLog.service.js';
 
 export const loginController = async (req, res) => {
     const { emailOrEpf, password, rememberMe } = req.body;
@@ -16,14 +17,17 @@ export const loginController = async (req, res) => {
             : await validateUser('', emailOrEpf, password);
 
         if (!admin) {
+            logActivity({ action: 'LOGIN_FAILED', req, performedBy: { email: emailOrEpf }, status: 'FAILURE' });
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
         if (admin.isActive == false) {
+            logActivity({ action: 'LOGIN_DISABLED_ACCOUNT', req, performedBy: { email: admin.email }, status: 'WARNING' });
             return res.status(401).json({ message: 'Account disabled.' })
         }
 
         if (global.maintenanceModeActive && admin.role !== 'superadmin') {
+            logActivity({ action: 'LOGIN_MAINTENANCE_BLOCKED', req, performedBy: { email: admin.email }, status: 'WARNING' });
             return res.status(403).json({ message: 'Login is suspended as the system is in Maintenance Mode.' })
         }
 
@@ -42,6 +46,13 @@ export const loginController = async (req, res) => {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge,
+        });
+
+        logActivity({
+            action: 'LOGIN_SUCCESS',
+            req,
+            performedBy: { userId: admin._id, email: admin.email, role: admin.role },
+            status: 'SUCCESS'
         });
 
         res.status(200).json({

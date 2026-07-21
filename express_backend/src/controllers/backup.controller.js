@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { createSystemBackup } from '../services/backup.service.js';
+import { logActivity } from '../services/auditLog.service.js';
 
 const BACKUP_DIR = path.resolve('backups');
 
@@ -8,9 +9,21 @@ const BACKUP_DIR = path.resolve('backups');
 export const handleBackupDownload = async (req, res) => {
     try {
         const filePath = await createSystemBackup();
+        logActivity({
+            action: 'BACKUP_DOWNLOAD',
+            req,
+            targetResource: path.basename(filePath),
+            status: 'SUCCESS'
+        });
         return res.download(filePath, path.basename(filePath));
     } catch (err) {
         console.error('Download Backup Error:', err);
+        logActivity({
+            action: 'BACKUP_DOWNLOAD',
+            req,
+            details: { error: err.message },
+            status: 'FAILURE'
+        });
         res.status(500).json({ success: false, message: 'Failed to generate backup' });
     }
 };

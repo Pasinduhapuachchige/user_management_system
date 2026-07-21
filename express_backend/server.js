@@ -7,11 +7,21 @@ import cookieParser from 'cookie-parser';
 import cron from 'node-cron';
 
 import apiRoutes from './src/routes/api.route.js'
+import { errorHandler } from './src/middleware/errorHandler.middleware.js';
 
 dotenv.config();
 
 // Create app
 const app = express();
+
+// Security Headers Middleware
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    next();
+});
 
 // Middleware
 const clientUrl = process.env.CLIENT_URL;
@@ -43,6 +53,9 @@ app.get('/', (req, res) => {
 
 //API Routes
 app.use('/api/v1', apiRoutes);
+
+// Centralized Error Handler Middleware
+app.use(errorHandler);
 
 //Cron
 // Schedule every 7 days at 3:00 AM

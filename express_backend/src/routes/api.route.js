@@ -36,6 +36,12 @@ import { getMaintenanceSettingsController, updateMaintenanceSettingsController }
 import { handleSupportContact } from '../controllers/support.controller.js';
 
 
+import { createRateLimiter } from '../middleware/rateLimit.middleware.js';
+
+// Rate limiters for sensitive routes
+const loginRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 15, message: 'Too many login attempts.' });
+const recoveryRateLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5, message: 'Too many recovery attempts.' });
+
 // Public health-check (no auth required) — used by the login page connection indicator
 router.get('/health', (req, res) => {
     res.status(200).json({
@@ -46,7 +52,7 @@ router.get('/health', (req, res) => {
     });
 });
 
-router.post('/login', loginController);
+router.post('/login', loginRateLimiter, loginController);
 
 router.post('/register', verifySuperAdmin, registerController);
 router.post('/init-superadmin', initSuperAdminController);
@@ -83,9 +89,9 @@ router.get('/stats/epf', verifyAuth, epfMonthlyContribution)
 router.get('/stats/health', verifySuperAdmin, getSystemHealth)
 router.get('/stats/activity', verifySuperAdmin, getRecentActivity)
 
-router.post('/recovery/otp', accountRecoveryController);
-router.post('/recovery/validate-otp', validateOtpController);
-router.post('/recovery/update-pwd', recoveryUpdatePassword);
+router.post('/recovery/otp', recoveryRateLimiter, accountRecoveryController);
+router.post('/recovery/validate-otp', recoveryRateLimiter, validateOtpController);
+router.post('/recovery/update-pwd', recoveryRateLimiter, recoveryUpdatePassword);
 
 router.put('/update-pwd', verifyAuth, updatePasswordController);
 router.post('/support/contact', verifyAuth, handleSupportContact);
@@ -93,7 +99,7 @@ router.post('/support/contact', verifyAuth, handleSupportContact);
 router.get('/settings/maintenance', verifyAuth, getMaintenanceSettingsController);
 router.post('/settings/maintenance', verifySuperAdmin, updateMaintenanceSettingsController);
 
-router.get('/backup', handleBackupDownload);
+router.get('/backup', verifySuperAdmin, handleBackupDownload);
 //router.post('/restore', handleRestore);
 
 router.get('/reports/epf/:employeeId/:year', verifyAuth, getEmployeeEpfReportController);
