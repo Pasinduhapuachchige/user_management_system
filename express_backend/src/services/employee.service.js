@@ -35,6 +35,7 @@ export const createEmployee = async (data) => {
     // so Mongoose's `required: function()` validators don't trip on empty/null values.
     if (sanitizedData.maritalStatus !== 'Married') {
         delete sanitizedData.spouseName;
+        delete sanitizedData.spouseStatus;
         delete sanitizedData.spouseParents;
     }
 
@@ -104,6 +105,14 @@ export const updateEmployee = async (id, data) => {
     try {
         // Sanitize incoming data
         const sanitizedData = sanitize(data);
+
+        // If the employee is changing away from Married (or was never married),
+        // remove spouse-related fields so stale data is cleared in the DB.
+        if (sanitizedData.maritalStatus && sanitizedData.maritalStatus !== 'Married') {
+            delete sanitizedData.spouseName;
+            delete sanitizedData.spouseStatus;
+            delete sanitizedData.spouseParents;
+        }
 
         // Special case: profilePicture — extract filename if full URL is passed
         if (sanitizedData.profilePicture && typeof sanitizedData.profilePicture === "string") {

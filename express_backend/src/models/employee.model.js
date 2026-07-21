@@ -61,6 +61,11 @@ const employeeSchema = new mongoose.Schema({
             return this.maritalStatus === 'Married';
         },
     },
+    spouseStatus: {
+        type: String,
+        enum: ['Alive', 'Deceased'],
+        default: 'Alive',
+    },
     spouseParents: {
         type: [
             {

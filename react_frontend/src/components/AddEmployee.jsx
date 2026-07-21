@@ -21,6 +21,7 @@ const AddEmployeeForm = ({ onBack }) => {
         profilePicture: null,
         maritalStatus: 'Unmarried',
         spouseName: '',
+        spouseStatus: 'Alive',
         parents: [],
         spouseParents: [],
         children: [],
@@ -310,7 +311,8 @@ const AddEmployeeForm = ({ onBack }) => {
         setFormData(prev => ({
             ...prev,
             maritalStatus: status,
-            spouseName: status === 'Married' ? prev.spouseName : ''
+            spouseName: status === 'Married' ? prev.spouseName : '',
+            spouseStatus: status === 'Married' ? prev.spouseStatus : 'Alive'
         }));
 
         // Clear related errors
@@ -597,6 +599,7 @@ const AddEmployeeForm = ({ onBack }) => {
             profilePicture: null,
             maritalStatus: 'Unmarried',
             spouseName: '',
+            spouseStatus: 'Alive',
             parents: [{ name: '', relationship: '', contactNumber: '', status: 'Alive' }],
             spouseParents: [],
             children: [],
@@ -1066,31 +1069,51 @@ const AddEmployeeForm = ({ onBack }) => {
                                 </select>
                             </div>
 
-                            {/* Spouse Name (if married) */}
+                            {/* Spouse Name & Status (if married) */}
                             {formData.maritalStatus === 'Married' && (
                                 <div className="mb-6">
-                                    <label htmlFor="spouseName" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Spouse Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="spouseName"
-                                        name="spouseName"
-                                        value={formData.spouseName}
-                                        onChange={handleInputChange}
-                                        className={`w-full md:w-1/2 px-4 py-3 rounded-lg border transition-colors duration-200 focus:outline-none focus:ring-2 ${errors.spouseName
-                                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                                            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                                            }`}
-                                        placeholder="Enter spouse name (letters only)"
-                                        disabled={loading}
-                                    />
-                                    {errors.spouseName && (
-                                        <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
-                                            <AlertCircle className="w-4 h-4" />
-                                            <span>{errors.spouseName}</span>
-                                        </p>
-                                    )}
+                                    <div className="flex flex-col md:flex-row gap-4">
+                                        <div className="flex-1">
+                                            <label htmlFor="spouseName" className="block text-sm font-medium text-gray-700 mb-2">
+                                                Spouse Name <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="spouseName"
+                                                name="spouseName"
+                                                value={formData.spouseName}
+                                                onChange={handleInputChange}
+                                                className={`w-full px-4 py-3 rounded-lg border transition-colors duration-200 focus:outline-none focus:ring-2 ${errors.spouseName
+                                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                                    : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                                                    }`}
+                                                placeholder="Enter spouse name (letters only)"
+                                                disabled={loading}
+                                            />
+                                            {errors.spouseName && (
+                                                <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
+                                                    <AlertCircle className="w-4 h-4" />
+                                                    <span>{errors.spouseName}</span>
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="md:w-48">
+                                            <label htmlFor="spouseStatus" className="block text-sm font-medium text-gray-700 mb-2">
+                                                Spouse Status
+                                            </label>
+                                            <select
+                                                id="spouseStatus"
+                                                name="spouseStatus"
+                                                value={formData.spouseStatus}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                                disabled={loading}
+                                            >
+                                                <option value="Alive">Alive</option>
+                                                <option value="Deceased">Deceased</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 

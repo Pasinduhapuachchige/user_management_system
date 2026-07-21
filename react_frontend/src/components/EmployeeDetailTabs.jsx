@@ -266,6 +266,11 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                                 <User className="w-4 h-4 text-gray-400" />
                                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Spouse</span>
                                 <span className="text-sm font-semibold text-gray-800">{data.spouseName}</span>
+                                {data.spouseStatus && (
+                                    <Chip color={data.spouseStatus === 'Deceased' ? 'red' : 'green'}>
+                                        {data.spouseStatus}
+                                    </Chip>
+                                )}
                             </div>
                         )}
                     </div>
@@ -366,15 +371,27 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                 </div>
                 {data.maritalStatus === 'Married' && (
                     <div className="mt-4 pt-4 border-t border-gray-200/60 animate-in">
-                        <FormField label="Spouse Name" icon={User} error={errors.spouseName} required>
-                            <input
-                                type="text"
-                                value={data.spouseName || ''}
-                                onChange={(e) => onUpdate('spouseName', e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white"
-                                placeholder="Enter spouse full name"
-                            />
-                        </FormField>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField label="Spouse Name" icon={User} error={errors.spouseName} required>
+                                <input
+                                    type="text"
+                                    value={data.spouseName || ''}
+                                    onChange={(e) => onUpdate('spouseName', e.target.value)}
+                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white"
+                                    placeholder="Enter spouse full name"
+                                />
+                            </FormField>
+                            <FormField label="Spouse Status" icon={Activity}>
+                                <select
+                                    value={data.spouseStatus || 'Alive'}
+                                    onChange={(e) => onUpdate('spouseStatus', e.target.value)}
+                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white"
+                                >
+                                    <option value="Alive">Alive</option>
+                                    <option value="Deceased">Deceased</option>
+                                </select>
+                            </FormField>
+                        </div>
                     </div>
                 )}
             </div>
