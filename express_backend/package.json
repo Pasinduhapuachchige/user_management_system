@@ -9,7 +9,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "backup": "node scripts/runBackup.js",
+    "decrypt": "node scripts/decryptBackup.js"
   },
   "dependencies": {
     "archiver": "^7.0.1",

@@ -20,7 +20,6 @@ import { createOrUpdateEmployeeEpfController, deleteEmployeeEpfExpenseController
 import { getEmployeesByQuery } from '../services/employee.service.js';
 import { departmentStats, epfMonthlyContribution, statsController, getSystemHealth, getRecentActivity } from '../controllers/stats.controller.js';
 import { accountRecoveryController, recoveryUpdatePassword, updatePasswordController, validateOtpController } from '../controllers/recovery.controller.js';
-import { handleBackupDownload } from '../controllers/backup.controller.js';
 import { handleRestore } from '../controllers/restore.controller.js';
 import { getEmployeeEpfReportController, getMedicalSummaryReportController } from '../controllers/epfReport.controller.js';
 import { initSuperAdminController } from '../controllers/init.controller.js';
@@ -99,7 +98,6 @@ router.post('/support/contact', verifyAuth, handleSupportContact);
 router.get('/settings/maintenance', verifyAuth, getMaintenanceSettingsController);
 router.post('/settings/maintenance', verifySuperAdmin, updateMaintenanceSettingsController);
 
-router.get('/backup', verifySuperAdmin, handleBackupDownload);
 //router.post('/restore', handleRestore);
 
 router.get('/reports/epf/:employeeId/:year', verifyAuth, getEmployeeEpfReportController);

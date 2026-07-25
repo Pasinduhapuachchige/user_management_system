@@ -8,6 +8,8 @@ import cron from 'node-cron';
 
 import apiRoutes from './src/routes/api.route.js'
 import { errorHandler } from './src/middleware/errorHandler.middleware.js';
+import { createSystemBackup } from './src/services/backup.service.js';
+import { cleanupOldBackups } from './src/controllers/backup.controller.js';
 
 dotenv.config();
 
@@ -58,8 +60,8 @@ app.use('/api/v1', apiRoutes);
 app.use(errorHandler);
 
 //Cron
-// Schedule every 7 days at 3:00 AM
-cron.schedule('0 3 */7 * *', async () => {
+// Schedule daily at 3:00 AM
+cron.schedule('0 3 * * *', async () => {
     try {
         console.log('📦 Scheduled Backup Started');
         await createSystemBackup();
