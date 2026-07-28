@@ -527,7 +527,7 @@ const Topbar = ({ setSidebarOpen, currentPage }) => {
                                             </button>
                                         )}
 
-                                        {user?.role !== 'employee' && (
+                                        {user?.role === 'superadmin' && (
                                             <button onClick={() => { navigate('/settings/epf'); setIsProfileDropdownOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-2xl transition-all">
                                                 <Settings className="w-5 h-5 text-slate-400" />
                                                 <span className="font-semibold">System Preferences</span>

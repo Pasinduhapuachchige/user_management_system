@@ -56,7 +56,7 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
                     { id: 'epf-add', label: 'New Entry', path: 'epf/add' }
                 ]
             },
-            ...(user?.role === 'superadmin' || user?.role === 'hr_manager' || user?.role === 'hr_officer' ? [{
+            ...(user?.role === 'superadmin' ? [{
                 id: 'admins',
                 label: 'System Access',
                 icon: UserCog,
@@ -66,16 +66,16 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
                     { id: 'admins-add', label: 'Provision New', path: 'admins/add' }
                 ]
             }] : []),
-            {
+            ...(user?.role === 'superadmin' ? [{
                 id: 'settings',
                 label: 'Configuration',
                 icon: Settings,
                 path: 'settings',
                 subItems: [
                     { id: 'settings-epf', label: 'Limit Enhancement', path: 'settings/epf' },
-                    ...(user?.role === 'superadmin' ? [{ id: 'settings-maintenance', label: 'Maintenance Mode', path: 'settings/maintenance' }] : [])
+                    { id: 'settings-maintenance', label: 'Maintenance Mode', path: 'settings/maintenance' }
                 ]
-            },
+            }] : []),
             { id: 'reports', label: 'Analytics', icon: BarChart3, path: 'reports' }
         ] : [])
     ];
