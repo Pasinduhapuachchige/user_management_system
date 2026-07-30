@@ -908,8 +908,8 @@ const AddEmployeeForm = ({ onBack }) => {
                                         disabled={loading}
                                     >
                                         <option value="">Select Location</option>
-                                        <option value="Head Office">Head Office</option>
-                                        <option value="Rathmalana">Rathmalana</option>
+                                        <option value="Regional Sales">Regional Sales</option>
+                                        <option value="Regional Stores">Regional Stores</option>
                                         <option value="ROS">ROS</option>
                                     </select>
                                     {errors.mainLocation && (
