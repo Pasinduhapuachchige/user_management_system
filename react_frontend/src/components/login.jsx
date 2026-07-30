@@ -77,10 +77,18 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                 setTimeout(() => navigate('/dashboard'), 1400);
             }
         } catch (error) {
-            setMessage(error.response?.data?.message || 'Invalid credentials. Please try again.');
+            const errData = error.response?.data;
+            setMessage(errData?.message || 'Invalid credentials. Please try again.');
             setMessageType('error');
             setShake(true);
             setTimeout(() => setShake(false), 600);
+            if (errData?.requirePasswordReset) {
+                setTimeout(() => {
+                    if (typeof forgotClicked === 'function') {
+                        forgotClicked();
+                    }
+                }, 1800);
+            }
         } finally {
             setIsLoading(false);
         }

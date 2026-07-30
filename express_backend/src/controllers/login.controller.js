@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { validateUser } from '../services/auth.service.js';
+import { validateUser, isPasswordExpired } from '../services/auth.service.js';
 import { logActivity } from '../services/auditLog.service.js';
 
 export const loginController = async (req, res) => {
@@ -29,6 +29,15 @@ export const loginController = async (req, res) => {
         if (global.maintenanceModeActive && admin.role !== 'superadmin') {
             logActivity({ action: 'LOGIN_MAINTENANCE_BLOCKED', req, performedBy: { email: admin.email }, status: 'WARNING' });
             return res.status(403).json({ message: 'Login is suspended as the system is in Maintenance Mode.' })
+        }
+
+        if (isPasswordExpired(admin)) {
+            logActivity({ action: 'LOGIN_PASSWORD_EXPIRED', req, performedBy: { email: admin.email }, status: 'WARNING' });
+            return res.status(403).json({
+                success: false,
+                requirePasswordReset: true,
+                message: 'Your password has expired after 3 months. Please reset your password to log in.'
+            });
         }
 
         // Set expiry based on rememberMe

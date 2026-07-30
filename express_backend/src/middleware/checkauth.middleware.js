@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { getAdmins } from '../services/register.service.js';
+import { isPasswordExpired } from '../services/auth.service.js';
 
 export const verifyAuth = async (req, res, next) => {
     const token = req.cookies?.token;
@@ -44,6 +45,15 @@ export const verifyAuth = async (req, res, next) => {
                 success: false,
                 error: 'Unauthorized 1.4',
                 message: 'System is currently undergoing scheduled maintenance. Access is suspended.'
+            });
+        }
+
+        if (isPasswordExpired(admin) && !req.path.includes('/update-pwd')) {
+            return res.status(403).json({
+                success: false,
+                error: 'PASSWORD_EXPIRED',
+                requirePasswordReset: true,
+                message: 'Your password has expired after 3 months. Please reset your password to continue.'
             });
         }
 

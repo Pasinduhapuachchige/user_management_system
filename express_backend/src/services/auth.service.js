@@ -24,13 +24,28 @@ export const validateUser = async (email = '', epf = '', password) => {
             _id: admin._id,
             email: admin.email,
             epfNo: admin.epfNo,
-            role: admin.role
+            role: admin.role,
+            passwordUpdatedAt: admin.passwordUpdatedAt,
+            createdAt: admin.createdAt
         };
 
     } catch (e) {
         console.error("Validation Error:", e);
         return null;
     }
+};
+
+export const isPasswordExpired = (admin) => {
+    if (!admin) return false;
+    // Password reset every 3 months (90 days) applies to HR officers and admin roles
+    const hrRoles = ['hr_officer', 'hr_manager', 'admin'];
+    if (!hrRoles.includes(admin.role)) {
+        return false;
+    }
+    const passwordDate = admin.passwordUpdatedAt || admin.createdAt;
+    if (!passwordDate) return false;
+    const ninetyDaysInMs = 90 * 24 * 60 * 60 * 1000;
+    return (Date.now() - new Date(passwordDate).getTime()) > ninetyDaysInMs;
 };
 
 export const tougleAccountStatus = async (accId) => {

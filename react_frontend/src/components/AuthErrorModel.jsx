@@ -73,6 +73,13 @@ const AuthErrorModal = ({
                     reason: 'This can happen due to browser issues, network problems, or security token corruption.',
                     action: 'You will be redirected to login with a fresh session.'
                 };
+            case 'PASSWORD_EXPIRED':
+                return {
+                    title: '🔑 Password Expired (3 Months)',
+                    description: 'HR Officers are required to reset their password every 3 months for security compliance.',
+                    reason: 'Your password is older than 90 days and must be updated before accessing system features.',
+                    action: 'You will be redirected to the login page to reset your password.'
+                };
             case 'Unauthorized 1.4':
                 return {
                     title: '🔧 Maintenance Mode Active',
