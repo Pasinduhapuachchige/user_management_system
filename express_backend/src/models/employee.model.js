@@ -30,7 +30,7 @@ const employeeSchema = new mongoose.Schema({
     },
     mainLocation: {
         type: String,
-        enum: ['Regional Sales', 'Regional Stores', 'ROS', 'Head Office', 'Rathmalana', 'Osusala'],
+        enum: ['Head Office', 'Regional Sales', 'Regional Stores', 'ROS'],
     },
     department: {
         type: mongoose.Schema.Types.ObjectId,

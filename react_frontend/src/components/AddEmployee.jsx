@@ -441,6 +441,10 @@ const AddEmployeeForm = ({ onBack }) => {
             newErrors.department = 'Department is required';
         }
 
+        if (!formData.mainLocation) {
+            newErrors.mainLocation = 'Main location is required';
+        }
+
         if (!formData.dateOfBirth) {
             newErrors.dateOfBirth = 'Date of Birth is required';
         }
@@ -908,6 +912,7 @@ const AddEmployeeForm = ({ onBack }) => {
                                         disabled={loading}
                                     >
                                         <option value="">Select Location</option>
+                                        <option value="Head Office">Head Office</option>
                                         <option value="Regional Sales">Regional Sales</option>
                                         <option value="Regional Stores">Regional Stores</option>
                                         <option value="ROS">ROS</option>

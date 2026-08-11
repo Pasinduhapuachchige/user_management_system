@@ -202,6 +202,7 @@ export const EmploymentTab = ({ data, isEditing, onUpdate, departments, errors, 
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all premium-input"
                 >
                     <option value="">Select Location</option>
+                    <option value="Head Office">Head Office</option>
                     <option value="Regional Sales">Regional Sales</option>
                     <option value="Regional Stores">Regional Stores</option>
                     <option value="ROS">ROS</option>
