@@ -33,6 +33,14 @@ import {
 } from '../controllers/notification.controller.js';
 import { getMaintenanceSettingsController, updateMaintenanceSettingsController } from '../controllers/settings.controller.js';
 import { handleSupportContact } from '../controllers/support.controller.js';
+import {
+    getConfigController as getDeathBenefitConfigController,
+    updateConfigController as updateDeathBenefitConfigController,
+    createDeathBenefitController,
+    getDeathBenefitsController,
+    updateDeathBenefitController,
+    deleteDeathBenefitController
+} from '../controllers/deathBenefit.controller.js';
 
 
 import { createRateLimiter } from '../middleware/rateLimit.middleware.js';
@@ -73,8 +81,16 @@ router.post('/epf/max', verifyAuth, updateMaxEpfController);
 router.get('/epf/max', verifyAuth, getMaxEpfController);
 router.get("/epf/emp", verifyAuth, getEmployeeEpfsController);
 router.post("/epf/emp", verifyAuth, createOrUpdateEmployeeEpfController);
-router.post("/epf/bulk-import", verifyAuth, upload.single('file'), bulkImportEpfController);
+router.post('/epf/bulk-import', verifyAuth, upload.single('file'), bulkImportEpfController);
 router.delete("/epf/emp/:epfId", verifyAuth, deleteEmployeeEpfExpenseController);
+
+// Death Benefit routes
+router.get('/death-benefit/config', verifyAuth, getDeathBenefitConfigController);
+router.post('/death-benefit/config', verifySuperAdmin, updateDeathBenefitConfigController);
+router.get('/death-benefit/records', verifyAuth, getDeathBenefitsController);
+router.post('/death-benefit/records', verifyAuth, createDeathBenefitController);
+router.put('/death-benefit/records/:id', verifyAuth, updateDeathBenefitController);
+router.delete('/death-benefit/records/:id', verifyAuth, deleteDeathBenefitController);
 
 router.get('/admins', verifySuperAdmin, getAdminsController);
 router.post('/admins', verifySuperAdmin, tougleAccountStatusController);

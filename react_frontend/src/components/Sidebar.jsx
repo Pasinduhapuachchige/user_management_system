@@ -56,6 +56,12 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
                     { id: 'epf-add', label: 'New Entry', path: 'epf/add' }
                 ]
             },
+            {
+                id: 'death-benefit',
+                label: 'Dead Donation',
+                icon: Heart,
+                path: 'death-benefit'
+            },
             ...(user?.role === 'superadmin' ? [{
                 id: 'admins',
                 label: 'System Access',
@@ -73,6 +79,7 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
                 path: 'settings',
                 subItems: [
                     { id: 'settings-epf', label: 'Limit Enhancement', path: 'settings/epf' },
+                    { id: 'settings-death-benefit', label: 'Dead Donation Config', path: 'settings/death-benefit' },
                     { id: 'settings-maintenance', label: 'Maintenance Mode', path: 'settings/maintenance' }
                 ]
             }] : []),

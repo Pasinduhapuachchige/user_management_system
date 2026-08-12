@@ -14,6 +14,8 @@ import AdminsList from './pages/dashboard/admins';
 import AddAdmin from './pages/dashboard/admins/add';
 import EPFSettings from './pages/dashboard/settings/epf';
 import MaintenanceSettings from './pages/dashboard/settings/maintenance';
+import DeathBenefitList from './pages/dashboard/deathBenefit';
+import DeathBenefitSettings from './pages/dashboard/settings/deathBenefit';
 import Reports from './pages/dashboard/reports';
 import Login from './pages/auth';
 import ProtectRoutes from './components/ProtectRoutes';
@@ -240,11 +242,28 @@ function App() {
           </ProtectRoutes>
         } />
 
+        {/* Death Benefit Routes */}
+        <Route path="/death-benefit" element={
+          <ProtectRoutes>
+            <DashboardWrapper>
+              <DeathBenefitList currentPath="death-benefit" />
+            </DashboardWrapper>
+          </ProtectRoutes>
+        } />
+
         {/* Settings Routes */}
         <Route path="/settings/epf" element={
           <ProtectRoutes>
             <DashboardWrapper>
               <EPFSettings currentPath="settings/epf" />
+            </DashboardWrapper>
+          </ProtectRoutes>
+        } />
+
+        <Route path="/settings/death-benefit" element={
+          <ProtectRoutes>
+            <DashboardWrapper>
+              <DeathBenefitSettings currentPath="settings/death-benefit" />
             </DashboardWrapper>
           </ProtectRoutes>
         } />
