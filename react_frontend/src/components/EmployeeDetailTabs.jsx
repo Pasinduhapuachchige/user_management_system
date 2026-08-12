@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
     User, Mail, Phone, MapPin, CreditCard, Building2, 
     Calendar, Heart, Briefcase, UserCheck, Plus, Trash2,
-    Baby, Users, AlertCircle, Info, DollarSign, Activity
+    Baby, Users, AlertCircle, Info, DollarSign, Activity,
+    FileText, Upload, ExternalLink, Loader2
 } from 'lucide-react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import { uploadBirthCertificateApi, deleteBirthCertificateApi } from '../apis/employee.api';
 
 // Reusable Input Component for consistency
 const FormField = ({ label, icon: Icon, error, children, required }) => (
@@ -240,7 +242,66 @@ export const EmploymentTab = ({ data, isEditing, onUpdate, departments, errors, 
 };
 
 // --- TAB: FAMILY ---
-export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, onRemoveFamilyItem, onUpdateFamilyItem }) => {
+export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, onRemoveFamilyItem, onUpdateFamilyItem, employeeId, onBirthCertificateChange }) => {
+    const [certUploading, setCertUploading] = useState({});
+    const [certError, setCertError] = useState({});
+
+    const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
+    const handleCertUpload = async (childIndex, file) => {
+        if (!file) return;
+        setCertError(prev => ({ ...prev, [childIndex]: null }));
+
+        // Store file locally as pending cert file for this child
+        if (onUpdateFamilyItem) {
+            onUpdateFamilyItem('children', childIndex, 'pendingCertFile', file);
+        }
+
+        // If employee exists and child is already in DB, try uploading immediately
+        if (employeeId) {
+            setCertUploading(prev => ({ ...prev, [childIndex]: true }));
+            try {
+                const res = await uploadBirthCertificateApi(employeeId, childIndex, file);
+                if (res?.success && onBirthCertificateChange) {
+                    onBirthCertificateChange(childIndex, res.data.filename);
+                    if (onUpdateFamilyItem) {
+                        onUpdateFamilyItem('children', childIndex, 'pendingCertFile', null);
+                    }
+                }
+            } catch (err) {
+                // If immediate upload fails (e.g. new child not in DB yet), keep file in pendingCertFile for upload on Save
+                console.log('Immediate upload pending save:', err?.message);
+            } finally {
+                setCertUploading(prev => ({ ...prev, [childIndex]: false }));
+            }
+        }
+    };
+
+    const handleCertDelete = async (childIndex) => {
+        setCertError(prev => ({ ...prev, [childIndex]: null }));
+
+        // Clear any pending cert file
+        if (onUpdateFamilyItem) {
+            onUpdateFamilyItem('children', childIndex, 'pendingCertFile', null);
+        }
+
+        if (!employeeId) {
+            if (onBirthCertificateChange) onBirthCertificateChange(childIndex, '');
+            return;
+        }
+
+        setCertUploading(prev => ({ ...prev, [childIndex]: true }));
+        try {
+            const res = await deleteBirthCertificateApi(employeeId, childIndex);
+            if (res?.success && onBirthCertificateChange) {
+                onBirthCertificateChange(childIndex, '');
+            }
+        } catch (err) {
+            setCertError(prev => ({ ...prev, [childIndex]: err?.message || 'Delete failed' }));
+        } finally {
+            setCertUploading(prev => ({ ...prev, [childIndex]: false }));
+        }
+    };
 
     // ── Read-only view ────────────────────────────────────────────────────────
     if (!isEditing) {
@@ -326,7 +387,7 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                     title="Children"
                     icon={Baby}
                     items={data.children || []}
-                    renderItem={(item) => (
+                    renderItem={(item, index) => (
                         <>
                             <p className="font-bold text-gray-900 text-sm">{item.name || 'N/A'}</p>
                             <div className="flex flex-wrap gap-1.5 mt-1.5">
@@ -343,6 +404,23 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                                     </span>
                                 )}
                             </div>
+                            {/* Birth Certificate link */}
+                            {item.birthCertificateFile ? (
+                                <a
+                                    href={`${baseUrl}/prop/${item.birthCertificateFile}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors"
+                                >
+                                    <FileText className="w-3 h-3" />
+                                    View Birth Certificate
+                                    <ExternalLink className="w-3 h-3" />
+                                </a>
+                            ) : (
+                                <span className="inline-flex items-center gap-1 mt-2 text-xs text-gray-400 italic">
+                                    <FileText className="w-3 h-3" /> No birth certificate uploaded
+                                </span>
+                            )}
                         </>
                     )}
                 />
@@ -462,7 +540,7 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                 items={data.children || []}
                 itemLabel="Child"
                 isEditing={isEditing}
-                onAdd={() => onAddFamilyItem('children', { name: '', dateOfBirth: '', gender: '', school: '', grade: '', status: 'Alive' })}
+                onAdd={() => onAddFamilyItem('children', { name: '', dateOfBirth: '', gender: '', school: '', grade: '', status: 'Alive', birthCertificateFile: '' })}
                 onRemove={(index) => onRemoveFamilyItem('children', index)}
                 onUpdate={(index, field, value) => onUpdateFamilyItem('children', index, field, value)}
                 fields={[
@@ -484,6 +562,62 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                         icon: Activity
                     }
                 ]}
+                renderExtraPerItem={(item, index) => (
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium mb-2">
+                            <FileText className="w-3.5 h-3.5" />
+                            Birth Certificate (PDF)
+                        </div>
+                        {item.birthCertificateFile ? (
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <a
+                                    href={`${baseUrl}/prop/${item.birthCertificateFile}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors"
+                                >
+                                    <FileText className="w-3 h-3" /> View Certificate
+                                    <ExternalLink className="w-3 h-3" />
+                                </a>
+                                {isEditing && (
+                                    <button
+                                        onClick={() => handleCertDelete(index)}
+                                        disabled={certUploading[index]}
+                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-500 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors disabled:opacity-50"
+                                    >
+                                        {certUploading[index] ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                        Delete
+                                    </button>
+                                )}
+                            </div>
+                        ) : isEditing ? (
+                            <div>
+                                <label className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-dashed border-gray-300 text-gray-500 rounded-lg text-xs font-medium cursor-pointer hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors">
+                                    {certUploading[index] ? (
+                                        <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...</>
+                                    ) : (
+                                        <><Upload className="w-3.5 h-3.5" /> Upload PDF</>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="application/pdf"
+                                        className="hidden"
+                                        disabled={certUploading[index] || !employeeId}
+                                        onChange={(e) => handleCertUpload(index, e.target.files[0])}
+                                    />
+                                </label>
+                                {!employeeId && (
+                                    <p className="text-xs text-amber-600 mt-1">Save the employee first to upload certificates.</p>
+                                )}
+                                {certError[index] && (
+                                    <p className="text-xs text-red-500 mt-1">{certError[index]}</p>
+                                )}
+                            </div>
+                        ) : (
+                            <span className="text-xs text-gray-400 italic">No certificate uploaded</span>
+                        )}
+                    </div>
+                )}
             />
         </div>
     );
@@ -506,7 +640,7 @@ const InfoCard = ({ label, value, icon: Icon, valueColor = "text-gray-900" }) =>
     </div>
 );
 
-const FamilyCollection = ({ title, icon: Icon, items, itemLabel, isEditing, onAdd, onRemove, onUpdate, fields }) => (
+const FamilyCollection = ({ title, icon: Icon, items, itemLabel, isEditing, onAdd, onRemove, onUpdate, fields, renderExtraPerItem }) => (
     <div className="space-y-4">
         <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2.5">
@@ -585,6 +719,8 @@ const FamilyCollection = ({ title, icon: Icon, items, itemLabel, isEditing, onAd
                                 </div>
                             ))}
                         </div>
+                        {/* Render extra per-item content (e.g. birth certificate upload) */}
+                        {renderExtraPerItem && renderExtraPerItem(item, index)}
                     </div>
                 ))
             )}
@@ -626,7 +762,7 @@ const FamilyReadOnlySection = ({ title, icon: Icon, items, renderItem }) => (
                         key={index}
                         className="p-4 rounded-2xl bg-white border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all"
                     >
-                        {renderItem(item)}
+                        {renderItem(item, index)}
                     </div>
                 ))}
             </div>

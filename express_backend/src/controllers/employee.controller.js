@@ -6,6 +6,7 @@ import {
     toggleEmployeeStatus,
     getEmployeesByQuery
 } from '../services/employee.service.js';
+import Employee from '../models/employee.model.js';
 
 const capitalizeWords = (str) => {
     return str
@@ -131,3 +132,95 @@ export const getEmployeesController = async (req, res) => {
 };
 
 
+/**
+ * POST /emp/:id/birth-certificate/:childIndex
+ * Upload a birth certificate PDF for a specific child by index.
+ */
+export const uploadBirthCertificateController = async (req, res) => {
+    const { id, childIndex } = req.params;
+    const index = parseInt(childIndex, 10);
+
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'No PDF file uploaded.' });
+        }
+
+        const employee = await Employee.findById(id);
+        if (!employee) {
+            return res.status(404).json({ success: false, message: 'Employee not found.' });
+        }
+
+        if (index < 0 || index >= employee.children.length) {
+            // Remove the uploaded file since index is invalid
+            fs.existsSync(req.file.path) && fs.unlinkSync(req.file.path);
+            return res.status(400).json({ success: false, message: 'Invalid child index.' });
+        }
+
+        // Delete the old birth certificate file if one exists
+        const oldFile = employee.children[index].birthCertificateFile;
+        if (oldFile) {
+            const oldPath = path.join('src', 'uploads', oldFile);
+            if (fs.existsSync(oldPath)) {
+                fs.unlinkSync(oldPath);
+            }
+        }
+
+        // Save new filename to the child subdocument
+        employee.children[index].birthCertificateFile = req.file.filename;
+        await employee.save();
+
+        const baseUrl = process.env.EXPRESS_URL || 'http://localhost:5000';
+        res.status(200).json({
+            success: true,
+            message: 'Birth certificate uploaded.',
+            data: {
+                filename: req.file.filename,
+                url: `${baseUrl}/prop/${req.file.filename}`
+            }
+        });
+    } catch (err) {
+        console.error('Upload Birth Certificate Error:', err);
+        // Clean up uploaded file on error
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+
+/**
+ * DELETE /emp/:id/birth-certificate/:childIndex
+ * Remove the birth certificate PDF for a specific child by index.
+ */
+export const deleteBirthCertificateController = async (req, res) => {
+    const { id, childIndex } = req.params;
+    const index = parseInt(childIndex, 10);
+
+    try {
+        const employee = await Employee.findById(id);
+        if (!employee) {
+            return res.status(404).json({ success: false, message: 'Employee not found.' });
+        }
+
+        if (index < 0 || index >= employee.children.length) {
+            return res.status(400).json({ success: false, message: 'Invalid child index.' });
+        }
+
+        const oldFile = employee.children[index].birthCertificateFile;
+        if (oldFile) {
+            const oldPath = path.join('src', 'uploads', oldFile);
+            if (fs.existsSync(oldPath)) {
+                fs.unlinkSync(oldPath);
+            }
+        }
+
+        employee.children[index].birthCertificateFile = '';
+        await employee.save();
+
+        res.status(200).json({ success: true, message: 'Birth certificate deleted.' });
+    } catch (err) {
+        console.error('Delete Birth Certificate Error:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};

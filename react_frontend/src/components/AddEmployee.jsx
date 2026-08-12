@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { User, Save, ArrowLeft, AlertCircle, CheckCircle, X, Plus, Trash2, Upload, Image, Search } from 'lucide-react';
+import { User, Save, ArrowLeft, AlertCircle, CheckCircle, X, Plus, Trash2, Upload, Image, Search, FileText, Loader2 } from 'lucide-react';
 import PhoneInput from 'react-phone-input-2';
-import { createEmployeeApi } from '../apis/employee.api';
+import { createEmployeeApi, uploadBirthCertificateApi } from '../apis/employee.api';
 import { fetchDepartmentsApi } from '../apis/department.api';
 
 const AddEmployeeForm = ({ onBack }) => {
@@ -35,6 +35,8 @@ const AddEmployeeForm = ({ onBack }) => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [toast, setToast] = useState(null);
+    // Per-child birth certificate PDFs (stored locally, uploaded after employee creation)
+    const [childBirthCerts, setChildBirthCerts] = useState([]);
 
     // Toast notification function
     const showToast = (type, message) => {
@@ -411,6 +413,7 @@ const AddEmployeeForm = ({ onBack }) => {
             ...prev,
             children: [...prev.children, { name: '', dateOfBirth: '', gender: '', school: '', grade: '', status: 'Alive' }]
         }));
+        setChildBirthCerts(prev => [...prev, null]);
     };
 
     const removeChild = (index) => {
@@ -418,6 +421,15 @@ const AddEmployeeForm = ({ onBack }) => {
             ...prev,
             children: prev.children.filter((_, i) => i !== index)
         }));
+        setChildBirthCerts(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleChildCertChange = (index, file) => {
+        setChildBirthCerts(prev => {
+            const updated = [...prev];
+            updated[index] = file || null;
+            return updated;
+        });
     };
 
     const validateForm = () => {
@@ -571,6 +583,16 @@ const AddEmployeeForm = ({ onBack }) => {
             );
 
             if (wasCreated) {
+                // Upload birth certificates for children that have a file selected
+                const employeeId = response?.data?._id || response?.data?.data?._id;
+                if (employeeId) {
+                    const certUploads = childBirthCerts.map((file, index) => {
+                        if (file) return uploadBirthCertificateApi(employeeId, index, file).catch(() => null);
+                        return Promise.resolve(null);
+                    });
+                    await Promise.all(certUploads);
+                }
+
                 showToast('success', `Employee "${formData.name}" created successfully!`);
                 // Reset the form but do NOT clear toasts here so user sees the success message
                 handleReset();
@@ -612,6 +634,7 @@ const AddEmployeeForm = ({ onBack }) => {
         setErrors({});
         setDepartmentSearch('');
         setShowDepartmentDropdown(false);
+        setChildBirthCerts([]);
     };
 
     return (
@@ -1473,7 +1496,44 @@ const AddEmployeeForm = ({ onBack }) => {
                                                 </select>
                                             </div>
                                         </div>
+
+                                        {/* Birth Certificate PDF */}
+                                        <div className="mt-3 pt-3 border-t border-gray-100">
+                                            <label className="block text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1">
+                                                <FileText className="w-3.5 h-3.5" />
+                                                Birth Certificate (PDF, optional)
+                                            </label>
+                                            {childBirthCerts[index] ? (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium">
+                                                        <FileText className="w-3 h-3" />
+                                                        {childBirthCerts[index].name}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleChildCertChange(index, null)}
+                                                        className="p-1.5 text-red-400 hover:text-red-600 transition-colors"
+                                                        disabled={loading}
+                                                    >
+                                                        <X className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <label className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-dashed border-gray-300 text-gray-500 rounded-lg text-xs font-medium cursor-pointer hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors">
+                                                    <Upload className="w-3.5 h-3.5" />
+                                                    Choose PDF
+                                                    <input
+                                                        type="file"
+                                                        accept="application/pdf"
+                                                        className="hidden"
+                                                        disabled={loading}
+                                                        onChange={(e) => handleChildCertChange(index, e.target.files[0])}
+                                                    />
+                                                </label>
+                                            )}
+                                        </div>
                                     </div>
+
                                 ))}
                             </div>
                         </div>

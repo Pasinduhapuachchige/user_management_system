@@ -14,8 +14,8 @@ import { createDepartment, getAllDepartments, getDepartmentById, updateDepartmen
     from '../controllers/department.controller.js';
 
 const router = express.Router();
-import { upload } from '../middleware/multer.middleware.js'
-import { createEmployeeController, toggleEmployeeStatusController, getEmployeesController, updateEmployeeController } from '../controllers/employee.controller.js';
+import { upload, uploadPdf } from '../middleware/multer.middleware.js'
+import { createEmployeeController, toggleEmployeeStatusController, getEmployeesController, updateEmployeeController, uploadBirthCertificateController, deleteBirthCertificateController } from '../controllers/employee.controller.js';
 import { createOrUpdateEmployeeEpfController, deleteEmployeeEpfExpenseController, getEmployeeEpfsController, getMaxEpfController, updateMaxEpfController } from '../controllers/epf.controller.js';
 import { getEmployeesByQuery } from '../services/employee.service.js';
 import { departmentStats, epfMonthlyContribution, statsController, getSystemHealth, getRecentActivity } from '../controllers/stats.controller.js';
@@ -69,6 +69,8 @@ router.post('/emp/', verifyAuth, upload.single('profilePicture'), createEmployee
 router.put('/emp/:id', verifyAuth, upload.single('profilePicture'), updateEmployeeController);
 router.patch('/emp/:id/status', verifyAuth, toggleEmployeeStatusController);
 router.get('/emp/', verifyAuth, getEmployeesController);
+router.post('/emp/:id/birth-certificate/:childIndex', verifyAuth, uploadPdf.single('birthCertificate'), uploadBirthCertificateController);
+router.delete('/emp/:id/birth-certificate/:childIndex', verifyAuth, deleteBirthCertificateController);
 
 router.post('/department', verifyAuth, createDepartment);
 router.get('/department', verifyAuth, getAllDepartments);

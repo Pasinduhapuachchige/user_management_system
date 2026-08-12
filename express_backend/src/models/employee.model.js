@@ -129,6 +129,10 @@ const employeeSchema = new mongoose.Schema({
                 type: String,
                 enum: ['Alive', 'Deceased'],
                 default: 'Alive'
+            },
+            birthCertificateFile: {
+                type: String,
+                default: ''
             }
         }
     ],

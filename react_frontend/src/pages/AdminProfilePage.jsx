@@ -21,7 +21,9 @@ import {
     EyeOff,
     Check,
     AlertCircle,
-    Activity
+    Activity,
+    FileText,
+    ExternalLink
 } from 'lucide-react';
 
 // Import the actual functions
@@ -828,10 +830,27 @@ const FamilyInfoCard = ({ adminData }) => {
                                         </div>
                                     )}
                                     {child.school && (
-                                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
                                             <Building className="w-3 h-3" />
                                             {child.school}{child.grade ? ` — Grade ${child.grade}` : ''}
                                         </div>
+                                    )}
+                                    {/* Birth Certificate */}
+                                    {child.birthCertificateFile ? (
+                                        <a
+                                            href={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/prop/${child.birthCertificateFile}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1.5 mt-1 px-2.5 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors"
+                                        >
+                                            <FileText className="w-3 h-3" />
+                                            View Birth Certificate
+                                            <ExternalLink className="w-3 h-3" />
+                                        </a>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1 text-xs text-gray-400 italic mt-1">
+                                            <FileText className="w-3 h-3" /> No certificate uploaded
+                                        </span>
                                     )}
                                 </div>
                             ))}

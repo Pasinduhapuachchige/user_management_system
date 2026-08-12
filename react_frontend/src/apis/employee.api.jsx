@@ -115,3 +115,50 @@ export const getEmployeesApi = async (query = {}) => {
         throw err.response?.data || { message: err.message };
     }
 };
+
+/**
+ * Upload a birth certificate PDF for a specific child of an employee.
+ * @param {string} employeeId - The employee's MongoDB ID
+ * @param {number} childIndex - The index of the child in the children array
+ * @param {File} pdfFile - The PDF file to upload
+ */
+export const uploadBirthCertificateApi = async (employeeId, childIndex, pdfFile) => {
+    try {
+        const formData = new FormData();
+        formData.append('birthCertificate', pdfFile);
+
+        const res = await axios.post(
+            `${API}/${employeeId}/birth-certificate/${childIndex}`,
+            formData,
+            {
+                withCredentials: true,
+                headers: { 'Content-Type': 'multipart/form-data' }
+            }
+        );
+
+        return res.data;
+    } catch (err) {
+        console.error('Upload Birth Certificate Error:', err);
+        throw err.response?.data || { message: err.message };
+    }
+};
+
+/**
+ * Delete the birth certificate PDF for a specific child of an employee.
+ * @param {string} employeeId - The employee's MongoDB ID
+ * @param {number} childIndex - The index of the child in the children array
+ */
+export const deleteBirthCertificateApi = async (employeeId, childIndex) => {
+    try {
+        const res = await axios.delete(
+            `${API}/${employeeId}/birth-certificate/${childIndex}`,
+            { withCredentials: true }
+        );
+
+        return res.data;
+    } catch (err) {
+        console.error('Delete Birth Certificate Error:', err);
+        throw err.response?.data || { message: err.message };
+    }
+};
+

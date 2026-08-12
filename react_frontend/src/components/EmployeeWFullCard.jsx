@@ -4,7 +4,7 @@ import {
     Building2, CreditCard, Heart, CheckCircle, Briefcase, ChevronRight,
     Camera, Info, Users, Baby, UserX, UserCheck
 } from 'lucide-react';
-import { toggleEmployeeStatusApi, updateEmployeeApi } from '../apis/employee.api';
+import { toggleEmployeeStatusApi, updateEmployeeApi, uploadBirthCertificateApi, deleteBirthCertificateApi } from '../apis/employee.api';
 import { fetchDepartmentsApi } from '../apis/department.api';
 import { getMaxEpf, getEmpEpf } from '../apis/epf.api';
 import { createPortal } from 'react-dom';
@@ -143,11 +143,39 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
                 payload.department = payload.department._id;
             }
 
+            // Extract any pending birth certificate files attached to children
+            const pendingCertFiles = (payload.children || []).map(c => c?.pendingCertFile || null);
+            if (payload.children) {
+                payload.children = payload.children.map(c => {
+                    if (!c) return c;
+                    const { pendingCertFile, ...rest } = c;
+                    return rest;
+                });
+            }
+
             const response = await updateEmployeeApi(employee._id, payload);
             
             if (response?.success || (response?.data && response?.data._id)) {
-                // Update local state with returned data if available, or the edited state
-                const finalData = response.data || payload;
+                let finalData = response.data || payload;
+
+                // If any children had pending birth certificate files selected during edit mode, upload them now
+                if (pendingCertFiles.some(f => f !== null) && finalData._id) {
+                    const uploadPromises = pendingCertFiles.map((file, idx) => {
+                        if (file) {
+                            return uploadBirthCertificateApi(finalData._id, idx, file)
+                                .then(res => {
+                                    if (res?.success && res?.data?.filename) {
+                                        if (finalData.children && finalData.children[idx]) {
+                                            finalData.children[idx].birthCertificateFile = res.data.filename;
+                                        }
+                                    }
+                                })
+                                .catch(err => console.error(`Error uploading birth cert for child ${idx}:`, err));
+                        }
+                        return Promise.resolve();
+                    });
+                    await Promise.all(uploadPromises);
+                }
                 
                 // Re-hydrate department name if we only have ID
                 if (typeof finalData.department === 'string') {
@@ -216,6 +244,25 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
                         onAddFamilyItem={handleAddFamilyItem}
                         onRemoveFamilyItem={handleRemoveFamilyItem}
                         onUpdateFamilyItem={handleUpdateFamilyItem}
+                        employeeId={employee._id}
+                        onBirthCertificateChange={(childIndex, filename) => {
+                            setEmployee(prev => {
+                                if (!prev) return prev;
+                                const updatedChildren = [...(prev.children || [])];
+                                if (updatedChildren[childIndex]) {
+                                    updatedChildren[childIndex] = { ...updatedChildren[childIndex], birthCertificateFile: filename };
+                                }
+                                return { ...prev, children: updatedChildren };
+                            });
+                            setEditedEmployee(prev => {
+                                if (!prev) return prev;
+                                const updatedChildren = [...(prev.children || [])];
+                                if (updatedChildren[childIndex]) {
+                                    updatedChildren[childIndex] = { ...updatedChildren[childIndex], birthCertificateFile: filename };
+                                }
+                                return { ...prev, children: updatedChildren };
+                            });
+                        }}
                     />
                 );
             default:
