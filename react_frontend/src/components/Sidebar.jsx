@@ -10,7 +10,8 @@ import {
     X,
     ChevronDown,
     LayoutDashboard,
-    Heart
+    Heart,
+    HeartHandshake
 } from 'lucide-react';
 import { useUserStore } from '../tools/user.zustand';
 import spcLogo from '../assets/spc-logo.png';
@@ -59,7 +60,7 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
             {
                 id: 'death-benefit',
                 label: 'Dead Donation',
-                icon: Heart,
+                icon: HeartHandshake,
                 path: 'death-benefit'
             },
             ...(user?.role === 'superadmin' ? [{
