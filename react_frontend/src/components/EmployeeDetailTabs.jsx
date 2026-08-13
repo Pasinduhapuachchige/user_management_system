@@ -769,3 +769,111 @@ const FamilyReadOnlySection = ({ title, icon: Icon, items, renderItem }) => (
         )}
     </div>
 );
+
+// --- TAB: DEATH BENEFIT ---
+export const DeathBenefitTab = ({ deathBenefits = [], loading = false }) => {
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'LKR',
+            minimumFractionDigits: 2
+        }).format(amount).replace('LKR', 'Rs.');
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
+    const totalAmount = deathBenefits.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+
+    return (
+        <div className="space-y-6 animate-in">
+            <div className="p-5 rounded-2xl bg-amber-50/60 border border-amber-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-amber-500 text-white rounded-xl shadow-sm">
+                        <Heart className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] uppercase font-black text-amber-700 tracking-wider">Total Death Donations Issued</p>
+                        <p className="text-xl font-black text-gray-900">{formatCurrency(totalAmount)}</p>
+                    </div>
+                </div>
+                <div className="text-right">
+                    <p className="text-[10px] uppercase font-black text-gray-400 tracking-wider">Total Claims</p>
+                    <p className="text-sm font-black text-gray-900">{deathBenefits.length} {deathBenefits.length === 1 ? 'Record' : 'Records'}</p>
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="py-8 text-center text-sm font-semibold text-gray-500">
+                    Loading death benefit history...
+                </div>
+            ) : deathBenefits.length === 0 ? (
+                <div className="py-12 text-center border-2 border-dashed border-gray-100 rounded-2xl">
+                    <Heart className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                    <h4 className="font-bold text-gray-700 text-base mb-1">No Death Benefit Records Found</h4>
+                    <p className="text-xs text-gray-400">No death donation grants have been registered for this employee yet.</p>
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-amber-600" /> Death Benefit History
+                    </h3>
+
+                    <div className="overflow-x-auto rounded-2xl border border-gray-100 shadow-sm bg-white">
+                        <table className="w-full text-left text-sm">
+                            <thead>
+                                <tr className="border-b border-gray-100 text-gray-400 text-[11px] font-black uppercase tracking-wider bg-gray-50/50">
+                                    <th className="py-3 px-4">Who Did You Get It For</th>
+                                    <th className="py-3 px-4">Relationship</th>
+                                    <th className="py-3 px-4">Date Issued</th>
+                                    <th className="py-3 px-4 text-right">Amount Received</th>
+                                    <th className="py-3 px-4 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {deathBenefits.map((item, index) => (
+                                    <tr key={item._id || index} className="hover:bg-amber-50/30 transition-colors">
+                                        <td className="py-3.5 px-4 font-bold text-gray-900">
+                                            {item.deceasedName || 'N/A'}
+                                            {item.voucherNumber && (
+                                                <span className="block text-xs font-normal text-gray-400">
+                                                    Voucher: {item.voucherNumber}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="py-3.5 px-4">
+                                            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                                                {item.relationship || 'N/A'}
+                                            </span>
+                                        </td>
+                                        <td className="py-3.5 px-4 text-gray-600 font-medium">
+                                            {formatDate(item.issuedDate)}
+                                        </td>
+                                        <td className="py-3.5 px-4 text-right font-bold text-green-700">
+                                            {formatCurrency(item.amount)}
+                                        </td>
+                                        <td className="py-3.5 px-4 text-center">
+                                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                                                item.status === 'Paid' ? 'bg-green-100 text-green-800' :
+                                                item.status === 'Pending' ? 'bg-amber-100 text-amber-800' :
+                                                'bg-red-100 text-red-800'
+                                            }`}>
+                                                {item.status || 'Paid'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};

@@ -83,11 +83,15 @@ export const createDeathBenefitController = async (req, res) => {
 // GET Issued Death Benefit Records
 export const getDeathBenefitsController = async (req, res) => {
     try {
-        const { epfNumber, search, status, relationship } = req.query;
+        const { epfNumber, employee, search, status, relationship } = req.query;
         const query = {};
 
         if (epfNumber) {
             query.epfNumber = String(epfNumber).trim();
+        }
+
+        if (employee) {
+            query.employee = employee;
         }
 
         if (status) {

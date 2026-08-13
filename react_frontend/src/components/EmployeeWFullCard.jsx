@@ -7,8 +7,9 @@ import {
 import { toggleEmployeeStatusApi, updateEmployeeApi, uploadBirthCertificateApi, deleteBirthCertificateApi } from '../apis/employee.api';
 import { fetchDepartmentsApi } from '../apis/department.api';
 import { getMaxEpf, getEmpEpf } from '../apis/epf.api';
+import { getDeathBenefitsApi } from '../apis/deathBenefit.api';
 import { createPortal } from 'react-dom';
-import { GeneralTab, EmploymentTab, FamilyTab } from './EmployeeDetailTabs';
+import { GeneralTab, EmploymentTab, FamilyTab, DeathBenefitTab } from './EmployeeDetailTabs';
 import './EmployeeCardStyles.css';
 
 const EmployeeWFullCard = ({ initialEmployee }) => {
@@ -24,6 +25,8 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
     const [departments, setDepartments] = useState([]);
     const [errors, setErrors] = useState({});
     const [allowanceData, setAllowanceData] = useState({ total: 0, spent: 0 });
+    const [deathBenefits, setDeathBenefits] = useState([]);
+    const [deathBenefitsLoading, setDeathBenefitsLoading] = useState(false);
 
     // --- EFFECTS ---
     useEffect(() => {
@@ -38,10 +41,10 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
         fetchDepartments();
     }, []);
 
-    // Fetch medical allowance when modal opens
+    // Fetch medical allowance & death benefits when modal opens
     useEffect(() => {
         if (showDetailModal && employee?._id) {
-            const fetchAllowance = async () => {
+            const fetchAllowanceAndDeathBenefits = async () => {
                 try {
                     const [configRes, epfRes] = await Promise.all([
                         getMaxEpf(),
@@ -55,10 +58,22 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
                 } catch (err) {
                     console.error('Error fetching allowance data:', err);
                 }
+
+                try {
+                    setDeathBenefitsLoading(true);
+                    const dbRes = await getDeathBenefitsApi({ epfNumber: employee.epfNumber });
+                    if (dbRes?.success) {
+                        setDeathBenefits(dbRes.data || []);
+                    }
+                } catch (dbErr) {
+                    console.error('Error fetching death benefit records:', dbErr);
+                } finally {
+                    setDeathBenefitsLoading(false);
+                }
             };
-            fetchAllowance();
+            fetchAllowanceAndDeathBenefits();
         }
-    }, [showDetailModal, employee?._id]);
+    }, [showDetailModal, employee?._id, employee?.epfNumber]);
 
     // Sync editedEmployee when joining edit mode
     useEffect(() => {
@@ -265,6 +280,8 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
                         }}
                     />
                 );
+            case 'deathBenefit':
+                return <DeathBenefitTab deathBenefits={deathBenefits} loading={deathBenefitsLoading} />;
             default:
                 return null;
         }
@@ -388,7 +405,8 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
                                 {[
                                     { id: 'general', label: 'General', icon: Info },
                                     { id: 'employment', label: 'Employment', icon: Briefcase },
-                                    { id: 'family', label: 'Family & Guardians', icon: Users }
+                                    { id: 'family', label: 'Family & Guardians', icon: Users },
+                                    { id: 'deathBenefit', label: 'Death Benefit', icon: Heart }
                                 ].map(tab => (
                                     <button
                                         key={tab.id}

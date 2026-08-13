@@ -33,6 +33,7 @@ import TabHeader from '../components/TabHeader';
 import ForgotPassword from '../components/forgot_password';
 import { updatePassword } from '../apis/recovery.api';
 import { getMaxEpf, getEmpEpf } from '../apis/epf.api';
+import { getDeathBenefitsApi } from '../apis/deathBenefit.api';
 import { Navigate } from 'react-router-dom';
 
 
@@ -377,6 +378,110 @@ const MedicalAllowanceCard = ({ allowanceData }) => {
                     />
                 </div>
             </div>
+        </div>
+    );
+};
+
+// Component 3.8: Death Benefit / Donation History Card
+const DeathBenefitCard = ({ deathBenefits = [], loading = false }) => {
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'LKR',
+            minimumFractionDigits: 2
+        }).format(amount).replace('LKR', 'Rs.');
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
+    const totalAmount = deathBenefits.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+
+    return (
+        <div className="border border-gray-200 rounded-lg p-6 bg-gradient-to-br from-white to-amber-50/20 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <Heart className="w-5 h-5 mr-2 text-amber-600" />
+                    Death Donation Records
+                </h2>
+                <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold uppercase tracking-wider">
+                        {deathBenefits.length} {deathBenefits.length === 1 ? 'Record' : 'Records'}
+                    </span>
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="py-6 text-center text-sm text-gray-500">Loading death donation records...</div>
+            ) : deathBenefits.length > 0 ? (
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Total Death Donations Received</p>
+                            <p className="text-xl font-bold text-amber-700">{formatCurrency(totalAmount)}</p>
+                        </div>
+                        <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Total Issued Grants</p>
+                            <p className="text-xl font-bold text-gray-900">{deathBenefits.length}</p>
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm">
+                            <thead>
+                                <tr className="border-b border-gray-200 text-gray-500 text-xs font-bold uppercase bg-gray-50/50">
+                                    <th className="py-3 px-4">Who Did You Get It For</th>
+                                    <th className="py-3 px-4">Relationship</th>
+                                    <th className="py-3 px-4">Date Issued</th>
+                                    <th className="py-3 px-4 text-right">Amount Received</th>
+                                    <th className="py-3 px-4 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {deathBenefits.map((item, index) => (
+                                    <tr key={item._id || index} className="hover:bg-amber-50/30 transition-colors">
+                                        <td className="py-3.5 px-4 font-bold text-gray-900">
+                                            {item.deceasedName || 'N/A'}
+                                        </td>
+                                        <td className="py-3.5 px-4">
+                                            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                                                {item.relationship || 'N/A'}
+                                            </span>
+                                        </td>
+                                        <td className="py-3.5 px-4 text-gray-600 font-medium">
+                                            {formatDate(item.issuedDate)}
+                                        </td>
+                                        <td className="py-3.5 px-4 text-right font-bold text-green-700">
+                                            {formatCurrency(item.amount)}
+                                        </td>
+                                        <td className="py-3.5 px-4 text-center">
+                                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                                                item.status === 'Paid' ? 'bg-green-100 text-green-800' :
+                                                item.status === 'Pending' ? 'bg-amber-100 text-amber-800' :
+                                                'bg-red-100 text-red-800'
+                                            }`}>
+                                                {item.status || 'Paid'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            ) : (
+                <div className="py-8 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                    <Heart className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm font-semibold text-gray-600">No Death Donation Records Found</p>
+                    <p className="text-xs text-gray-400 mt-1">No death benefit donations have been recorded for your account.</p>
+                </div>
+            )}
         </div>
     );
 };
@@ -880,6 +985,8 @@ const AdminProfilePage = ({ currentPath }) => {
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [showForgotPassword, setShowForgotPassword] = useState(false);
     const [allowanceData, setAllowanceData] = useState({ total: 0, spent: 0 });
+    const [deathBenefits, setDeathBenefits] = useState([]);
+    const [deathBenefitsLoading, setDeathBenefitsLoading] = useState(false);
 
     useEffect(() => {
         const fetchAdminData = async () => {
@@ -904,6 +1011,19 @@ const AdminProfilePage = ({ currentPath }) => {
                         setAllowanceData({ total, spent });
                     } catch (epfErr) {
                         console.error('Error fetching allowance data:', epfErr);
+                    }
+
+                    // Fetch Death Benefit / Donation Details
+                    try {
+                        setDeathBenefitsLoading(true);
+                        const dbRes = await getDeathBenefitsApi({ epfNumber: emp.epfNumber });
+                        if (dbRes?.success) {
+                            setDeathBenefits(dbRes.data || []);
+                        }
+                    } catch (dbErr) {
+                        console.error('Error fetching death benefit records:', dbErr);
+                    } finally {
+                        setDeathBenefitsLoading(false);
                     }
                 } else {
                     setError('No profile data found');
@@ -963,6 +1083,7 @@ const AdminProfilePage = ({ currentPath }) => {
 
                 <div className="space-y-6">
                     <MedicalAllowanceCard allowanceData={allowanceData} />
+                    <DeathBenefitCard deathBenefits={deathBenefits} loading={deathBenefitsLoading} />
                     <PersonalInfoCard adminData={adminData} />
                     <EmploymentInfoCard adminData={adminData} />
                     <FamilyInfoCard adminData={adminData} />
