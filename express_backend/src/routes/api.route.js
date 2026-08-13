@@ -22,6 +22,7 @@ import { departmentStats, epfMonthlyContribution, statsController, getSystemHeal
 import { accountRecoveryController, recoveryUpdatePassword, updatePasswordController, validateOtpController } from '../controllers/recovery.controller.js';
 import { handleRestore } from '../controllers/restore.controller.js';
 import { getEmployeeEpfReportController, getMedicalSummaryReportController } from '../controllers/epfReport.controller.js';
+import { getDeathDonationSummaryReportController, getIndividualDeathDonationReportController } from '../controllers/deathDonationReport.controller.js';
 import { initSuperAdminController } from '../controllers/init.controller.js';
 import { bulkImportEpfController } from '../controllers/bulkImport.controller.js';
 import {
@@ -120,6 +121,10 @@ router.post('/settings/maintenance', verifySuperAdmin, updateMaintenanceSettings
 
 router.get('/reports/epf/:employeeId/:year', verifyAuth, getEmployeeEpfReportController);
 router.get('/reports/medical-summary/:year', verifyAuth, getMedicalSummaryReportController);
+router.get('/reports/death-donation/summary', verifyAuth, getDeathDonationSummaryReportController);
+router.get('/reports/death-donation/summary/:year', verifyAuth, getDeathDonationSummaryReportController);
+router.get('/reports/death-donation/individual/:employeeId', verifyAuth, getIndividualDeathDonationReportController);
+router.get('/reports/death-donation/individual/:employeeId/:year', verifyAuth, getIndividualDeathDonationReportController);
 
 // Notification routes
 router.post('/notifications', verifySuperAdmin, sendNotificationController);

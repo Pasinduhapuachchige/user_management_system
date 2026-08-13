@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Death Benefit Donation Report - <%= year %></title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; font-size: 9pt; line-height: 1.4; color: #1e293b; background: white; padding: 15mm 20mm; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #d97706; padding-bottom: 15px; margin-bottom: 25px; }
+        .logo-box img { width: 120px; height: auto; }
+        .title-box { text-align: center; flex: 1; padding: 0 20px; }
+        .title-box h1 { font-size: 14pt; font-weight: 800; color: #0f172a; text-transform: uppercase; margin-bottom: 4px; }
+        .title-box p { font-size: 9pt; color: #64748b; font-weight: 600; }
+        
+        .scope-badge { display: inline-block; padding: 3px 10px; background: #fef3c7; color: #92400e; border-radius: 12px; font-size: 8pt; font-weight: 800; text-transform: uppercase; margin-top: 4px; }
+        
+        .stats-grid { display: grid; grid-template-cols: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; }
+        .stat-card { background: #fffbe6; border: 1px solid #fde68a; padding: 12px; border-radius: 8px; text-align: center; }
+        .stat-label { font-size: 7pt; color: #78350f; font-weight: bold; text-transform: uppercase; margin-bottom: 4px; }
+        .stat-value { font-size: 12pt; font-weight: 800; color: #b45309; }
+
+        .emp-info-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .emp-info-item { display: flex; flex-direction: column; }
+        .emp-info-label { font-size: 7pt; font-weight: 700; color: #64748b; text-transform: uppercase; }
+        .emp-info-val { font-size: 10pt; font-weight: 800; color: #0f172a; }
+
+        .table-container { margin-bottom: 25px; }
+        .report-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .report-table th { background: #78350f; color: white; padding: 9px 10px; text-align: left; font-weight: 700; border: 1px solid #78350f; font-size: 8pt; text-transform: uppercase; }
+        .report-table td { padding: 8px 10px; border: 1px solid #e2e8f0; }
+        .report-table tr:nth-child(even) { background: #fffbf0; }
+        
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .font-bold { font-weight: bold; }
+
+        .status-badge { padding: 2px 8px; border-radius: 4px; font-size: 7.5pt; font-weight: 800; text-transform: uppercase; display: inline-block; }
+        .status-paid { background: #dcfce7; color: #166534; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+
+        .empty-state { text-align: center; padding: 30px; color: #94a3b8; font-style: italic; font-weight: 600; }
+
+        .footer { margin-top: 40px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 8pt; color: #94a3b8; }
+        .signatures { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 10px; }
+        .sig-box { width: 45%; text-align: center; }
+        .sig-line { border-top: 1px solid #94a3b8; margin-bottom: 5px; width: 80%; margin-left: auto; margin-right: auto; }
+        .sig-title { font-size: 8pt; color: #64748b; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-box">
+            <% if (logoDataUri) { %>
+                <img src="<%= logoDataUri %>" alt="SPC Logo">
+            <% } else { %>
+                <div style="font-size: 14pt; font-weight: 900; color: #b45309;">SPC</div>
+            <% } %>
+        </div>
+        <div class="title-box">
+            <h1>Death Benefit & Donation Report</h1>
+            <p>State Pharmaceuticals Corporation Welfare Management System</p>
+            <span class="scope-badge"><%= reportScope === 'individual' ? 'Individual Statement' : 'Company Master Summary' %></span>
+        </div>
+        <div style="text-align: right;">
+            <p class="stat-label">Report Period</p>
+            <p style="font-size: 16pt; font-weight: 900; color: #78350f;"><%= year %></p>
+        </div>
+    </div>
+
+    <% if (reportScope === 'individual' && employee) { %>
+        <div class="emp-info-card">
+            <div class="emp-info-item">
+                <span class="emp-info-label">Employee Name</span>
+                <span class="emp-info-val"><%= employee.name %></span>
+            </div>
+            <div class="emp-info-item">
+                <span class="emp-info-label">EPF Number</span>
+                <span class="emp-info-val"><%= employee.epfNumber %></span>
+            </div>
+            <div class="emp-info-item">
+                <span class="emp-info-label">Department</span>
+                <span class="emp-info-val"><%= employee.department?.name || 'N/A' %></span>
+            </div>
+            <div class="emp-info-item">
+                <span class="emp-info-label">Joined Date</span>
+                <span class="emp-info-val"><%= employee.joinedDate ? new Date(employee.joinedDate).toLocaleDateString() : 'N/A' %></span>
+            </div>
+        </div>
+    <% } %>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <p class="stat-label">Total Grants Issued</p>
+            <p class="stat-value"><%= records.length %></p>
+        </div>
+        <div class="stat-card">
+            <p class="stat-label">Total Amount Disbursed</p>
+            <p class="stat-value">Rs. <%= totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }) %></p>
+        </div>
+        <div class="stat-card">
+            <p class="stat-label">Paid Claims</p>
+            <p class="stat-value" style="color: #166534;"><%= paidCount %></p>
+        </div>
+        <div class="stat-card">
+            <p class="stat-label">Pending / Other Claims</p>
+            <p class="stat-value" style="color: #d97706;"><%= records.length - paidCount %></p>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <% if (records.length === 0) { %>
+            <div class="empty-state">
+                No death donation records match the selected criteria for <%= year %>.
+            </div>
+        <% } else { %>
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th style="width: 35px;">#</th>
+                        <% if (reportScope !== 'individual') { %>
+                            <th>EPF</th>
+                            <th>Employee Name</th>
+                        <% } %>
+                        <th>Who Did You Get It For</th>
+                        <th>Relationship</th>
+                        <th>Issued Date</th>
+                        <th style="width: 90px;">Voucher No.</th>
+                        <th class="text-right">Amount (LKR)</th>
+                        <th style="width: 75px; text-align: center;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% records.forEach((rec, idx) => { %>
+                        <tr>
+                            <td class="text-center font-bold"><%= idx + 1 %></td>
+                            <% if (reportScope !== 'individual') { %>
+                                <td class="font-bold"><%= rec.epfNumber || rec.employee?.epfNumber || 'N/A' %></td>
+                                <td><%= rec.employee?.name || 'N/A' %></td>
+                            <% } %>
+                            <td class="font-bold"><%= rec.deceasedName || 'N/A' %></td>
+                            <td><%= rec.relationship || 'N/A' %></td>
+                            <td><%= rec.issuedDate ? new Date(rec.issuedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A' %></td>
+                            <td><%= rec.voucherNumber || '-' %></td>
+                            <td class="text-right font-bold" style="color: #166534;">
+                                Rs. <%= Number(rec.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) %>
+                            </td>
+                            <td class="text-center">
+                                <span class="status-badge <%= rec.status === 'Paid' ? 'status-paid' : rec.status === 'Pending' ? 'status-pending' : 'status-cancelled' %>">
+                                    <%= rec.status || 'Paid' %>
+                                </span>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } %>
+    </div>
+
+    <div class="signatures">
+        <div class="sig-box">
+            <div class="sig-line"></div>
+            <p class="sig-title">Prepared By (HR Officer)</p>
+        </div>
+        <div class="sig-box">
+            <div class="sig-line"></div>
+            <p class="sig-title">Approved By (Welfare Manager)</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        Generated on <%= generatedAt %> — State Pharmaceuticals Corporation Welfare Management System
+    </div>
+</body>
+</html>
