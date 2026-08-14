@@ -136,8 +136,15 @@ router.delete('/notifications/:id', verifySuperAdmin, deleteNotificationControll
 router.get('/check-auth', verifyAuth, async (req, res) => {
     let name = undefined;
 
-    // Try the Employee collection first (most users)
-    const employees = await getEmployeesByQuery({ email: req.user.email });
+    // Try finding by epfNumber first (most reliable link between Admin & Employee), fallback to email
+    let employees = [];
+    if (req.user.epfNo) {
+        employees = await getEmployeesByQuery({ epfNumber: String(req.user.epfNo) });
+    }
+    if ((!employees || employees.length === 0) && req.user.email) {
+        employees = await getEmployeesByQuery({ email: req.user.email });
+    }
+
     if (employees && employees.length > 0) {
         name = employees[0]?.name;
     }
@@ -154,6 +161,7 @@ router.get('/check-auth', verifyAuth, async (req, res) => {
         user: {
             _id: req.user._id,
             email: req.user.email,
+            epfNo: req.user.epfNo || null,
             name,
             role: req.user.role
         }

@@ -405,7 +405,7 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
                                 {[
                                     { id: 'general', label: 'General', icon: Info },
                                     { id: 'employment', label: 'Employment', icon: Briefcase },
-                                    { id: 'family', label: 'Family & Guardians', icon: Users },
+                                    { id: 'family', label: 'Family & Dependents', icon: Users },
                                     { id: 'deathBenefit', label: 'Death Benefit', icon: Heart }
                                 ].map(tab => (
                                     <button

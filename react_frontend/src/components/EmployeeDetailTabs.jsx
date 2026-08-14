@@ -340,7 +340,7 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
 
                 {/* Parents Section */}
                 <FamilyReadOnlySection
-                    title="Parents & Guardians"
+                    title="Parents & Dependents"
                     icon={Users}
                     items={data.parents || []}
                     renderItem={(item) => (
@@ -362,7 +362,7 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                 {/* Spouse's Parents Section */}
                 {(data.spouseParents?.length > 0) && (
                     <FamilyReadOnlySection
-                        title="Spouse's Parents & Guardians"
+                        title="Spouse's Parents & Dependents"
                         icon={Users}
                         items={data.spouseParents || []}
                         renderItem={(item) => (
@@ -477,10 +477,10 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
 
             {/* Parents Section */}
             <FamilyCollection 
-                title="Parents & Guardians" 
+                title="Parents & Dependents" 
                 icon={Users}
                 items={data.parents || []}
-                itemLabel="Parent/Guardian"
+                itemLabel="Parent/Dependent"
                 isEditing={isEditing}
                 onAdd={() => onAddFamilyItem('parents', { name: '', relationship: 'Father', contactNumber: '', status: 'Alive' })}
                 onRemove={(index) => onRemoveFamilyItem('parents', index)}
@@ -490,7 +490,7 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                     { 
                         name: 'relationship', 
                         type: 'select', 
-                        options: ['Father', 'Mother', 'Guardian'], 
+                        options: ['Father', 'Mother', 'Dependent'], 
                         icon: UserCheck 
                     },
                     { name: 'contactNumber', placeholder: 'Phone', type: 'phone', icon: Phone },
@@ -506,10 +506,10 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
 
             {/* Spouse Parents Section */}
             <FamilyCollection 
-                title="Spouse's Parents & Guardians" 
+                title="Spouse's Parents & Dependents" 
                 icon={Users}
                 items={data.spouseParents || []}
-                itemLabel="Spouse Parent/Guardian"
+                itemLabel="Spouse Parent/Dependent"
                 isEditing={isEditing}
                 onAdd={() => onAddFamilyItem('spouseParents', { name: '', relationship: 'Father', contactNumber: '', status: 'Alive' })}
                 onRemove={(index) => onRemoveFamilyItem('spouseParents', index)}
@@ -519,7 +519,7 @@ export const FamilyTab = ({ data, isEditing, onUpdate, errors, onAddFamilyItem, 
                     { 
                         name: 'relationship', 
                         type: 'select', 
-                        options: ['Father', 'Mother', 'Father-in-law', 'Mother-in-law', 'Guardian'], 
+                        options: ['Father', 'Mother', 'Father-in-law', 'Mother-in-law', 'Dependent'], 
                         icon: UserCheck 
                     },
                     { name: 'contactNumber', placeholder: 'Phone', type: 'phone', icon: Phone },

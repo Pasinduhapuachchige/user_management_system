@@ -497,7 +497,7 @@ const AddEmployeeForm = ({ onBack }) => {
 
         // Parents validation (required for everyone)
         if (formData.parents.length === 0) {
-            newErrors.parents = 'At least one parent/guardian is required';
+            newErrors.parents = 'At least one parent/dependent is required';
         } else {
             formData.parents.forEach((parent, index) => {
                 if (!parent.name.trim()) {
@@ -524,7 +524,7 @@ const AddEmployeeForm = ({ onBack }) => {
 
             // Spouse parents validation (required only for married)
             if (formData.spouseParents.length === 0) {
-                newErrors.spouseParents = 'At least one spouse parent/guardian is required';
+                newErrors.spouseParents = 'At least one spouse parent/dependent is required';
             }
         }
 
@@ -1145,11 +1145,11 @@ const AddEmployeeForm = ({ onBack }) => {
                                 </div>
                             )}
 
-                            {/* Employee Parents/Guardians */}
+                            {/* Employee Parents/Dependents */}
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <label className="block text-sm font-medium text-gray-700">
-                                        Employee Parents/Guardians <span className="text-red-500">*</span>
+                                        Employee Parents/Dependents <span className="text-red-500">*</span>
                                     </label>
                                     <button
                                         type="button"
@@ -1158,14 +1158,14 @@ const AddEmployeeForm = ({ onBack }) => {
                                         disabled={loading}
                                     >
                                         <Plus className="w-4 h-4" />
-                                        <span>Add Parent/Guardian</span>
+                                        <span>Add Parent/Dependent</span>
                                     </button>
                                 </div>
 
                                 {formData.parents.map((parent, index) => (
                                     <div key={index} className="mb-4 p-4 bg-blue-50 rounded-lg">
                                         <div className="flex items-center justify-between mb-3">
-                                            <h4 className="text-sm font-medium text-gray-700">Employee Parent/Guardian {index + 1}</h4>
+                                            <h4 className="text-sm font-medium text-gray-700">Employee Parent/Dependent {index + 1}</h4>
                                             {formData.parents.length > 1 && (
                                                 <button
                                                     type="button"
@@ -1209,7 +1209,7 @@ const AddEmployeeForm = ({ onBack }) => {
                                                     <option value="">Select relationship</option>
                                                     <option value="Father">Father</option>
                                                     <option value="Mother">Mother</option>
-                                                    <option value="Guardian">Guardian</option>
+                                                    <option value="Dependent">Dependent</option>
                                                 </select>
                                                 {errors[`parent_${index}_relationship`] && (
                                                     <p className="mt-1 text-xs text-red-600">{errors[`parent_${index}_relationship`]}</p>
@@ -1272,7 +1272,7 @@ const AddEmployeeForm = ({ onBack }) => {
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <label className="block text-sm font-medium text-gray-700">
-                                        Spouse Parents/Guardians {formData.maritalStatus === 'Married' && <span className="text-red-500">*</span>}
+                                        Spouse Parents/Dependents {formData.maritalStatus === 'Married' && <span className="text-red-500">*</span>}
                                     </label>
                                     <button
                                         type="button"
@@ -1281,14 +1281,14 @@ const AddEmployeeForm = ({ onBack }) => {
                                         disabled={loading}
                                     >
                                         <Plus className="w-4 h-4" />
-                                        <span>Add Spouse Parent/Guardian</span>
+                                        <span>Add Spouse Parent/Dependent</span>
                                     </button>
                                 </div>
 
                                 {formData.spouseParents.map((parent, index) => (
                                     <div key={index} className="mb-4 p-4 bg-purple-50 rounded-lg">
                                         <div className="flex items-center justify-between mb-3">
-                                            <h4 className="text-sm font-medium text-gray-700">Spouse Parent/Guardian {index + 1}</h4>
+                                            <h4 className="text-sm font-medium text-gray-700">Spouse Parent/Dependent {index + 1}</h4>
                                             {formData.spouseParents.length > 0 && (
                                                 <button
                                                     type="button"
@@ -1334,7 +1334,7 @@ const AddEmployeeForm = ({ onBack }) => {
                                                     <option value="Mother">Mother</option>
                                                     <option value="Father-in-law">Father-in-law</option>
                                                     <option value="Mother-in-law">Mother-in-law</option>
-                                                    <option value="Guardian">Guardian</option>
+                                                    <option value="Dependent">Dependent</option>
                                                 </select>
                                                 {errors[`spouseParent_${index}_relationship`] && (
                                                     <p className="mt-1 text-xs text-red-600">{errors[`spouseParent_${index}_relationship`]}</p>
@@ -1631,11 +1631,11 @@ const AddEmployeeForm = ({ onBack }) => {
                                 <li><strong>EPF Number:</strong> Must be exactly 4 digits</li>
                                 <li><strong>Name:</strong> Only letters and spaces allowed, minimum 2 characters</li>
                                 <li><strong>Contact Number:</strong> Only employee's contact number is required - Sri Lankan numbers only (10 digits starting with 07 OR exactly 9 digits after country code 94)</li>
-                                <li><strong>Parent/Guardian Contact:</strong> Contact numbers for parents and spouse parents are optional but must be valid Sri Lankan numbers if provided</li>
+                                <li><strong>Parent/Dependent Contact:</strong> Contact numbers for parents and spouse parents are optional but must be valid Sri Lankan numbers if provided</li>
                                 <li><strong>NIC Number:</strong> 9 digits + V (e.g., 273017385V) or 12 digits (e.g., 200527033289)</li>
                                 <li><strong>Date of Birth:</strong> Must be 18-70 years old, no future dates</li>
                                 <li><strong>Department:</strong> Search and select from available departments</li>
-                                <li><strong>Parents:</strong> All employees must have at least one parent/guardian listed</li>
+                                <li><strong>Parents:</strong> All employees must have at least one parent/dependent listed</li>
                                 <li><strong>Married Employees:</strong> Must provide spouse name and spouse parents information</li>
                                 <li><strong>Children:</strong> Optional for married employees with detailed information</li>
                                 <li><strong>Profile Picture:</strong> Upload images up to 5MB</li>

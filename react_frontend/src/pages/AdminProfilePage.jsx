@@ -844,7 +844,7 @@ const FamilyInfoCard = ({ adminData }) => {
                 <div>
                     <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2 uppercase tracking-wider">
                         <Users className="w-4 h-4 text-blue-500" />
-                        Parents & Guardians
+                        Parents & Dependents
                         <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">
                             {adminData?.parents?.length || 0}
                         </span>
@@ -877,7 +877,7 @@ const FamilyInfoCard = ({ adminData }) => {
                     <div>
                         <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2 uppercase tracking-wider">
                             <Users className="w-4 h-4 text-violet-500" />
-                            Spouse's Parents & Guardians
+                            Spouse's Parents & Dependents
                             <span className="px-2 py-0.5 bg-violet-100 text-violet-700 rounded-full text-xs font-bold">
                                 {adminData.spouseParents.length}
                             </span>
@@ -993,8 +993,46 @@ const AdminProfilePage = ({ currentPath }) => {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await getEmployeesApi({ email: user.email });
-                if (response.success && response.data.length > 0) {
+
+                let response = null;
+
+                // 1. Primary lookup: by EPF number if available
+                if (user?.epfNo) {
+                    try {
+                        const epfRes = await getEmployeesApi({ epfNumber: String(user.epfNo) });
+                        if (epfRes?.success && epfRes.data?.length > 0) {
+                            response = epfRes;
+                        }
+                    } catch (e) {
+                        console.warn('Lookup by EPF number failed:', e);
+                    }
+                }
+
+                // 2. Secondary lookup: by email if EPF lookup returned no results
+                if ((!response || !response.data || response.data.length === 0) && user?.email) {
+                    try {
+                        const emailRes = await getEmployeesApi({ email: user.email });
+                        if (emailRes?.success && emailRes.data?.length > 0) {
+                            response = emailRes;
+                        }
+                    } catch (e) {
+                        console.warn('Lookup by email failed:', e);
+                    }
+                }
+
+                // 3. Tertiary lookup: search parameter
+                if ((!response || !response.data || response.data.length === 0) && (user?.epfNo || user?.email)) {
+                    try {
+                        const searchRes = await getEmployeesApi({ search: String(user.epfNo || user.email) });
+                        if (searchRes?.success && searchRes.data?.length > 0) {
+                            response = searchRes;
+                        }
+                    } catch (e) {
+                        console.warn('Lookup by search failed:', e);
+                    }
+                }
+
+                if (response && response.success && response.data && response.data.length > 0) {
                     const emp = response.data[0];
                     setAdminData(emp);
 
@@ -1026,7 +1064,17 @@ const AdminProfilePage = ({ currentPath }) => {
                         setDeathBenefitsLoading(false);
                     }
                 } else {
-                    setError('No profile data found');
+                    // Create graceful default profile data structure from authenticated user info
+                    setAdminData({
+                        name: user?.name || user?.email?.split('@')[0] || 'User Profile',
+                        email: user?.email || '',
+                        epfNumber: user?.epfNo ? String(user.epfNo) : 'N/A',
+                        maritalStatus: 'Unmarried',
+                        parents: [],
+                        children: [],
+                        spouseParents: [],
+                        spouseChildren: []
+                    });
                 }
             } catch (error) {
                 console.error('Error fetching profile data:', error);
@@ -1036,13 +1084,13 @@ const AdminProfilePage = ({ currentPath }) => {
             }
         };
 
-        if (user?.email) {
+        if (user) {
             fetchAdminData();
         } else {
             setLoading(false);
-            setError('No user email found');
+            setError('No user logged in');
         }
-    }, [user?.email]);
+    }, [user?.email, user?.epfNo]);
 
     const handleChangePassword = () => {
         setIsPasswordModalOpen(true);

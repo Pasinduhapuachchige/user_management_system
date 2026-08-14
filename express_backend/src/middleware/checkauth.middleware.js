@@ -16,12 +16,6 @@ export const verifyAuth = async (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        req.user = {
-            _id: decoded.id,
-            email: decoded.email,
-            role: decoded.role
-        };
-
         const [admin] = await getAdmins({ _id: decoded.id });
 
         if (!admin) {
@@ -31,6 +25,13 @@ export const verifyAuth = async (req, res, next) => {
                 message: 'Invalid account'
             });
         }
+
+        req.user = {
+            _id: decoded.id,
+            email: admin.email || decoded.email,
+            epfNo: admin.epfNo,
+            role: decoded.role
+        };
 
         if (admin.isActive === false) {
             return res.status(401).json({

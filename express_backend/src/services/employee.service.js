@@ -183,6 +183,12 @@ export const getEmployeesByQuery = async (query) => {
         const { search, ...otherFilters } = query;
         const mongoQuery = { ...otherFilters };
 
+        // If email filter is present, make it case-insensitive regex
+        if (mongoQuery.email && typeof mongoQuery.email === 'string') {
+            const escapedEmail = mongoQuery.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            mongoQuery.email = new RegExp(`^${escapedEmail}$`, 'i');
+        }
+
         // If search is present, add case-insensitive OR conditions
         if (search) {
             const regex = new RegExp(search, 'i');
