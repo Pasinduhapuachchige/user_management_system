@@ -39,6 +39,23 @@ export const createEmployee = async (data) => {
         delete sanitizedData.spouseParents;
     }
 
+    // Duplicate email validation (case-insensitive)
+    if (sanitizedData.email && typeof sanitizedData.email === 'string' && sanitizedData.email.trim()) {
+        const cleanEmail = sanitizedData.email.trim().toLowerCase();
+        const escaped = cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const emailRegex = new RegExp(`^${escaped}$`, 'i');
+
+        const existingEmp = await Employee.findOne({ email: emailRegex });
+        if (existingEmp) {
+            throw new Error(`An employee with email '${sanitizedData.email}' already exists.`);
+        }
+
+        const existingAdmin = await Admin.findOne({ email: emailRegex, epfNo: { $ne: sanitizedData.epfNumber } });
+        if (existingAdmin) {
+            throw new Error(`An account with email '${sanitizedData.email}' already exists.`);
+        }
+    }
+
     try {
         const employee = await Employee.create(sanitizedData);
 
@@ -121,12 +138,44 @@ export const updateEmployee = async (id, data) => {
                 : sanitizedData.profilePicture;
         }
 
+        // Duplicate email validation (case-insensitive)
+        if (sanitizedData.email && typeof sanitizedData.email === 'string' && sanitizedData.email.trim()) {
+            const cleanEmail = sanitizedData.email.trim().toLowerCase();
+            const escaped = cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const emailRegex = new RegExp(`^${escaped}$`, 'i');
+
+            const existingEmp = await Employee.findOne({ email: emailRegex, _id: { $ne: id } });
+            if (existingEmp) {
+                throw new Error(`An employee with email '${sanitizedData.email}' already exists.`);
+            }
+
+            const currentEmp = await Employee.findById(id);
+            const existingAdmin = await Admin.findOne({ email: emailRegex, epfNo: { $ne: currentEmp?.epfNumber } });
+            if (existingAdmin) {
+                throw new Error(`An account with email '${sanitizedData.email}' already exists.`);
+            }
+        }
+
         const updated = await Employee.findByIdAndUpdate(id, sanitizedData, {
             new: true,
             runValidators: true,
         });
 
         if (!updated) throw new Error("Employee not found for update");
+
+        // Sync email to Admin account if email was updated
+        if (sanitizedData.email) {
+            try {
+                await Admin.findOneAndUpdate(
+                    { epfNo: updated.epfNumber },
+                    { email: sanitizedData.email },
+                    { runValidators: false }
+                );
+            } catch (adminErr) {
+                console.error('Failed to sync admin email update:', adminErr.message);
+            }
+        }
+
         return updated;
     } catch (err) {
         throw new Error(`Failed to update employee: ${err.message}`);

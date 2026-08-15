@@ -1,11 +1,23 @@
 import Admin from '../models/admin.model.js';
+import Employee from '../models/employee.model.js';
 import bcrypt from 'bcryptjs';
 
 export const registerAdmin = async ({ email, password, epfNo, role = 'hr_officer' }) => {
     // 1. Check if the email is already in use by ANOTHER account (different EPF number)
-    const emailConflict = await Admin.findOne({ email, epfNo: { $ne: epfNo } });
-    if (emailConflict) {
-        throw new Error('Admin with this email already exists');
+    if (email && typeof email === 'string' && email.trim()) {
+        const cleanEmail = email.trim().toLowerCase();
+        const escaped = cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const emailRegex = new RegExp(`^${escaped}$`, 'i');
+
+        const emailConflict = await Admin.findOne({ email: emailRegex, epfNo: { $ne: epfNo } });
+        if (emailConflict) {
+            throw new Error('An account with this email already exists');
+        }
+
+        const empEmailConflict = await Employee.findOne({ email: emailRegex, epfNumber: { $ne: String(epfNo) } });
+        if (empEmailConflict) {
+            throw new Error('An employee record with this email already exists');
+        }
     }
 
     // 2. Hash the password

@@ -48,7 +48,9 @@ export const createEmployeeController = async (req, res) => {
         res.status(201).json({ success: true, message: 'Employee created', data: employee });
     } catch (err) {
         console.error('Create Employee Error:', err);
-        res.status(500).json({ success: false, message: err.message });
+        const isDuplicate = err.message?.toLowerCase().includes('already exists') || err.message?.toLowerCase().includes('duplicate');
+        const statusCode = isDuplicate ? 400 : 500;
+        res.status(statusCode).json({ success: false, message: err.message });
     }
 };
 
@@ -99,7 +101,9 @@ export const updateEmployeeController = async (req, res) => {
         res.status(200).json({ success: true, message: 'Employee updated', data: updatedObj });
     } catch (err) {
         console.error('Update Employee Error:', err);
-        res.status(500).json({ success: false, message: err.message });
+        const isDuplicate = err.message?.toLowerCase().includes('already exists') || err.message?.toLowerCase().includes('duplicate');
+        const statusCode = isDuplicate ? 400 : 500;
+        res.status(statusCode).json({ success: false, message: err.message });
     }
 };
 

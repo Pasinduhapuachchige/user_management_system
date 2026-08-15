@@ -207,7 +207,8 @@ const EmployeeWFullCard = ({ initialEmployee }) => {
             }
         } catch (error) {
             console.error('Update Error:', error);
-            showNotice('error', error.message || 'An error occurred during update');
+            const msg = error?.message || error?.error || error?.response?.data?.message || (typeof error === 'string' ? error : 'An error occurred during update');
+            showNotice('error', msg);
         } finally {
             setIsLoading(false);
         }

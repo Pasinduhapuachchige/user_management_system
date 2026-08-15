@@ -597,12 +597,27 @@ const AddEmployeeForm = ({ onBack }) => {
                 // Reset the form but do NOT clear toasts here so user sees the success message
                 handleReset();
             } else {
-                const errMsg = (response && response.data && (response.data.message || response.data.error)) || 'Employee not created';
+                const errMsg = response?.message || response?.data?.message || response?.data?.error || 'Employee not created';
+                if (errMsg.toLowerCase().includes('email')) {
+                    setErrors(prev => ({ ...prev, email: errMsg }));
+                }
+                if (errMsg.toLowerCase().includes('epf')) {
+                    setErrors(prev => ({ ...prev, epfNumber: errMsg }));
+                }
                 showToast('error', errMsg);
             }
         } catch (err) {
             console.error('Error creating employee:', err);
-            const msg = err?.response?.data?.message || err.message || 'Employee not created';
+            const msg = err?.message || err?.error || err?.response?.data?.message || (typeof err === 'string' ? err : 'Employee not created');
+            
+            if (typeof msg === 'string') {
+                if (msg.toLowerCase().includes('email')) {
+                    setErrors(prev => ({ ...prev, email: msg }));
+                }
+                if (msg.toLowerCase().includes('epf')) {
+                    setErrors(prev => ({ ...prev, epfNumber: msg }));
+                }
+            }
             showToast('error', msg);
         } finally {
             setLoading(false);
