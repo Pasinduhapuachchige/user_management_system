@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Lock, Mail, ArrowRight, CheckCircle, AlertCircle, Wrench, X } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, ArrowRight, CheckCircle, AlertCircle, Wrench, X, Hash, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { loginApi } from '../apis/login.api';
 import spcLogo from '../assets/spc-logo.png';
@@ -11,6 +11,7 @@ const DEFAULT_MAINTENANCE_MESSAGE = 'The system is currently undergoing schedule
 const LoginUI = ({ forgotClicked = () => { } }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({ email: '', password: '' });
+    const [loginMode, setLoginMode] = useState('staff'); // 'staff' | 'superadmin'
     const [focusedField, setFocusedField] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState(null);
@@ -375,6 +376,52 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                     font-family: 'Inter', sans-serif; transition: color .2s; padding: 0;
                 }
                 .forgot-link:hover { color: #a5b4fc; }
+
+                /* login mode tabs */
+                .login-tabs {
+                    display: flex;
+                    background: rgba(255,255,255,.04);
+                    border: 1px solid rgba(255,255,255,.07);
+                    border-radius: 12px;
+                    padding: 4px;
+                    margin-bottom: 24px;
+                    gap: 4px;
+                }
+                .login-tab {
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 7px;
+                    padding: 9px 12px;
+                    border-radius: 9px;
+                    border: none;
+                    background: none;
+                    color: rgba(148,163,184,.5);
+                    font-family: 'Inter', sans-serif;
+                    font-size: 12px;
+                    font-weight: 700;
+                    letter-spacing: 0.03em;
+                    cursor: pointer;
+                    transition: all .22s ease;
+                }
+                .login-tab.active {
+                    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+                    color: #fff;
+                    box-shadow: 0 4px 16px rgba(99,102,241,.35);
+                }
+                .login-tab:not(.active):hover {
+                    color: rgba(148,163,184,.85);
+                    background: rgba(255,255,255,.05);
+                }
+                .login-mode-hint {
+                    font-size: 11px;
+                    color: rgba(148,163,184,.38);
+                    text-align: center;
+                    margin-bottom: 18px;
+                    font-weight: 500;
+                    letter-spacing: 0.02em;
+                }
 
                 /* ── Backend Connection Diagram ── */
                 .arch-diagram {
@@ -787,6 +834,34 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                                 </div>
                             </div>
 
+                            {/* Login Mode Tabs */}
+                            <div className="login-tabs">
+                                <button
+                                    type="button"
+                                    id="tab-staff"
+                                    className={`login-tab ${loginMode === 'staff' ? 'active' : ''}`}
+                                    onClick={() => { setLoginMode('staff'); setFormData({ email: '', password: '' }); setMessage(null); }}
+                                >
+                                    <Hash size={13} />
+                                    Staff Login
+                                </button>
+                                <button
+                                    type="button"
+                                    id="tab-superadmin"
+                                    className={`login-tab ${loginMode === 'superadmin' ? 'active' : ''}`}
+                                    onClick={() => { setLoginMode('superadmin'); setFormData({ email: '', password: '' }); setMessage(null); }}
+                                >
+                                    <ShieldCheck size={13} />
+                                    Super Admin
+                                </button>
+                            </div>
+
+                            <div className="login-mode-hint">
+                                {loginMode === 'staff'
+                                    ? 'Enter your EPF number and password'
+                                    : 'Enter your email address or EPF number'}
+                            </div>
+
                             {/* Alert */}
                             {message && !loginSuccess && (
                                 <div className={`alert ${messageType === 'success' ? 'alert-success' : 'alert-error'}`}>
@@ -798,14 +873,17 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                             )}
 
                             <form onSubmit={handleSubmit} className={shake ? 'shake' : ''}>
-                                {/* Email */}
+                                {/* EPF / Email field */}
                                 <div className="field-wrap">
-                                    <Mail size={18} className={`field-icon ${focusedField === 'email' ? 'focused' : ''}`} />
+                                    {loginMode === 'staff'
+                                        ? <Hash size={18} className={`field-icon ${focusedField === 'email' ? 'focused' : ''}`} />
+                                        : <Mail size={18} className={`field-icon ${focusedField === 'email' ? 'focused' : ''}`} />
+                                    }
                                     <label className={`field-label ${focusedField === 'email' || formData.email ? 'active' : ''}`}>
-                                        Email or EPF Number
+                                        {loginMode === 'staff' ? 'EPF Number' : 'Email or EPF Number'}
                                     </label>
                                     <input
-                                        type="text"
+                                        type={loginMode === 'staff' ? 'text' : 'text'}
                                         name="email"
                                         required
                                         autoComplete="username"
@@ -814,7 +892,9 @@ const LoginUI = ({ forgotClicked = () => { } }) => {
                                         onFocus={() => setFocusedField('email')}
                                         onBlur={() => setFocusedField(null)}
                                         className="field-input"
-                                        placeholder="Email or EPF Number"
+                                        placeholder={loginMode === 'staff' ? 'EPF Number' : 'Email or EPF Number'}
+                                        inputMode={loginMode === 'staff' ? 'numeric' : 'text'}
+                                        pattern={loginMode === 'staff' ? '[0-9]*' : undefined}
                                     />
                                 </div>
 
